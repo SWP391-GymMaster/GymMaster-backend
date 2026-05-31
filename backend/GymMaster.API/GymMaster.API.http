@@ -1,0 +1,6 @@
+@GymMaster.API_HostAddress = http://localhost:5042
+
+GET {{GymMaster.API_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
