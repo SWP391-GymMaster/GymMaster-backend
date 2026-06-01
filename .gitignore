@@ -1,0 +1,46 @@
+# ===== .NET / ASP.NET Core =====
+bin/
+obj/
+*.user
+*.suo
+.vs/
+
+# Build results
+[Dd]ebug/
+[Rr]elease/
+x64/
+x86/
+[Aa][Rr][Mm]/
+[Bb]in/
+[Oo]bj/
+
+# ===== Secrets / Config (KHONG commit) =====
+# User Secrets nam ngoai repo (%APPDATA%\Microsoft\UserSecrets) - an toan.
+# Khong commit cac file cau hinh chua secret that:
+appsettings.*.local.json
+secrets.json
+*.pfx
+*.key
+.env
+.env.*
+
+# ===== Frontend (Next.js / Node) =====
+node_modules/
+.next/
+out/
+.vercel/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# ===== Claude Code =====
+# Cau hinh ca nhan (quyen, duong dan may local) - khong commit:
+.claude/settings.local.json
+# Giu lai .claude/skills/ (lenh Spec Kit dung chung)
+
+# ===== IDE / OS =====
+.idea/
+*.swp
+.DS_Store
+Thumbs.db

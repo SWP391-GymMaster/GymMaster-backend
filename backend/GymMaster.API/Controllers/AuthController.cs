@@ -7,7 +7,7 @@ namespace GymMaster.API.Controllers;
 
 [ApiController]
 [Route("api/v1/auth")]
-public sealed class AuthController : ControllerBase
+public sealed class AuthController : ApiControllerBase
 {
     private readonly IAuthService _authService;
 
@@ -103,20 +103,5 @@ public sealed class AuthController : ControllerBase
         return result.Succeeded
             ? NoContent()
             : ToActionResult(result);
-    }
-
-    private IActionResult ToActionResult<T>(AuthServiceResult<T> result)
-    {
-        if (result.Succeeded)
-        {
-            return StatusCode(result.StatusCode, ApiResponse<T>.Ok(result.Value!));
-        }
-
-        var response = ApiResponse<T>.Fail(
-            result.ErrorCode ?? "ERROR",
-            result.ErrorMessage ?? "Yeu cau khong hop le.",
-            HttpContext.TraceIdentifier);
-
-        return StatusCode(result.StatusCode, response);
     }
 }

@@ -1,6 +1,58 @@
-@GymMaster.API_HostAddress = http://localhost:5042
+@host = http://localhost:5042
+@token = PASTE_ACCESS_TOKEN_FROM_LOGIN_HERE
 
-GET {{GymMaster.API_HostAddress}}/weatherforecast/
-Accept: application/json
+### ===== AUTH (spec 001) =====
 
-###
+### Login admin (seed): lay accessToken roi dan vao @token o tren
+POST {{host}}/api/v1/auth/login
+Content-Type: application/json
+
+{
+  "email": "admin@gymmaster.local",
+  "password": "Admin123!"
+}
+
+### Thong tin user hien tai
+GET {{host}}/api/v1/auth/me
+Authorization: Bearer {{token}}
+
+### ===== USERS — Admin Management (spec 002) =====
+
+### Tao tai khoan (Admin) -> tra ve temporaryPassword
+POST {{host}}/api/v1/users
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "fullName": "Le Thi Staff",
+  "email": "staff01@gymmaster.local",
+  "phone": "0900000001",
+  "role": "staff",
+  "password": ""
+}
+
+### Danh sach + tim kiem + phan trang
+GET {{host}}/api/v1/users?query=staff&page=1&pageSize=20
+Authorization: Bearer {{token}}
+
+### Loc theo role
+GET {{host}}/api/v1/users?role=member
+Authorization: Bearer {{token}}
+
+### Chi tiet 1 user
+GET {{host}}/api/v1/users/2
+Authorization: Bearer {{token}}
+
+### Cap nhat (doi ten / khoa tai khoan / doi role)
+PUT {{host}}/api/v1/users/2
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "fullName": "Le Thi Staff (updated)",
+  "status": "locked"
+}
+
+### Xoa mem (soft-delete)
+DELETE {{host}}/api/v1/users/2
+Authorization: Bearer {{token}}
