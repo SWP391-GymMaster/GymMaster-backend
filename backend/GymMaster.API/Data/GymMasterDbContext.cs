@@ -20,6 +20,12 @@ public sealed class GymMasterDbContext : DbContext
 
     public DbSet<PasswordResetToken> PasswordResetTokens => Set<PasswordResetToken>();
 
+    public DbSet<MemberProfile> MemberProfiles => Set<MemberProfile>();
+
+    public DbSet<TrainerProfile> TrainerProfiles => Set<TrainerProfile>();
+
+    public DbSet<AuditLog> AuditLogs => Set<AuditLog>();
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.Entity<User>(entity =>
@@ -84,5 +90,43 @@ public sealed class GymMasterDbContext : DbContext
                 .HasForeignKey(token => token.UserId);
         });
 
+        modelBuilder.Entity<MemberProfile>(entity =>
+        {
+            entity.ToTable("member_profiles");
+            entity.HasKey(profile => profile.Id);
+            entity.Property(profile => profile.Gender).HasMaxLength(20);
+            entity.Property(profile => profile.Address).HasMaxLength(255);
+            entity.Property(profile => profile.EmergencyContact).HasMaxLength(100);
+            entity.HasIndex(profile => profile.UserId).IsUnique();
+
+            entity
+                .HasOne(profile => profile.User)
+                .WithMany()
+                .HasForeignKey(profile => profile.UserId);
+        });
+
+        modelBuilder.Entity<TrainerProfile>(entity =>
+        {
+            entity.ToTable("trainer_profiles");
+            entity.HasKey(profile => profile.Id);
+            entity.Property(profile => profile.Specialty).HasMaxLength(150);
+            entity.Property(profile => profile.Bio).HasMaxLength(1000);
+            entity.Property(profile => profile.Gender).HasMaxLength(20);
+            entity.HasIndex(profile => profile.UserId).IsUnique();
+
+            entity
+                .HasOne(profile => profile.User)
+                .WithMany()
+                .HasForeignKey(profile => profile.UserId);
+        });
+
+        modelBuilder.Entity<AuditLog>(entity =>
+        {
+            entity.ToTable("audit_logs");
+            entity.HasKey(log => log.Id);
+            entity.Property(log => log.Action).HasMaxLength(100).IsRequired();
+            entity.Property(log => log.Entity).HasMaxLength(60).IsRequired();
+            entity.HasIndex(log => new { log.Entity, log.EntityId });
+        });
     }
 }

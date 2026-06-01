@@ -43,7 +43,12 @@ builder.Services
     });
 
 builder.Services.AddAuthorization();
+builder.Services.AddHttpContextAccessor();
+builder.Services.AddScoped<IAuditService, AuditService>();
 builder.Services.AddScoped<IAuthService, AuthService>();
+builder.Services.AddScoped<IUserService, UserService>();
+builder.Services.AddScoped<IMemberService, MemberService>();
+builder.Services.AddScoped<ITrainerService, TrainerService>();
 
 builder.Services.AddCors(options =>
 {
