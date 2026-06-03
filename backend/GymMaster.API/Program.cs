@@ -80,6 +80,8 @@ app.MapGet("/", () => Results.Ok(new
     status = "running"
 }));
 
+// Schema DB do team DB cung cap (backend KHONG tu tao/sua schema).
+// Seeder chi dam bao co roles + admin de dang nhap (khong dung toi cau truc bang).
 await DatabaseSeeder.SeedAsync(app.Services);
 
 app.Run();

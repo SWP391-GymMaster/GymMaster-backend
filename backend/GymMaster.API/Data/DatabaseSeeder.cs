@@ -10,9 +10,8 @@ public static class DatabaseSeeder
         using var scope = services.CreateScope();
         var dbContext = scope.ServiceProvider.GetRequiredService<GymMasterDbContext>();
 
-        await dbContext.Database.EnsureCreatedAsync();
-        await EnsureAuthCompatibilityAsync(dbContext);
-
+        // Schema do team DB cung cap (KHONG tu tao/sua schema). Chi seed du lieu:
+        // dam bao co du roles + 1 tai khoan admin de dang nhap neu DB con trong.
         foreach (var roleName in RoleNames.All)
         {
             if (!await dbContext.Roles.AnyAsync(role => role.Name == roleName))
