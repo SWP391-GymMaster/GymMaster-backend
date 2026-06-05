@@ -34,6 +34,14 @@ public sealed class GymMasterDbContext : DbContext
 
     public DbSet<ProgressLog> ProgressLogs => Set<ProgressLog>();
 
+    public DbSet<FoodItem> FoodItems => Set<FoodItem>();
+
+    public DbSet<MealLog> MealLogs => Set<MealLog>();
+
+    public DbSet<MealLogItem> MealLogItems => Set<MealLogItem>();
+
+    public DbSet<CalorieTarget> CalorieTargets => Set<CalorieTarget>();
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.Entity<User>(entity =>
@@ -183,6 +191,58 @@ public sealed class GymMasterDbContext : DbContext
             entity.Property(progress => progress.HipCm).HasPrecision(5, 2);
             entity.Property(progress => progress.Note).HasMaxLength(500);
             entity.HasIndex(progress => new { progress.MemberId, progress.MeasuredAt });
+        });
+
+        modelBuilder.Entity<FoodItem>(entity =>
+        {
+            entity.ToTable("food_items");
+            entity.HasKey(food => food.Id);
+            entity.Property(food => food.Name).HasMaxLength(150).IsRequired();
+            entity.Property(food => food.Unit).HasMaxLength(30).IsRequired();
+            entity.Property(food => food.CaloriesPerUnit).HasPrecision(8, 2);
+            entity.Property(food => food.ProteinG).HasPrecision(8, 2);
+            entity.Property(food => food.CarbG).HasPrecision(8, 2);
+            entity.Property(food => food.FatG).HasPrecision(8, 2);
+            entity.HasIndex(food => food.Name).IsUnique();
+        });
+
+        modelBuilder.Entity<MealLog>(entity =>
+        {
+            entity.ToTable("meal_logs");
+            entity.HasKey(log => log.Id);
+            entity.Property(log => log.LogDate).HasColumnType("date");
+            entity.Property(log => log.MealType).HasConversion<byte>().HasColumnType("tinyint");
+            entity.HasIndex(log => new { log.MemberId, log.LogDate });
+
+            entity
+                .HasMany(log => log.Items)
+                .WithOne()
+                .HasForeignKey(item => item.MealLogId);
+        });
+
+        modelBuilder.Entity<MealLogItem>(entity =>
+        {
+            entity.ToTable("meal_log_items");
+            entity.HasKey(item => item.Id);
+            entity.Property(item => item.Quantity).HasPrecision(8, 2);
+            entity.Property(item => item.Calories).HasPrecision(8, 2);
+
+            entity
+                .HasOne(item => item.FoodItem)
+                .WithMany()
+                .HasForeignKey(item => item.FoodItemId);
+        });
+
+        modelBuilder.Entity<CalorieTarget>(entity =>
+        {
+            entity.ToTable("calorie_targets");
+            entity.HasKey(target => target.Id);
+            entity.Property(target => target.EffectiveDate).HasColumnType("date");
+            entity.Property(target => target.DailyCalories).HasPrecision(8, 2);
+            entity.Property(target => target.ProteinG).HasPrecision(8, 2);
+            entity.Property(target => target.CarbG).HasPrecision(8, 2);
+            entity.Property(target => target.FatG).HasPrecision(8, 2);
+            entity.HasIndex(target => new { target.MemberId, target.EffectiveDate }).IsUnique();
         });
     }
 }
