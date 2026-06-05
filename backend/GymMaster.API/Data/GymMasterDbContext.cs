@@ -26,6 +26,12 @@ public sealed class GymMasterDbContext : DbContext
 
     public DbSet<AuditLog> AuditLogs => Set<AuditLog>();
 
+    public DbSet<MembershipPackage> MembershipPackages => Set<MembershipPackage>();
+
+    public DbSet<Membership> Memberships => Set<Membership>();
+
+    public DbSet<Payment> Payments => Set<Payment>();
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.Entity<User>(entity =>
@@ -127,6 +133,41 @@ public sealed class GymMasterDbContext : DbContext
             entity.Property(log => log.Action).HasMaxLength(100).IsRequired();
             entity.Property(log => log.Entity).HasMaxLength(60).IsRequired();
             entity.HasIndex(log => new { log.Entity, log.EntityId });
+        });
+
+        modelBuilder.Entity<MembershipPackage>(entity =>
+        {
+            entity.ToTable("membership_packages");
+            entity.HasKey(package => package.Id);
+            entity.Property(package => package.Name).HasMaxLength(100).IsRequired();
+            entity.Property(package => package.Description).HasMaxLength(500);
+            entity.Property(package => package.Price).HasPrecision(12, 2);
+            entity.HasIndex(package => package.Name).IsUnique();
+        });
+
+        modelBuilder.Entity<Membership>(entity =>
+        {
+            entity.ToTable("memberships");
+            entity.HasKey(membership => membership.Id);
+            entity.Property(membership => membership.StartDate).HasColumnType("date");
+            entity.Property(membership => membership.EndDate).HasColumnType("date");
+            entity.Property(membership => membership.Status).HasConversion<byte>().HasColumnType("tinyint");
+            entity.HasIndex(membership => membership.MemberId);
+
+            entity
+                .HasOne(membership => membership.Package)
+                .WithMany()
+                .HasForeignKey(membership => membership.PackageId);
+        });
+
+        modelBuilder.Entity<Payment>(entity =>
+        {
+            entity.ToTable("payments");
+            entity.HasKey(payment => payment.Id);
+            entity.Property(payment => payment.Amount).HasPrecision(12, 2);
+            entity.Property(payment => payment.PaymentMethod).HasConversion<byte>().HasColumnType("tinyint");
+            entity.Property(payment => payment.Status).HasConversion<byte>().HasColumnType("tinyint");
+            entity.HasIndex(payment => payment.MembershipId);
         });
     }
 }
