@@ -32,6 +32,8 @@ public sealed class GymMasterDbContext : DbContext
 
     public DbSet<Payment> Payments => Set<Payment>();
 
+    public DbSet<ProgressLog> ProgressLogs => Set<ProgressLog>();
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.Entity<User>(entity =>
@@ -168,6 +170,19 @@ public sealed class GymMasterDbContext : DbContext
             entity.Property(payment => payment.PaymentMethod).HasConversion<byte>().HasColumnType("tinyint");
             entity.Property(payment => payment.Status).HasConversion<byte>().HasColumnType("tinyint");
             entity.HasIndex(payment => payment.MembershipId);
+        });
+
+        modelBuilder.Entity<ProgressLog>(entity =>
+        {
+            entity.ToTable("progress_logs");
+            entity.HasKey(progress => progress.Id);
+            entity.Property(progress => progress.WeightKg).HasPrecision(5, 2);
+            entity.Property(progress => progress.BodyFatPercent).HasPrecision(5, 2);
+            entity.Property(progress => progress.ChestCm).HasPrecision(5, 2);
+            entity.Property(progress => progress.WaistCm).HasPrecision(5, 2);
+            entity.Property(progress => progress.HipCm).HasPrecision(5, 2);
+            entity.Property(progress => progress.Note).HasMaxLength(500);
+            entity.HasIndex(progress => new { progress.MemberId, progress.MeasuredAt });
         });
     }
 }
