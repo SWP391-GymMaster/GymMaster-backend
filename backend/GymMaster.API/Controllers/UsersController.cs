@@ -59,6 +59,25 @@ public sealed class UsersController : ApiControllerBase
         return ToActionResult(result);
     }
 
+    // Cap nhat status (active/locked)
+    [HttpPatch("{id:long}/status")]
+    public async Task<IActionResult> UpdateStatus(
+        long id,
+        [FromBody] UpdateUserStatusRequest request,
+        CancellationToken cancellationToken)
+    {
+        var result = await _userService.UpdateStatusAsync(id, request.Status, cancellationToken);
+        return ToActionResult(result);
+    }
+
+    // Reset mat khau tam cho user
+    [HttpPost("{id:long}/reset-password")]
+    public async Task<IActionResult> ResetPassword(long id, CancellationToken cancellationToken)
+    {
+        var result = await _userService.ResetPasswordAsync(id, cancellationToken);
+        return ToActionResult(result);
+    }
+
     // FR-MEM-04 (soft-delete)
     [HttpDelete("{id:long}")]
     public async Task<IActionResult> Delete(long id, CancellationToken cancellationToken)

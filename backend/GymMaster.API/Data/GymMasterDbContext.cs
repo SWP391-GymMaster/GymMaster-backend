@@ -26,6 +26,24 @@ public sealed class GymMasterDbContext : DbContext
 
     public DbSet<AuditLog> AuditLogs => Set<AuditLog>();
 
+    public DbSet<TrainerAssignment> TrainerAssignments => Set<TrainerAssignment>();
+
+    public DbSet<WorkoutPlan> WorkoutPlans => Set<WorkoutPlan>();
+
+    public DbSet<WorkoutExercise> WorkoutExercises => Set<WorkoutExercise>();
+
+    public DbSet<ExerciseCatalog> ExerciseCatalogs => Set<ExerciseCatalog>();
+
+    public DbSet<TrainerNote> TrainerNotes => Set<TrainerNote>();
+
+    public DbSet<MembershipPackage> MembershipPackages => Set<MembershipPackage>();
+
+    public DbSet<Membership> Memberships => Set<Membership>();
+
+    public DbSet<Payment> Payments => Set<Payment>();
+
+    public DbSet<CheckIn> CheckIns => Set<CheckIn>();
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.Entity<User>(entity =>
@@ -127,6 +145,155 @@ public sealed class GymMasterDbContext : DbContext
             entity.Property(log => log.Action).HasMaxLength(100).IsRequired();
             entity.Property(log => log.Entity).HasMaxLength(60).IsRequired();
             entity.HasIndex(log => new { log.Entity, log.EntityId });
+        });
+
+        modelBuilder.Entity<TrainerAssignment>(entity =>
+        {
+            entity.ToTable("trainer_assignments");
+            entity.HasKey(a => a.Id);
+
+            entity
+                .HasOne(a => a.Member)
+                .WithMany()
+                .HasForeignKey(a => a.MemberId);
+
+            entity
+                .HasOne(a => a.Trainer)
+                .WithMany()
+                .HasForeignKey(a => a.TrainerId);
+
+            entity.HasIndex(a => new { a.MemberId, a.Status });
+            entity.HasIndex(a => new { a.TrainerId, a.Status });
+        });
+
+        modelBuilder.Entity<WorkoutPlan>(entity =>
+        {
+            entity.ToTable("workout_plans", t => t.UseSqlOutputClause(false));
+            entity.HasKey(p => p.Id);
+            entity.Property(p => p.Title).HasMaxLength(150).IsRequired();
+            entity.Property(p => p.Goal).HasMaxLength(255);
+
+            entity
+                .HasOne(p => p.Member)
+                .WithMany()
+                .HasForeignKey(p => p.MemberId);
+
+            entity
+                .HasOne(p => p.Trainer)
+                .WithMany()
+                .HasForeignKey(p => p.TrainerId);
+
+            entity.HasIndex(p => new { p.MemberId, p.Status });
+            entity.HasIndex(p => new { p.TrainerId, p.Status });
+        });
+
+        modelBuilder.Entity<ExerciseCatalog>(entity =>
+        {
+            entity.ToTable("exercise_catalog");
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.Name).HasMaxLength(150).IsRequired();
+            entity.Property(e => e.MuscleGroup).HasMaxLength(80);
+            entity.Property(e => e.Description).HasMaxLength(500);
+            entity.HasIndex(e => e.Name).IsUnique();
+        });
+
+        modelBuilder.Entity<WorkoutExercise>(entity =>
+        {
+            entity.ToTable("workout_exercises");
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.Note).HasMaxLength(255);
+            entity.Property(e => e.WeightKg).HasPrecision(6, 2);
+
+            entity
+                .HasOne(e => e.WorkoutPlan)
+                .WithMany(p => p.Exercises)
+                .HasForeignKey(e => e.WorkoutPlanId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            entity
+                .HasOne(e => e.Exercise)
+                .WithMany()
+                .HasForeignKey(e => e.ExerciseId);
+
+            entity.HasIndex(e => new { e.WorkoutPlanId, e.SortOrder }).IsUnique();
+            entity.HasIndex(e => e.ExerciseId);
+        });
+
+        modelBuilder.Entity<TrainerNote>(entity =>
+        {
+            entity.ToTable("trainer_notes");
+            entity.HasKey(n => n.Id);
+            entity.Property(n => n.Content).HasMaxLength(1000).IsRequired();
+
+            entity
+                .HasOne(n => n.Member)
+                .WithMany()
+                .HasForeignKey(n => n.MemberId);
+
+            entity
+                .HasOne(n => n.Trainer)
+                .WithMany()
+                .HasForeignKey(n => n.TrainerId);
+
+            entity.HasIndex(n => new { n.MemberId, n.NoteDate });
+            entity.HasIndex(n => new { n.TrainerId, n.NoteDate });
+        });
+
+        modelBuilder.Entity<MembershipPackage>(entity =>
+        {
+            entity.ToTable("membership_packages");
+            entity.HasKey(p => p.Id);
+            entity.Property(p => p.Name).HasMaxLength(150).IsRequired();
+            entity.Property(p => p.Price).HasPrecision(12, 2);
+        });
+
+        modelBuilder.Entity<Membership>(entity =>
+        {
+            entity.ToTable("memberships");
+            entity.HasKey(m => m.Id);
+
+            entity
+                .HasOne(m => m.Member)
+                .WithMany()
+                .HasForeignKey(m => m.MemberId);
+
+            entity
+                .HasOne(m => m.Package)
+                .WithMany()
+                .HasForeignKey(m => m.PackageId);
+
+            entity.HasIndex(m => new { m.MemberId, m.Status });
+        });
+
+        modelBuilder.Entity<Payment>(entity =>
+        {
+            entity.ToTable("payments");
+            entity.HasKey(p => p.Id);
+            entity.Property(p => p.Amount).HasPrecision(12, 2);
+            entity.Property(p => p.Method).HasColumnName("PaymentMethod");
+            entity.Property(p => p.CreatedBy).HasColumnName("CreatedByUserId");
+
+            entity
+                .HasOne(p => p.Membership)
+                .WithMany()
+                .HasForeignKey(p => p.MembershipId);
+
+            entity.HasIndex(p => p.MembershipId);
+            entity.HasIndex(p => p.PaidAt);
+        });
+
+        modelBuilder.Entity<CheckIn>(entity =>
+        {
+            entity.ToTable("check_ins");
+            entity.HasKey(c => c.Id);
+            entity.Property(c => c.CreatedBy).HasColumnName("CreatedByUserId");
+
+            entity
+                .HasOne(c => c.Member)
+                .WithMany()
+                .HasForeignKey(c => c.MemberId);
+
+            entity.HasIndex(c => new { c.MemberId, c.CheckInAt });
         });
     }
 }

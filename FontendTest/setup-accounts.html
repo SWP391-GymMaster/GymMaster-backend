@@ -1,0 +1,848 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>GymMaster – Setup Accounts</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Segoe UI', Arial, sans-serif; background: #f0f2f5; color: #222; min-height: 100vh; }
+
+    /* ── Header ── */
+    header {
+      background: #1a1a2e; color: #fff;
+      padding: 14px 28px; display: flex; align-items: center; gap: 12px;
+    }
+    header h1 { font-size: 1.15rem; }
+    .badge { font-size: .7rem; background: #e94560; padding: 2px 8px; border-radius: 20px; }
+    #conn-status { margin-left: auto; font-size: .75rem; padding: 3px 10px; border-radius: 20px; }
+    .conn-ok  { background: #27ae60; color: #fff; }
+    .conn-err { background: #e74c3c; color: #fff; }
+    .conn-chk { background: #888;    color: #fff; }
+
+    /* ── Layout ── */
+    .wrapper { max-width: 900px; margin: 0 auto; padding: 24px 16px; }
+
+    /* ── Progress stepper ── */
+    .stepper {
+      display: flex; align-items: center; margin-bottom: 28px;
+      background: #fff; border-radius: 10px; padding: 16px 20px;
+      box-shadow: 0 1px 4px rgba(0,0,0,.08);
+    }
+    .step {
+      flex: 1; text-align: center; position: relative; cursor: pointer;
+    }
+    .step::after {
+      content: ''; position: absolute; top: 17px; left: 60%; right: -40%;
+      height: 2px; background: #ddd; z-index: 0;
+    }
+    .step:last-child::after { display: none; }
+    .step-circle {
+      width: 34px; height: 34px; border-radius: 50%;
+      background: #ddd; color: #888; font-weight: 700; font-size: .9rem;
+      display: flex; align-items: center; justify-content: center;
+      margin: 0 auto 6px; position: relative; z-index: 1; transition: all .2s;
+    }
+    .step.active .step-circle  { background: #0f3460; color: #fff; }
+    .step.done  .step-circle  { background: #27ae60; color: #fff; }
+    .step-label { font-size: .72rem; color: #666; }
+    .step.active .step-label  { color: #0f3460; font-weight: 600; }
+    .step.done  .step-label  { color: #27ae60; }
+
+    /* ── Cards / panels ── */
+    .panel { display: none; }
+    .panel.active { display: block; }
+    .card {
+      background: #fff; border-radius: 10px; padding: 22px 24px;
+      margin-bottom: 18px; box-shadow: 0 1px 4px rgba(0,0,0,.08);
+    }
+    .card h2 {
+      font-size: 1.05rem; color: #1a1a2e; margin-bottom: 4px;
+      border-left: 4px solid #e94560; padding-left: 10px;
+    }
+    .card .sub { font-size: .8rem; color: #888; margin-bottom: 16px; padding-left: 14px; }
+    .endpoint-tag {
+      display: inline-block; font-size: .72rem; font-family: monospace;
+      background: #eef2ff; color: #0f3460; padding: 2px 8px; border-radius: 4px;
+      margin-bottom: 14px;
+    }
+
+    /* ── Form elements ── */
+    .form-row { display: flex; gap: 12px; flex-wrap: wrap; margin-bottom: 12px; }
+    .form-group { flex: 1; min-width: 160px; }
+    label { font-size: .8rem; color: #555; display: block; margin-bottom: 4px; font-weight: 500; }
+    input, select, textarea {
+      width: 100%; padding: 9px 11px;
+      border: 1px solid #ddd; border-radius: 7px;
+      font-size: .88rem; transition: border .15s;
+    }
+    input:focus, select:focus { outline: none; border-color: #0f3460; }
+    input[readonly] { background: #f8f8f8; color: #555; cursor: default; }
+    textarea { resize: vertical; min-height: 65px; }
+
+    /* ── Buttons ── */
+    .btn-row { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; margin-top: 4px; }
+    button {
+      padding: 9px 20px; border: none; border-radius: 7px;
+      cursor: pointer; font-size: .88rem; font-weight: 600;
+      transition: opacity .15s, transform .1s;
+    }
+    button:hover { opacity: .87; }
+    button:active { transform: scale(.97); }
+    .btn-primary { background: #0f3460; color: #fff; }
+    .btn-success { background: #27ae60; color: #fff; }
+    .btn-outline  {
+      background: transparent; color: #0f3460;
+      border: 1.5px solid #0f3460;
+    }
+    .btn-next { background: #e94560; color: #fff; }
+    .btn-sm   { padding: 6px 14px; font-size: .82rem; }
+
+    /* ── Response ── */
+    .resp-box { margin-top: 14px; }
+    .resp-status { font-size: .82rem; font-weight: 700; margin-bottom: 6px; }
+    .ok  { color: #27ae60; }
+    .err { color: #e74c3c; }
+    pre {
+      background: #1e1e1e; color: #d4d4d4; padding: 12px 14px;
+      border-radius: 7px; font-size: .76rem; overflow-x: auto;
+      max-height: 280px; white-space: pre-wrap; word-break: break-all;
+    }
+
+    /* ── Summary sidebar ── */
+    .summary-banner {
+      background: #fff; border-radius: 10px; padding: 18px 20px;
+      margin-bottom: 24px; box-shadow: 0 1px 4px rgba(0,0,0,.08);
+      border-left: 4px solid #0f3460;
+    }
+    .summary-banner h3 { font-size: .9rem; color: #0f3460; margin-bottom: 10px; }
+    .id-grid { display: grid; grid-template-columns: repeat(auto-fill,minmax(200px,1fr)); gap: 8px; }
+    .id-item {
+      background: #f5f7ff; border-radius: 7px; padding: 10px 12px;
+    }
+    .id-item .lbl { font-size: .72rem; color: #888; margin-bottom: 2px; }
+    .id-item .val {
+      font-size: .95rem; font-weight: 700; color: #0f3460;
+      font-family: monospace; word-break: break-all;
+    }
+    .id-item .val.empty { color: #bbb; font-weight: 400; }
+
+    /* ── Alert/hint ── */
+    .hint {
+      background: #fff8e1; border-left: 3px solid #f39c12;
+      padding: 9px 12px; border-radius: 5px;
+      font-size: .8rem; color: #555; margin: 10px 0;
+    }
+    .hint b { color: #d68910; }
+    .success-hint {
+      background: #e8f8f0; border-left: 3px solid #27ae60;
+      padding: 9px 12px; border-radius: 5px;
+      font-size: .8rem; color: #1e8449; margin: 10px 0;
+    }
+
+    /* ── Tab section (Member options) ── */
+    .tab-bar { display: flex; gap: 0; margin-bottom: 16px; }
+    .tab-btn {
+      padding: 8px 18px; border: 1.5px solid #ddd;
+      background: #f5f5f5; color: #888; font-size: .85rem;
+      cursor: pointer; font-weight: 500; transition: all .15s;
+    }
+    .tab-btn:first-child { border-radius: 7px 0 0 7px; }
+    .tab-btn:last-child  { border-radius: 0 7px 7px 0; border-left: none; }
+    .tab-btn.active { background: #0f3460; color: #fff; border-color: #0f3460; }
+    .tab-panel { display: none; }
+    .tab-panel.active { display: block; }
+
+    /* ── Nav bottom ── */
+    .nav-bottom {
+      display: flex; justify-content: space-between; align-items: center;
+      margin-top: 6px;
+    }
+
+    /* ── Final step ── */
+    .done-card {
+      text-align: center; padding: 32px 24px;
+    }
+    .done-icon { font-size: 3rem; margin-bottom: 12px; }
+    .done-card h2 { font-size: 1.3rem; color: #27ae60; border: none; padding: 0; margin-bottom: 8px; }
+    .done-card p  { font-size: .9rem; color: #555; margin-bottom: 20px; }
+    .link-card {
+      display: inline-flex; align-items: center; gap: 10px;
+      background: #0f3460; color: #fff; padding: 12px 24px;
+      border-radius: 8px; text-decoration: none; font-weight: 600;
+    }
+    .link-card:hover { background: #0a2444; }
+  </style>
+</head>
+<body>
+
+<header>
+  <h1>GymMaster – Setup Accounts</h1>
+  <span class="badge">Chuẩn bị dữ liệu test PT Training</span>
+  <span id="conn-status" class="conn-chk">Đang kiểm tra…</span>
+</header>
+
+<div class="wrapper">
+
+  <!-- Progress stepper -->
+  <div class="stepper">
+    <div class="step active" id="s1" onclick="goStep(1)">
+      <div class="step-circle">1</div>
+      <div class="step-label">Admin Login</div>
+    </div>
+    <div class="step" id="s2" onclick="goStep(2)">
+      <div class="step-circle">2</div>
+      <div class="step-label">Tạo tài khoản PT</div>
+    </div>
+    <div class="step" id="s3" onclick="goStep(3)">
+      <div class="step-circle">3</div>
+      <div class="step-label">Tạo hồ sơ PT</div>
+    </div>
+    <div class="step" id="s4" onclick="goStep(4)">
+      <div class="step-circle">4</div>
+      <div class="step-label">Tạo Member</div>
+    </div>
+    <div class="step" id="s5" onclick="goStep(5)">
+      <div class="step-circle">5</div>
+      <div class="step-label">Hoàn tất</div>
+    </div>
+  </div>
+
+  <!-- Collected IDs banner -->
+  <div class="summary-banner">
+    <h3>IDs đã thu thập (dùng để test PT Training)</h3>
+    <div class="id-grid">
+      <div class="id-item">
+        <div class="lbl">Admin Token</div>
+        <div class="val" id="sum-token">—</div>
+      </div>
+      <div class="id-item">
+        <div class="lbl">PT User ID</div>
+        <div class="val" id="sum-pt-user-id">—</div>
+      </div>
+      <div class="id-item">
+        <div class="lbl">PT Mật khẩu ban đầu</div>
+        <div class="val" id="sum-pt-pass">—</div>
+      </div>
+      <div class="id-item">
+        <div class="lbl">Trainer Profile ID</div>
+        <div class="val" id="sum-trainer-id">—</div>
+      </div>
+      <div class="id-item">
+        <div class="lbl">Member Profile ID</div>
+        <div class="val" id="sum-member-id">—</div>
+      </div>
+      <div class="id-item">
+        <div class="lbl">Member Mật khẩu ban đầu</div>
+        <div class="val" id="sum-member-pass">—</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════════════ STEP 1: Admin Login ═══════════════════ -->
+  <div id="panel-1" class="panel active">
+    <div class="card">
+      <h2>Bước 1 — Đăng nhập Admin</h2>
+      <p class="sub">Token Admin sẽ được dùng để tạo PT và Member ở các bước tiếp theo.</p>
+      <span class="endpoint-tag">POST /api/v1/auth/login</span>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Email</label>
+          <input id="login-email" type="email" value="admin@gymmaster.local" />
+        </div>
+        <div class="form-group">
+          <label>Mật khẩu</label>
+          <input id="login-pass" type="password" value="Admin123!" />
+        </div>
+      </div>
+      <div class="btn-row">
+        <button class="btn-primary" onclick="doLogin()">Đăng nhập</button>
+        <small id="login-hint" style="color:#888; font-size:.8rem"></small>
+      </div>
+      <div class="resp-box" id="login-resp"></div>
+    </div>
+
+    <div class="card">
+      <h2>Token Admin (tự điền sau login)</h2>
+      <div class="form-row">
+        <div class="form-group">
+          <label>JWT Access Token</label>
+          <input id="admin-token" type="text" placeholder="Sẽ tự điền sau khi đăng nhập…" />
+        </div>
+      </div>
+      <div class="hint">
+        <b>Lưu ý:</b> Token chỉ hợp lệ 15 phút. Nếu quá hạn, login lại và token sẽ tự cập nhật.
+      </div>
+      <div class="nav-bottom">
+        <span></span>
+        <button class="btn-next" onclick="goStep(2)">Tiếp theo →</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════════════ STEP 2: Tạo User PT ═══════════════════ -->
+  <div id="panel-2" class="panel">
+    <div class="card">
+      <h2>Bước 2 — Admin tạo tài khoản User cho PT</h2>
+      <p class="sub">Tạo User với role <code>pt</code>. Hệ thống sẽ trả về <b>userId</b> dùng ở bước 3.</p>
+      <span class="endpoint-tag">POST /api/v1/users &nbsp;|&nbsp; [Admin]</span>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Họ tên PT</label>
+          <input id="pt-name" type="text" value="Nguyễn Văn PT" />
+        </div>
+        <div class="form-group">
+          <label>Email</label>
+          <input id="pt-email" type="email" value="pt01@gymmaster.local" />
+        </div>
+        <div class="form-group">
+          <label>Số điện thoại (tuỳ chọn)</label>
+          <input id="pt-phone" type="text" placeholder="0901234567" />
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Mật khẩu (để trống = tự sinh)</label>
+          <input id="pt-password" type="text" placeholder="Để trống để hệ thống tự sinh" />
+        </div>
+        <div class="form-group">
+          <label>Role</label>
+          <input type="text" value="pt" readonly style="background:#f0f5ff;color:#0f3460;font-weight:700" />
+        </div>
+      </div>
+      <div class="btn-row">
+        <button class="btn-primary" onclick="doCreatePtUser()">Tạo tài khoản PT</button>
+      </div>
+      <div class="resp-box" id="create-pt-user-resp"></div>
+    </div>
+
+    <div class="card">
+      <h2>Kết quả — PT User ID</h2>
+      <div class="form-row">
+        <div class="form-group">
+          <label>User ID (sao chép sang bước 3)</label>
+          <input id="pt-user-id-result" type="text" readonly placeholder="Sẽ tự điền sau khi tạo thành công…" />
+        </div>
+        <div class="form-group">
+          <label>Mật khẩu ban đầu</label>
+          <input id="pt-init-pass" type="text" readonly placeholder="Sẽ hiển thị ở đây…" />
+        </div>
+      </div>
+      <div class="hint">
+        <b>Lưu ý:</b> Bước này chỉ tạo <i>tài khoản đăng nhập</i>. Bước 3 sẽ tạo <i>hồ sơ PT</i> (TrainerProfile) kèm thông tin chuyên môn.
+      </div>
+      <div class="nav-bottom">
+        <button class="btn-outline" onclick="goStep(1)">← Quay lại</button>
+        <button class="btn-next" onclick="goStep(3)">Tiếp theo →</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════════════ STEP 3: Tạo TrainerProfile ═══════════════════ -->
+  <div id="panel-3" class="panel">
+    <div class="card">
+      <h2>Bước 3 — Tạo hồ sơ PT (TrainerProfile)</h2>
+      <p class="sub">Gắn thông tin chuyên môn vào userId vừa tạo. Hệ thống trả về <b>Trainer Profile ID</b> dùng khi phân công.</p>
+      <span class="endpoint-tag">POST /api/v1/trainers &nbsp;|&nbsp; [Admin]</span>
+      <div class="form-row">
+        <div class="form-group">
+          <label>User ID (từ bước 2)</label>
+          <input id="trainer-user-id" type="number" placeholder="Tự điền từ bước 2…" />
+        </div>
+        <div class="form-group">
+          <label>Chuyên môn</label>
+          <input id="trainer-specialty" type="text" value="Cardio & Strength" />
+        </div>
+        <div class="form-group">
+          <label>Kinh nghiệm (năm)</label>
+          <input id="trainer-exp" type="number" value="3" />
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Giới tính</label>
+          <select id="trainer-gender">
+            <option value="">-- Chọn --</option>
+            <option value="male">Nam</option>
+            <option value="female">Nữ</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Ngày sinh (tuỳ chọn)</label>
+          <input id="trainer-dob" type="date" />
+        </div>
+        <div class="form-group" style="flex:2">
+          <label>Giới thiệu bản thân</label>
+          <input id="trainer-bio" type="text" placeholder="Chuyên gia về cardio và tăng cơ…" />
+        </div>
+      </div>
+      <div class="btn-row">
+        <button class="btn-primary" onclick="doCreateTrainerProfile()">Tạo hồ sơ PT</button>
+      </div>
+      <div class="resp-box" id="create-trainer-resp"></div>
+    </div>
+
+    <div class="card">
+      <h2>Kết quả — Trainer Profile ID</h2>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Trainer Profile ID (dùng khi phân công PT)</label>
+          <input id="trainer-profile-id-result" type="text" readonly placeholder="Sẽ tự điền…" />
+        </div>
+      </div>
+      <div class="success-hint" id="trainer-done-hint" style="display:none">
+        ✅ Hồ sơ PT đã tạo xong. PT có thể đăng nhập bằng email <b id="pt-email-hint"></b>
+      </div>
+      <div class="nav-bottom">
+        <button class="btn-outline" onclick="goStep(2)">← Quay lại</button>
+        <button class="btn-next" onclick="goStep(4)">Tiếp theo →</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════════════ STEP 4: Tạo Member ═══════════════════ -->
+  <div id="panel-4" class="panel">
+    <div class="card">
+      <h2>Bước 4 — Tạo tài khoản Member</h2>
+      <p class="sub">Chọn 1 trong 2 cách: Admin tạo trực tiếp (khuyên dùng) hoặc Member tự đăng ký.</p>
+
+      <div class="tab-bar">
+        <button class="tab-btn active" onclick="switchMemberTab('admin')">Admin tạo (Admin)</button>
+        <button class="tab-btn" onclick="switchMemberTab('self')">Member tự đăng ký</button>
+      </div>
+
+      <!-- Tab A: Admin tạo member -->
+      <div id="tab-admin-member" class="tab-panel active">
+        <span class="endpoint-tag">POST /api/v1/members &nbsp;|&nbsp; [Admin / Staff]</span>
+        <div class="hint">
+          <b>Cách này</b> tạo User + MemberProfile trong một bước. Ngay sau đó có <b>Member Profile ID</b> để dùng.
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Họ tên</label>
+            <input id="mem-name" type="text" value="Trần Thị Member" />
+          </div>
+          <div class="form-group">
+            <label>Email</label>
+            <input id="mem-email" type="email" value="member01@gymmaster.local" />
+          </div>
+          <div class="form-group">
+            <label>Số điện thoại</label>
+            <input id="mem-phone" type="text" placeholder="0909999888" />
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Mật khẩu (để trống = tự sinh)</label>
+            <input id="mem-password" type="text" placeholder="Để trống để hệ thống tự sinh" />
+          </div>
+          <div class="form-group">
+            <label>Giới tính</label>
+            <select id="mem-gender">
+              <option value="">-- Chọn --</option>
+              <option value="female">Nữ</option>
+              <option value="male">Nam</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Ngày sinh</label>
+            <input id="mem-dob" type="date" />
+          </div>
+        </div>
+        <div class="btn-row">
+          <button class="btn-primary" onclick="doAdminCreateMember()">Admin tạo Member</button>
+        </div>
+        <div class="resp-box" id="admin-create-mem-resp"></div>
+      </div>
+
+      <!-- Tab B: Member tự đăng ký -->
+      <div id="tab-self-member" class="tab-panel">
+        <span class="endpoint-tag">POST /api/v1/auth/register &nbsp;|&nbsp; [Public]</span>
+        <div class="hint">
+          <b>Cách này</b> tạo tài khoản Member. Sau đó cần thêm 1 bước để tạo MemberProfile (Admin dùng token).
+        </div>
+
+        <h3 style="font-size:.9rem;margin:14px 0 8px;color:#333">Bước 4a — Member tự đăng ký</h3>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Họ tên</label>
+            <input id="reg-name" type="text" value="Lê Văn Tự Đăng Ký" />
+          </div>
+          <div class="form-group">
+            <label>Email</label>
+            <input id="reg-email" type="email" value="member02@gymmaster.local" />
+          </div>
+          <div class="form-group">
+            <label>Mật khẩu</label>
+            <input id="reg-pass" type="password" value="Member123!" />
+          </div>
+        </div>
+        <div class="btn-row">
+          <button class="btn-primary" onclick="doRegister()">Đăng ký tài khoản</button>
+        </div>
+        <div class="resp-box" id="register-resp"></div>
+
+        <div class="divider" style="height:1px;background:#eee;margin:20px 0"></div>
+
+        <h3 style="font-size:.9rem;margin:0 0 8px;color:#333">
+          Bước 4b — Admin tạo MemberProfile cho tài khoản vừa đăng ký
+        </h3>
+        <span class="endpoint-tag">POST /api/v1/members &nbsp;|&nbsp; [Admin]</span>
+        <div class="hint">
+          <b>Điền lại đúng email</b> vừa đăng ký để liên kết với tài khoản đó. Không cần password.
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Email (giống email đã đăng ký)</label>
+            <input id="link-email" type="email" placeholder="member02@gymmaster.local" />
+          </div>
+          <div class="form-group">
+            <label>Họ tên</label>
+            <input id="link-name" type="text" value="Lê Văn Tự Đăng Ký" />
+          </div>
+          <div class="form-group">
+            <label>Giới tính</label>
+            <select id="link-gender">
+              <option value="">-- Chọn --</option>
+              <option value="male">Nam</option>
+              <option value="female">Nữ</option>
+            </select>
+          </div>
+        </div>
+        <div class="btn-row">
+          <button class="btn-success" onclick="doLinkMemberProfile()">Tạo MemberProfile (link tài khoản)</button>
+        </div>
+        <div class="resp-box" id="link-member-resp"></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>Kết quả — Member Profile ID</h2>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Member Profile ID (dùng khi phân công và tạo giáo án)</label>
+          <input id="member-profile-id-result" type="text" readonly placeholder="Sẽ tự điền…" />
+        </div>
+        <div class="form-group">
+          <label>Member mật khẩu ban đầu</label>
+          <input id="member-init-pass-result" type="text" readonly placeholder="Sẽ hiển thị ở đây…" />
+        </div>
+      </div>
+      <div class="nav-bottom">
+        <button class="btn-outline" onclick="goStep(3)">← Quay lại</button>
+        <button class="btn-next" onclick="goStep(5)">Hoàn tất →</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════════════ STEP 5: Done ═══════════════════ -->
+  <div id="panel-5" class="panel">
+    <div class="card done-card">
+      <div class="done-icon">🎉</div>
+      <h2>Đã chuẩn bị xong dữ liệu!</h2>
+      <p>Dùng các ID dưới đây để test các tính năng PT Training:</p>
+    </div>
+
+    <div class="card">
+      <h2>Tổng kết IDs</h2>
+      <div class="id-grid" id="final-id-grid" style="gap:12px"></div>
+
+      <div class="divider" style="height:1px;background:#eee;margin:20px 0"></div>
+
+      <h2 style="margin-bottom:14px">Các bước tiếp theo để test</h2>
+      <ol style="padding-left:20px;line-height:2;font-size:.88rem;color:#444">
+        <li>Mở <b>pt-training.html</b> → Đăng nhập với Admin token</li>
+        <li>Vào <b>Phân công PT</b> → dùng <b>Member Profile ID</b> + <b>Trainer Profile ID</b> vừa tạo</li>
+        <li>Đăng nhập lại bằng tài khoản PT (email + mật khẩu ban đầu) → lấy token PT</li>
+        <li>Dán token PT vào ô token → <b>Xem danh sách Member của tôi</b></li>
+        <li>PT <b>Tạo Giáo án</b> cho member vừa phân công</li>
+        <li>PT <b>Ghi chú luyện tập</b> cho member</li>
+        <li>Đăng nhập bằng tài khoản Member → PT xem giáo án và ghi chú của mình</li>
+      </ol>
+
+      <div class="divider" style="height:1px;background:#eee;margin:20px 0"></div>
+
+      <div style="text-align:center">
+        <a class="link-card" href="pt-training.html">
+          ▶ Mở PT Training Test →
+        </a>
+      </div>
+    </div>
+  </div>
+
+</div><!-- end .wrapper -->
+
+<script>
+  const BASE = 'http://localhost:5042/api/v1';
+
+  // ── State ────────────────────────────────────────────────────────────
+  const state = {
+    adminToken: '',
+    ptUserId: null,
+    ptInitPass: '',
+    ptEmail: '',
+    trainerProfileId: null,
+    memberProfileId: null,
+    memberInitPass: ''
+  };
+
+  // ── Helpers ──────────────────────────────────────────────────────────
+  function adminHeaders(withBody = false) {
+    const h = { Authorization: `Bearer ${state.adminToken || document.getElementById('admin-token').value.trim()}` };
+    if (withBody) h['Content-Type'] = 'application/json';
+    return h;
+  }
+
+  function publicHeaders() { return { 'Content-Type': 'application/json' }; }
+
+  async function callApi(method, path, body, usePublic = false) {
+    const opts = {
+      method,
+      headers: usePublic ? publicHeaders() : adminHeaders(!!body)
+    };
+    if (body) opts.body = JSON.stringify(body);
+    try {
+      const resp = await fetch(BASE + path, opts);
+      const text = await resp.text();
+      let json;
+      try { json = JSON.parse(text); } catch { json = text; }
+      return { status: resp.status, ok: resp.ok, json };
+    } catch (err) {
+      return { status: 0, ok: false, json: { error: 'Không kết nối được backend.', detail: err.message } };
+    }
+  }
+
+  function render(elId, { status, ok, json }) {
+    const el = document.getElementById(elId);
+    const cls = ok ? 'ok' : 'err';
+    el.innerHTML = `<div class="resp-status ${cls}">HTTP ${status || '(network error)'}</div><pre>${JSON.stringify(json, null, 2)}</pre>`;
+  }
+
+  function updateSummary() {
+    const setVal = (id, val) => {
+      const el = document.getElementById(id);
+      el.textContent = val || '—';
+      el.className = 'val' + (val ? '' : ' empty');
+    };
+    const tok = state.adminToken;
+    setVal('sum-token', tok ? tok.substring(0, 20) + '…' : '');
+    setVal('sum-pt-user-id', state.ptUserId);
+    setVal('sum-pt-pass', state.ptInitPass);
+    setVal('sum-trainer-id', state.trainerProfileId);
+    setVal('sum-member-id', state.memberProfileId);
+    setVal('sum-member-pass', state.memberInitPass);
+  }
+
+  // ── Stepper ──────────────────────────────────────────────────────────
+  let currentStep = 1;
+
+  function goStep(n) {
+    // Hide current
+    document.getElementById(`panel-${currentStep}`).classList.remove('active');
+    document.getElementById(`s${currentStep}`).classList.remove('active');
+
+    // Mark done
+    for (let i = 1; i < n; i++) {
+      document.getElementById(`s${i}`).classList.add('done');
+      document.getElementById(`s${i}`).querySelector('.step-circle').textContent = '✓';
+    }
+
+    currentStep = n;
+    document.getElementById(`panel-${n}`).classList.add('active');
+    document.getElementById(`s${n}`).classList.add('active');
+    document.getElementById(`s${n}`).classList.remove('done');
+    document.getElementById(`s${n}`).querySelector('.step-circle').textContent = n;
+
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+
+    if (n === 5) buildFinalGrid();
+  }
+
+  // ── Tab switch (member) ────────────────────────────────────────────
+  function switchMemberTab(tab) {
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+    event.target.classList.add('active');
+    document.getElementById(`tab-${tab}-member`).classList.add('active');
+  }
+
+  // ── Step 1: Login ─────────────────────────────────────────────────
+  async function doLogin() {
+    const res = await callApi('POST', '/auth/login', {
+      email: document.getElementById('login-email').value,
+      password: document.getElementById('login-pass').value
+    }, true);
+
+    if (res.ok && res.json?.data?.accessToken) {
+      const tok = res.json.data.accessToken;
+      state.adminToken = tok;
+      document.getElementById('admin-token').value = tok;
+      document.getElementById('login-hint').textContent = '✅ Đăng nhập thành công!';
+      updateSummary();
+    }
+    render('login-resp', res);
+  }
+
+  // ── Step 2: Create PT User ────────────────────────────────────────
+  async function doCreatePtUser() {
+    const email = document.getElementById('pt-email').value.trim();
+    const pass   = document.getElementById('pt-password').value.trim();
+    const res = await callApi('POST', '/users', {
+      fullName: document.getElementById('pt-name').value.trim(),
+      email,
+      phone:    document.getElementById('pt-phone').value.trim() || null,
+      role:     'pt',
+      password: pass || null
+    });
+
+    if (res.ok && res.json?.data?.user?.id) {
+      const uid  = res.json.data.user.id;
+      const pwd  = res.json.data.initialPassword;
+      state.ptUserId   = uid;
+      state.ptInitPass = pwd;
+      state.ptEmail    = email;
+      document.getElementById('pt-user-id-result').value = uid;
+      document.getElementById('pt-init-pass').value      = pwd;
+      // Pre-fill step 3
+      document.getElementById('trainer-user-id').value = uid;
+      updateSummary();
+    }
+    render('create-pt-user-resp', res);
+  }
+
+  // ── Step 3: Create TrainerProfile ────────────────────────────────
+  async function doCreateTrainerProfile() {
+    const userId = parseInt(document.getElementById('trainer-user-id').value);
+    const gender = document.getElementById('trainer-gender').value;
+    const dob    = document.getElementById('trainer-dob').value;
+    const exp    = parseInt(document.getElementById('trainer-exp').value) || null;
+
+    const res = await callApi('POST', '/trainers', {
+      userId,
+      specialty:        document.getElementById('trainer-specialty').value.trim() || null,
+      bio:              document.getElementById('trainer-bio').value.trim() || null,
+      gender:           gender || null,
+      dateOfBirth:      dob || null,
+      yearsOfExperience: exp
+    });
+
+    if (res.ok && res.json?.data?.id) {
+      const tid = res.json.data.id;
+      state.trainerProfileId = tid;
+      document.getElementById('trainer-profile-id-result').value = tid;
+      document.getElementById('trainer-done-hint').style.display = 'block';
+      document.getElementById('pt-email-hint').textContent = state.ptEmail || document.getElementById('pt-email').value;
+      updateSummary();
+    }
+    render('create-trainer-resp', res);
+  }
+
+  // ── Step 4A: Admin create member ─────────────────────────────────
+  async function doAdminCreateMember() {
+    const gender = document.getElementById('mem-gender').value;
+    const dob    = document.getElementById('mem-dob').value;
+    const pass   = document.getElementById('mem-password').value.trim();
+
+    const res = await callApi('POST', '/members', {
+      fullName:         document.getElementById('mem-name').value.trim(),
+      email:            document.getElementById('mem-email').value.trim(),
+      phone:            document.getElementById('mem-phone').value.trim() || null,
+      password:         pass || null,
+      gender:           gender || null,
+      dateOfBirth:      dob || null,
+      address:          null,
+      emergencyContact: null
+    });
+
+    if (res.ok && res.json?.data?.member?.id) {
+      const mid  = res.json.data.member.id;
+      const pwd  = res.json.data.initialPassword;
+      state.memberProfileId = mid;
+      state.memberInitPass  = pwd;
+      document.getElementById('member-profile-id-result').value  = mid;
+      document.getElementById('member-init-pass-result').value   = pwd;
+      updateSummary();
+    }
+    render('admin-create-mem-resp', res);
+  }
+
+  // ── Step 4B: Self register ────────────────────────────────────────
+  async function doRegister() {
+    const res = await callApi('POST', '/auth/register', {
+      fullName: document.getElementById('reg-name').value.trim(),
+      email:    document.getElementById('reg-email').value.trim(),
+      phone:    null,
+      password: document.getElementById('reg-pass').value
+    }, true);
+
+    if (res.ok) {
+      document.getElementById('link-email').value = document.getElementById('reg-email').value;
+      document.getElementById('link-name').value  = document.getElementById('reg-name').value;
+    }
+    render('register-resp', res);
+  }
+
+  // ── Step 4B: Link member profile ─────────────────────────────────
+  async function doLinkMemberProfile() {
+    const gender = document.getElementById('link-gender').value;
+    const res = await callApi('POST', '/members', {
+      fullName: document.getElementById('link-name').value.trim(),
+      email:    document.getElementById('link-email').value.trim(),
+      phone:    null,
+      password: null,
+      gender:   gender || null,
+      dateOfBirth:      null,
+      address:          null,
+      emergencyContact: null
+    });
+
+    if (res.ok && res.json?.data?.member?.id) {
+      const mid = res.json.data.member.id;
+      state.memberProfileId = mid;
+      state.memberInitPass  = '(đã tự đặt lúc đăng ký)';
+      document.getElementById('member-profile-id-result').value = mid;
+      document.getElementById('member-init-pass-result').value  = state.memberInitPass;
+      updateSummary();
+    }
+    render('link-member-resp', res);
+  }
+
+  // ── Step 5: Final grid ────────────────────────────────────────────
+  function buildFinalGrid() {
+    const items = [
+      { label: 'Admin Token (15 ký tự đầu)', value: state.adminToken ? state.adminToken.substring(0, 20) + '…' : null },
+      { label: 'PT User ID', value: state.ptUserId },
+      { label: 'PT Email', value: state.ptEmail },
+      { label: 'PT Mật khẩu ban đầu', value: state.ptInitPass },
+      { label: 'Trainer Profile ID ⭐', value: state.trainerProfileId, highlight: true },
+      { label: 'Member Profile ID ⭐', value: state.memberProfileId, highlight: true },
+      { label: 'Member Mật khẩu ban đầu', value: state.memberInitPass }
+    ];
+    const grid = document.getElementById('final-id-grid');
+    grid.innerHTML = items.map(item => `
+      <div class="id-item" style="${item.highlight ? 'border:2px solid #e94560;' : ''}">
+        <div class="lbl">${item.label}</div>
+        <div class="val ${item.value ? '' : 'empty'}">${item.value || '(chưa tạo)'}</div>
+      </div>`).join('');
+  }
+
+  // ── Backend health check ──────────────────────────────────────────
+  (async function checkBackend() {
+    const el = document.getElementById('conn-status');
+    try {
+      const r = await fetch(BASE.replace('/api/v1', '/'), { signal: AbortSignal.timeout(3000) });
+      if (r.ok) {
+        el.textContent = `● Backend online (port 5042)`;
+        el.className = 'conn-ok';
+      } else {
+        el.textContent = `⚠ Backend ${r.status}`;
+        el.className = 'conn-err';
+      }
+    } catch {
+      el.textContent = `✕ Backend offline — chạy: dotnet run`;
+      el.className = 'conn-err';
+    }
+  })();
+</script>
+</body>
+</html>

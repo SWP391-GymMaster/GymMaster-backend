@@ -140,16 +140,16 @@ public sealed class MemberService : IMemberService
                 (profile.User.Phone != null && profile.User.Phone.Contains(keyword)));
         }
 
-        var totalItems = await members.CountAsync(cancellationToken);
+        var total = await members.CountAsync(cancellationToken);
         var items = await members
             .OrderByDescending(profile => profile.CreatedAt)
             .Skip((page - 1) * pageSize)
             .Take(pageSize)
             .ToListAsync(cancellationToken);
 
-        var totalPages = (int)Math.Ceiling(totalItems / (double)pageSize);
+        var totalPages = (int)Math.Ceiling(total / (double)pageSize);
         var result = new PagedResult<MemberResponse>(
-            items.Select(ToResponse).ToList(), page, pageSize, totalItems, totalPages);
+            items.Select(ToResponse).ToList(), page, pageSize, total, totalPages);
 
         return AuthServiceResult<PagedResult<MemberResponse>>.Success(result);
     }
@@ -173,6 +173,103 @@ public sealed class MemberService : IMemberService
         }
 
         return AuthServiceResult<MemberResponse>.Success(ToResponse(profile));
+    }
+
+    // Canonical Member 360 profile for Admin/Staff, assigned PT, and the member themself.
+    public async Task<AuthServiceResult<Member360Response>> GetProfile360Async(
+        long id,
+        ClaimsPrincipal principal,
+        CancellationToken cancellationToken)
+    {
+        var profile = await FindAsync(id, cancellationToken);
+
+        if (profile is null)
+        {
+            return Fail<Member360Response>("NOT_FOUND", "Khong tim thay hoi vien.", StatusCodes.Status404NotFound);
+        }
+
+        var canAccess = await CanAccess360Async(principal, profile, cancellationToken);
+
+        if (!canAccess)
+        {
+            return Fail<Member360Response>("FORBIDDEN", "Ban khong co quyen xem ho so nay.", StatusCodes.Status403Forbidden);
+        }
+
+        var currentMembership = await _dbContext.Memberships
+            .Include(membership => membership.Package)
+            .Where(membership =>
+                membership.MemberId == id &&
+                membership.Status != MembershipStatus.Cancelled)
+            .OrderByDescending(membership => membership.Status == MembershipStatus.Active)
+            .ThenByDescending(membership => membership.EndDate)
+            .FirstOrDefaultAsync(cancellationToken);
+
+        var activeAssignment = await _dbContext.TrainerAssignments
+            .Include(assignment => assignment.Trainer)
+            .ThenInclude(trainer => trainer.User)
+            .Where(assignment => assignment.MemberId == id && assignment.Status == AssignmentStatuses.Active)
+            .OrderByDescending(assignment => assignment.StartDate)
+            .ThenByDescending(assignment => assignment.CreatedAt)
+            .FirstOrDefaultAsync(cancellationToken);
+
+        var recentCheckIns = await _dbContext.CheckIns
+            .Where(checkIn => checkIn.MemberId == id)
+            .OrderByDescending(checkIn => checkIn.CheckInAt)
+            .Take(5)
+            .Select(checkIn => new Member360CheckInResponse(checkIn.Id, checkIn.CheckInAt))
+            .ToListAsync(cancellationToken);
+
+        var response = new Member360Response(
+            new Member360MemberResponse(
+                profile.Id,
+                $"MEM-{profile.Id:D6}",
+                profile.User.FullName,
+                profile.User.Email,
+                profile.User.Phone,
+                profile.User.Status),
+            currentMembership is null
+                ? null
+                : new Member360MembershipResponse(
+                    currentMembership.Id,
+                    currentMembership.Package?.Name ?? $"Package #{currentMembership.PackageId}",
+                    currentMembership.StartDate,
+                    currentMembership.EndDate,
+                    ToMembershipStatus(currentMembership.Status),
+                    currentMembership.Status == MembershipStatus.Active ? "paid" : "pending"),
+            activeAssignment is null
+                ? null
+                : new Member360AssignedPtResponse(
+                    activeAssignment.TrainerId,
+                    activeAssignment.Trainer?.User?.FullName ?? "Huấn luyện viên",
+                    activeAssignment.Trainer?.Specialty,
+                    activeAssignment.CreatedAt),
+            recentCheckIns);
+
+        return AuthServiceResult<Member360Response>.Success(response);
+    }
+
+    public async Task<AuthServiceResult<long>> GetCurrentMemberProfileIdAsync(
+        ClaimsPrincipal principal,
+        CancellationToken cancellationToken)
+    {
+        var userId = GetActorId(principal);
+
+        if (userId is null)
+        {
+            return Fail<long>("UNAUTHORIZED", "Khong xac dinh duoc danh tinh.", StatusCodes.Status401Unauthorized);
+        }
+
+        var memberId = await _dbContext.MemberProfiles
+            .Where(profile => profile.UserId == userId && !profile.IsDeleted && !profile.User.IsDeleted)
+            .Select(profile => profile.Id)
+            .FirstOrDefaultAsync(cancellationToken);
+
+        if (memberId == 0)
+        {
+            return Fail<long>("NOT_FOUND", "Khong tim thay hoi vien.", StatusCodes.Status404NotFound);
+        }
+
+        return AuthServiceResult<long>.Success(memberId);
     }
 
     // FR-MEM-03: cap nhat ho so.
@@ -284,6 +381,51 @@ public sealed class MemberService : IMemberService
         return false;
     }
 
+    private async Task<bool> CanAccess360Async(
+        ClaimsPrincipal principal,
+        MemberProfile profile,
+        CancellationToken cancellationToken)
+    {
+        if (principal.IsInRole(RoleNames.Admin) || principal.IsInRole(RoleNames.Staff))
+        {
+            return true;
+        }
+
+        var actorId = GetActorId(principal);
+
+        if (actorId is null)
+        {
+            return false;
+        }
+
+        if (principal.IsInRole(RoleNames.Member))
+        {
+            return actorId == profile.UserId;
+        }
+
+        if (!principal.IsInRole(RoleNames.Pt))
+        {
+            return false;
+        }
+
+        var trainerProfile = await _dbContext.TrainerProfiles
+            .FirstOrDefaultAsync(
+                trainer => trainer.UserId == actorId && !trainer.IsDeleted,
+                cancellationToken);
+
+        if (trainerProfile is null)
+        {
+            return false;
+        }
+
+        return await _dbContext.TrainerAssignments.AnyAsync(
+            assignment =>
+                assignment.MemberId == profile.Id &&
+                assignment.TrainerId == trainerProfile.Id &&
+                assignment.Status == AssignmentStatuses.Active,
+            cancellationToken);
+    }
+
     private async Task<Role> GetRoleAsync(string roleName, CancellationToken cancellationToken)
     {
         var role = await _dbContext.Roles.FirstOrDefaultAsync(item => item.Name == roleName, cancellationToken);
@@ -316,6 +458,7 @@ public sealed class MemberService : IMemberService
         return new MemberResponse(
             profile.Id,
             profile.UserId,
+            $"MEM-{profile.Id:D6}",
             profile.User.Email,
             profile.User.FullName,
             profile.User.Phone,
@@ -326,6 +469,18 @@ public sealed class MemberService : IMemberService
             profile.JoinedAt,
             profile.User.Status,
             profile.CreatedAt);
+    }
+
+    private static string ToMembershipStatus(byte status)
+    {
+        return status switch
+        {
+            MembershipStatus.Active => "active",
+            MembershipStatus.PendingPayment => "pending_payment",
+            MembershipStatus.Expired => "expired",
+            MembershipStatus.Cancelled => "cancelled",
+            _ => "expired"
+        };
     }
 
     private static long? GetActorId(ClaimsPrincipal principal)

@@ -29,11 +29,12 @@ public sealed class TrainersController : ApiControllerBase
 
     [HttpGet]
     public async Task<IActionResult> List(
+        [FromQuery] string? query,
         [FromQuery] int page = 1,
         [FromQuery] int pageSize = 20,
         CancellationToken cancellationToken = default)
     {
-        var result = await _trainerService.ListAsync(page, pageSize, cancellationToken);
+        var result = await _trainerService.ListAsync(query, page, pageSize, cancellationToken);
         return ToActionResult(result);
     }
 

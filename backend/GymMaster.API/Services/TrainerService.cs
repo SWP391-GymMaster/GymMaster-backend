@@ -74,6 +74,7 @@ public sealed class TrainerService : ITrainerService
     }
 
     public async Task<AuthServiceResult<PagedResult<TrainerResponse>>> ListAsync(
+        string? query,
         int page,
         int pageSize,
         CancellationToken cancellationToken)
@@ -85,16 +86,25 @@ public sealed class TrainerService : ITrainerService
             .Include(profile => profile.User)
             .Where(profile => !profile.IsDeleted && !profile.User.IsDeleted);
 
-        var totalItems = await trainers.CountAsync(cancellationToken);
+        if (!string.IsNullOrWhiteSpace(query))
+        {
+            var keyword = query.Trim();
+            trainers = trainers.Where(profile =>
+                profile.User.FullName.Contains(keyword) ||
+                profile.User.Email.Contains(keyword) ||
+                (profile.Specialty != null && profile.Specialty.Contains(keyword)));
+        }
+
+        var total = await trainers.CountAsync(cancellationToken);
         var items = await trainers
             .OrderByDescending(profile => profile.CreatedAt)
             .Skip((page - 1) * pageSize)
             .Take(pageSize)
             .ToListAsync(cancellationToken);
 
-        var totalPages = (int)Math.Ceiling(totalItems / (double)pageSize);
+        var totalPages = (int)Math.Ceiling(total / (double)pageSize);
         var result = new PagedResult<TrainerResponse>(
-            items.Select(ToResponse).ToList(), page, pageSize, totalItems, totalPages);
+            items.Select(ToResponse).ToList(), page, pageSize, total, totalPages);
 
         return AuthServiceResult<PagedResult<TrainerResponse>>.Success(result);
     }
@@ -173,6 +183,7 @@ public sealed class TrainerService : ITrainerService
             profile.UserId,
             profile.User.Email,
             profile.User.FullName,
+            profile.User.Status,
             profile.Specialty,
             profile.Bio,
             profile.Gender,

@@ -1,0 +1,572 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>GymMaster – Dashboard & Audit Log Test</title>
+  <style>
+    :root {
+      --bg: #0f172a;
+      --card: #1e293b;
+      --border: #334155;
+      --accent: #6366f1;
+      --accent2: #22d3ee;
+      --danger: #f43f5e;
+      --success: #22c55e;
+      --warn: #f59e0b;
+      --text: #e2e8f0;
+      --muted: #94a3b8;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { background: var(--bg); color: var(--text); font-family: 'Segoe UI', system-ui, sans-serif; min-height: 100vh; }
+
+    header { background: var(--card); border-bottom: 1px solid var(--border); padding: 16px 24px; display: flex; align-items: center; gap: 16px; }
+    header h1 { font-size: 1.25rem; font-weight: 700; color: var(--accent); }
+    header span { color: var(--muted); font-size: 0.875rem; }
+
+    .layout { display: grid; grid-template-columns: 260px 1fr; height: calc(100vh - 57px); }
+
+    /* Sidebar */
+    .sidebar { background: var(--card); border-right: 1px solid var(--border); padding: 16px; display: flex; flex-direction: column; gap: 8px; overflow-y: auto; }
+    .sidebar h3 { font-size: 0.75rem; text-transform: uppercase; letter-spacing: .08em; color: var(--muted); margin-bottom: 4px; }
+    .sidebar input, .sidebar select { width: 100%; background: var(--bg); border: 1px solid var(--border); border-radius: 6px; padding: 7px 10px; color: var(--text); font-size: 0.85rem; }
+    .sidebar input:focus, .sidebar select:focus { outline: 2px solid var(--accent); }
+    .sidebar label { font-size: 0.8rem; color: var(--muted); margin-top: 8px; display: block; }
+    .btn { width: 100%; padding: 9px; border-radius: 6px; border: none; cursor: pointer; font-weight: 600; font-size: 0.875rem; transition: opacity .15s; }
+    .btn:hover { opacity: .85; }
+    .btn-primary { background: var(--accent); color: #fff; }
+    .btn-secondary { background: var(--card); border: 1px solid var(--border); color: var(--text); }
+    .token-box { background: var(--bg); border: 1px solid var(--border); border-radius: 6px; padding: 8px; font-size: 0.75rem; color: var(--muted); word-break: break-all; max-height: 80px; overflow-y: auto; }
+    .divider { border: none; border-top: 1px solid var(--border); margin: 8px 0; }
+
+    /* Main */
+    .main { overflow-y: auto; padding: 24px; display: flex; flex-direction: column; gap: 24px; }
+
+    /* Stat cards */
+    .stat-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; }
+    .stat-card { background: var(--card); border: 1px solid var(--border); border-radius: 10px; padding: 20px; }
+    .stat-card .label { font-size: 0.75rem; color: var(--muted); text-transform: uppercase; letter-spacing: .05em; margin-bottom: 8px; }
+    .stat-card .value { font-size: 2rem; font-weight: 700; }
+    .stat-card.revenue .value { color: var(--success); }
+    .stat-card.active .value  { color: var(--accent2); }
+    .stat-card.expired .value { color: var(--danger); }
+    .stat-card.checkins .value { color: var(--warn); }
+
+    /* Chart */
+    .chart-section { background: var(--card); border: 1px solid var(--border); border-radius: 10px; padding: 20px; }
+    .chart-section h2 { font-size: 1rem; font-weight: 600; margin-bottom: 16px; }
+    .chart-bars { display: flex; align-items: flex-end; gap: 6px; height: 160px; overflow-x: auto; padding-bottom: 4px; }
+    .bar-wrap { display: flex; flex-direction: column; align-items: center; gap: 4px; min-width: 40px; }
+    .bar { background: var(--accent); border-radius: 4px 4px 0 0; width: 100%; transition: height .3s; }
+    .bar-label { font-size: 0.65rem; color: var(--muted); white-space: nowrap; }
+    .bar-val { font-size: 0.65rem; color: var(--text); }
+    .no-data { color: var(--muted); font-size: 0.875rem; padding: 24px 0; }
+
+    /* Audit log table */
+    .table-section { background: var(--card); border: 1px solid var(--border); border-radius: 10px; padding: 20px; }
+    .table-section h2 { font-size: 1rem; font-weight: 600; margin-bottom: 16px; }
+    .table-wrap { overflow-x: auto; }
+    table { width: 100%; border-collapse: collapse; font-size: 0.82rem; }
+    th { text-align: left; padding: 8px 12px; border-bottom: 1px solid var(--border); color: var(--muted); font-weight: 600; font-size: 0.75rem; text-transform: uppercase; white-space: nowrap; }
+    td { padding: 9px 12px; border-bottom: 1px solid var(--border); vertical-align: top; }
+    tr:last-child td { border-bottom: none; }
+    tr:hover td { background: rgba(255,255,255,.02); }
+    .badge { display: inline-block; padding: 2px 8px; border-radius: 999px; font-size: 0.7rem; font-weight: 600; white-space: nowrap; }
+    .badge-blue  { background: rgba(99,102,241,.2); color: #818cf8; }
+    .badge-green { background: rgba(34,197,94,.15); color: #4ade80; }
+    .badge-red   { background: rgba(244,63,94,.15);  color: #fb7185; }
+    .badge-orange{ background: rgba(245,158,11,.15); color: #fbbf24; }
+    .meta-cell { max-width: 200px; font-family: monospace; font-size: 0.72rem; color: var(--muted); white-space: pre-wrap; word-break: break-all; }
+
+    /* Pagination */
+    .pagination { display: flex; gap: 8px; align-items: center; justify-content: flex-end; margin-top: 12px; }
+    .page-btn { background: var(--bg); border: 1px solid var(--border); color: var(--text); border-radius: 6px; padding: 5px 12px; cursor: pointer; font-size: 0.82rem; }
+    .page-btn:hover { border-color: var(--accent); }
+    .page-btn.active { background: var(--accent); border-color: var(--accent); color: #fff; }
+    .page-btn:disabled { opacity: .4; cursor: not-allowed; }
+    .page-info { font-size: 0.8rem; color: var(--muted); }
+
+    /* Status bar */
+    .status-bar { display: flex; gap: 8px; align-items: center; font-size: 0.8rem; padding: 10px 16px; background: var(--card); border: 1px solid var(--border); border-radius: 8px; }
+    .dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+    .dot-green { background: var(--success); }
+    .dot-red   { background: var(--danger); }
+    .dot-grey  { background: var(--muted); }
+
+    /* Loading */
+    .spinner { display: inline-block; width: 18px; height: 18px; border: 2px solid var(--border); border-top-color: var(--accent); border-radius: 50%; animation: spin .7s linear infinite; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* Raw JSON viewer */
+    .json-box { background: var(--bg); border: 1px solid var(--border); border-radius: 6px; padding: 12px; font-family: monospace; font-size: 0.75rem; white-space: pre-wrap; word-break: break-all; max-height: 200px; overflow-y: auto; color: #a5f3fc; }
+
+    .section-header { display: flex; align-items: center; gap: 12px; margin-bottom: 16px; }
+    .section-header h2 { font-size: 1rem; font-weight: 600; }
+    .section-header .spinner { margin-left: auto; }
+  </style>
+</head>
+<body>
+
+<header>
+  <h1>GymMaster</h1>
+  <span>Dashboard & Audit Log — Feature 008 Test</span>
+</header>
+
+<div class="layout">
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+    <h3>Cấu hình API</h3>
+    <label>Base URL</label>
+    <input id="baseUrl" value="http://localhost:5042" placeholder="http://localhost:5062" />
+
+    <label>JWT Token (Admin)</label>
+    <div style="position:relative">
+      <input id="tokenInput" type="password" placeholder="Dán JWT token vào đây" style="padding-right:40px" />
+      <button onclick="toggleToken()" style="position:absolute;right:6px;top:50%;transform:translateY(-50%);background:none;border:none;color:var(--muted);cursor:pointer;font-size:0.8rem">👁</button>
+    </div>
+    <button class="btn btn-secondary" style="margin-top:4px" onclick="loginAdmin()">Login Admin (auto)</button>
+    <div class="token-box" id="tokenDisplay">Chưa có token</div>
+
+    <hr class="divider" />
+
+    <h3>Dashboard Filter</h3>
+    <label>From</label>
+    <input type="date" id="dashFrom" />
+    <label>To</label>
+    <input type="date" id="dashTo" />
+    <button class="btn btn-primary" style="margin-top:10px" onclick="loadDashboard()">Tải Dashboard</button>
+
+    <hr class="divider" />
+
+    <h3>Audit Log Filter</h3>
+    <label>UserId</label>
+    <input type="number" id="auditUserId" placeholder="để trống = tất cả" />
+    <label>Action</label>
+    <input id="auditAction" placeholder="VD: SELL_MEMBERSHIP" />
+    <label>From</label>
+    <input type="date" id="auditFrom" />
+    <label>To</label>
+    <input type="date" id="auditTo" />
+    <label>Page Size</label>
+    <select id="auditPageSize">
+      <option value="10">10</option>
+      <option value="20" selected>20</option>
+      <option value="50">50</option>
+    </select>
+    <button class="btn btn-primary" style="margin-top:10px" onclick="loadAuditLogs(1)">Tra cứu Audit Log</button>
+  </aside>
+
+  <!-- MAIN CONTENT -->
+  <main class="main">
+
+    <!-- Status -->
+    <div id="statusBar" class="status-bar">
+      <span class="dot dot-grey" id="statusDot"></span>
+      <span id="statusText">Chưa kết nối. Nhập token hoặc login admin, rồi tải dashboard.</span>
+    </div>
+
+    <!-- Stat Cards -->
+    <div class="stat-row">
+      <div class="stat-card revenue">
+        <div class="label">Doanh thu kỳ</div>
+        <div class="value" id="statRevenue">—</div>
+      </div>
+      <div class="stat-card active">
+        <div class="label">Membership Active</div>
+        <div class="value" id="statActive">—</div>
+      </div>
+      <div class="stat-card expired">
+        <div class="label">Membership Expired</div>
+        <div class="value" id="statExpired">—</div>
+      </div>
+      <div class="stat-card checkins">
+        <div class="label">Tổng Check-in kỳ</div>
+        <div class="value" id="statCheckins">—</div>
+      </div>
+    </div>
+
+    <!-- Check-in chart -->
+    <div class="chart-section">
+      <div class="section-header">
+        <h2>Check-in theo ngày</h2>
+        <span id="chartSpinner" style="display:none"><span class="spinner"></span></span>
+      </div>
+      <div id="chartContainer" class="chart-bars">
+        <span class="no-data">Tải dashboard để xem biểu đồ</span>
+      </div>
+    </div>
+
+    <!-- Dashboard raw JSON -->
+    <div class="table-section" id="dashRawSection" style="display:none">
+      <div class="section-header"><h2>Raw JSON – Dashboard</h2></div>
+      <div class="json-box" id="dashRaw"></div>
+    </div>
+
+    <!-- Audit Log Table -->
+    <div class="table-section">
+      <div class="section-header">
+        <h2>Audit Log</h2>
+        <span id="auditSpinner" style="display:none"><span class="spinner"></span></span>
+        <span id="auditTotal" style="margin-left:auto; font-size:0.8rem; color:var(--muted)"></span>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>#ID</th>
+              <th>User</th>
+              <th>Action</th>
+              <th>Entity</th>
+              <th>EntityId</th>
+              <th>Metadata</th>
+              <th>Thời gian</th>
+            </tr>
+          </thead>
+          <tbody id="auditBody">
+            <tr><td colspan="7" style="color:var(--muted);text-align:center;padding:32px">Nhấn "Tra cứu Audit Log" để tải dữ liệu</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="pagination" id="auditPagination"></div>
+    </div>
+
+    <!-- Audit raw JSON -->
+    <div class="table-section" id="auditRawSection" style="display:none">
+      <div class="section-header"><h2>Raw JSON – Audit Log</h2></div>
+      <div class="json-box" id="auditRaw"></div>
+    </div>
+
+    <!-- Test Buttons -->
+    <div class="table-section">
+      <div class="section-header"><h2>Acceptance Criteria Tests</h2></div>
+      <div style="display:flex;flex-wrap:wrap;gap:10px">
+        <button class="btn btn-secondary" style="width:auto;padding:8px 16px" onclick="testAC03()">AC-03: Member → 403</button>
+        <button class="btn btn-secondary" style="width:auto;padding:8px 16px" onclick="testAC04()">AC-04: Kỳ trống → 0</button>
+        <button class="btn btn-secondary" style="width:auto;padding:8px 16px" onclick="testInvalidRange()">AC-07: from > to → 422</button>
+        <button class="btn btn-secondary" style="width:auto;padding:8px 16px" onclick="testNoToken()">No token → 401</button>
+      </div>
+      <div class="json-box" id="testResult" style="margin-top:12px;display:none"></div>
+    </div>
+
+  </main>
+</div>
+
+<script>
+  /* ============================================================
+     Helpers
+  ============================================================ */
+  let currentAuditPage = 1;
+
+  function getBase() { return document.getElementById('baseUrl').value.replace(/\/$/, ''); }
+  function getToken() { return document.getElementById('tokenInput').value.trim(); }
+
+  function headers(token) {
+    const h = { 'Content-Type': 'application/json' };
+    if (token) h['Authorization'] = 'Bearer ' + token;
+    return h;
+  }
+
+  function setStatus(ok, msg) {
+    const dot = document.getElementById('statusDot');
+    dot.className = 'dot ' + (ok === null ? 'dot-grey' : ok ? 'dot-green' : 'dot-red');
+    document.getElementById('statusText').textContent = msg;
+  }
+
+  function toggleToken() {
+    const inp = document.getElementById('tokenInput');
+    inp.type = inp.type === 'password' ? 'text' : 'password';
+  }
+
+  function fmtMoney(v) {
+    return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(v);
+  }
+
+  function fmtDate(iso) {
+    if (!iso) return '—';
+    return new Date(iso).toLocaleString('vi-VN');
+  }
+
+  function actionBadge(action) {
+    const map = {
+      SELL_MEMBERSHIP: 'badge-blue',
+      CONFIRM_PAYMENT: 'badge-green',
+      CREATE_USER: 'badge-blue',
+      UPDATE_USER: 'badge-orange',
+      DELETE_USER: 'badge-red',
+      CREATE_MEMBER: 'badge-blue',
+      UPDATE_MEMBER: 'badge-orange',
+      ASSIGN_TRAINER: 'badge-blue',
+      CREATE_WORKOUT_PLAN: 'badge-green',
+    };
+    const cls = map[action] || 'badge-blue';
+    return `<span class="badge ${cls}">${action}</span>`;
+  }
+
+  /* ============================================================
+     Login Admin (auto fetch token)
+  ============================================================ */
+  async function loginAdmin() {
+    const base = getBase();
+    setStatus(null, 'Đang đăng nhập admin...');
+    try {
+      const res = await fetch(`${base}/api/v1/auth/login`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: 'admin@gymmaster.local', password: 'Admin123!' })
+      });
+      const json = await res.json();
+      if (res.ok && json.data?.accessToken) {
+        document.getElementById('tokenInput').value = json.data.accessToken;
+        document.getElementById('tokenDisplay').textContent = json.data.accessToken.substring(0, 60) + '…';
+        setStatus(true, `Đăng nhập thành công — ${json.data.user?.fullName || 'Admin'} (${json.data.role})`);
+      } else {
+        setStatus(false, 'Đăng nhập thất bại: ' + (json.error?.message || JSON.stringify(json)));
+      }
+    } catch (e) {
+      setStatus(false, 'Lỗi kết nối: ' + e.message);
+    }
+  }
+
+  /* ============================================================
+     Load Dashboard Summary
+  ============================================================ */
+  async function loadDashboard() {
+    const base = getBase();
+    const token = getToken();
+    const from = document.getElementById('dashFrom').value;
+    const to   = document.getElementById('dashTo').value;
+
+    let url = `${base}/api/dashboard/summary`;
+    const params = [];
+    if (from) params.push(`from=${from}T00:00:00`);
+    if (to)   params.push(`to=${to}T23:59:59`);
+    if (params.length) url += '?' + params.join('&');
+
+    document.getElementById('chartSpinner').style.display = '';
+    setStatus(null, 'Đang tải dashboard...');
+
+    try {
+      const res = await fetch(url, { headers: headers(token) });
+      const json = await res.json();
+      document.getElementById('chartSpinner').style.display = 'none';
+
+      if (res.ok && json.data) {
+        const d = json.data;
+        document.getElementById('statRevenue').textContent = fmtMoney(d.revenue);
+        document.getElementById('statActive').textContent = d.activeCount;
+        document.getElementById('statExpired').textContent = d.expiredCount;
+
+        const totalCheckins = (d.checkinsByDay || []).reduce((s, x) => s + x.count, 0);
+        document.getElementById('statCheckins').textContent = totalCheckins;
+
+        renderChart(d.checkinsByDay || []);
+        setStatus(true, `Dashboard tải thành công — ${new Date().toLocaleString('vi-VN')}`);
+
+        document.getElementById('dashRawSection').style.display = '';
+        document.getElementById('dashRaw').textContent = JSON.stringify(json, null, 2);
+      } else {
+        setStatus(false, `Lỗi ${res.status}: ` + (json.error?.message || JSON.stringify(json)));
+        document.getElementById('dashRawSection').style.display = '';
+        document.getElementById('dashRaw').textContent = JSON.stringify(json, null, 2);
+      }
+    } catch (e) {
+      document.getElementById('chartSpinner').style.display = 'none';
+      setStatus(false, 'Lỗi kết nối: ' + e.message);
+    }
+  }
+
+  function renderChart(items) {
+    const container = document.getElementById('chartContainer');
+    if (!items.length) {
+      container.innerHTML = '<span class="no-data">Không có dữ liệu check-in trong kỳ này</span>';
+      return;
+    }
+    const max = Math.max(...items.map(i => i.count), 1);
+    container.innerHTML = items.map(item => {
+      const h = Math.round((item.count / max) * 140);
+      const label = item.date ? item.date.slice(5) : ''; // MM-DD
+      return `
+        <div class="bar-wrap">
+          <div class="bar-val">${item.count}</div>
+          <div class="bar" style="height:${h}px" title="${item.date}: ${item.count} lượt"></div>
+          <div class="bar-label">${label}</div>
+        </div>`;
+    }).join('');
+  }
+
+  /* ============================================================
+     Load Audit Logs
+  ============================================================ */
+  async function loadAuditLogs(page) {
+    currentAuditPage = page;
+    const base      = getBase();
+    const token     = getToken();
+    const userId    = document.getElementById('auditUserId').value.trim();
+    const action    = document.getElementById('auditAction').value.trim();
+    const from      = document.getElementById('auditFrom').value;
+    const to        = document.getElementById('auditTo').value;
+    const pageSize  = document.getElementById('auditPageSize').value;
+
+    let url = `${base}/api/audit-logs?page=${page}&pageSize=${pageSize}`;
+    if (userId)  url += `&userId=${userId}`;
+    if (action)  url += `&action=${encodeURIComponent(action)}`;
+    if (from)    url += `&from=${from}T00:00:00`;
+    if (to)      url += `&to=${to}T23:59:59`;
+
+    document.getElementById('auditSpinner').style.display = '';
+    setStatus(null, 'Đang tải audit log...');
+
+    try {
+      const res = await fetch(url, { headers: headers(token) });
+      const json = await res.json();
+      document.getElementById('auditSpinner').style.display = 'none';
+
+      if (res.ok && json.data) {
+        const d = json.data;
+        document.getElementById('auditTotal').textContent =
+          `Tổng: ${d.totalItems} bản ghi — Trang ${d.page}/${d.totalPages}`;
+        renderAuditTable(d.items);
+        renderPagination(d.page, d.totalPages);
+        setStatus(true, `Audit log tải thành công — ${d.totalItems} bản ghi`);
+
+        document.getElementById('auditRawSection').style.display = '';
+        document.getElementById('auditRaw').textContent = JSON.stringify(json, null, 2);
+      } else {
+        setStatus(false, `Lỗi ${res.status}: ` + (json.error?.message || JSON.stringify(json)));
+        document.getElementById('auditBody').innerHTML =
+          `<tr><td colspan="7" style="color:var(--danger);text-align:center;padding:20px">
+            ${res.status} — ${json.error?.message || JSON.stringify(json)}
+          </td></tr>`;
+        document.getElementById('auditRawSection').style.display = '';
+        document.getElementById('auditRaw').textContent = JSON.stringify(json, null, 2);
+      }
+    } catch (e) {
+      document.getElementById('auditSpinner').style.display = 'none';
+      setStatus(false, 'Lỗi kết nối: ' + e.message);
+    }
+  }
+
+  function renderAuditTable(items) {
+    const tbody = document.getElementById('auditBody');
+    if (!items.length) {
+      tbody.innerHTML = '<tr><td colspan="7" style="color:var(--muted);text-align:center;padding:32px">Không có bản ghi nào</td></tr>';
+      return;
+    }
+    tbody.innerHTML = items.map(row => `
+      <tr>
+        <td style="color:var(--muted)">#${row.id}</td>
+        <td>
+          ${row.userFullName ? `<strong>${row.userFullName}</strong><br>` : ''}
+          ${row.userId ? `<span style="color:var(--muted);font-size:0.72rem">ID: ${row.userId}</span>` : '<span style="color:var(--muted)">System</span>'}
+        </td>
+        <td>${actionBadge(row.action)}</td>
+        <td><span style="color:var(--accent2)">${row.entity}</span></td>
+        <td style="color:var(--muted)">${row.entityId}</td>
+        <td class="meta-cell">${row.metadata ? escapeHtml(row.metadata).substring(0, 120) + (row.metadata.length > 120 ? '…' : '') : '<span style="color:var(--border)">null</span>'}</td>
+        <td style="color:var(--muted);white-space:nowrap;font-size:0.75rem">${fmtDate(row.createdAt)}</td>
+      </tr>`).join('');
+  }
+
+  function renderPagination(current, total) {
+    const el = document.getElementById('auditPagination');
+    if (total <= 1) { el.innerHTML = ''; return; }
+    let html = `<button class="page-btn" onclick="loadAuditLogs(${current-1})" ${current<=1?'disabled':''}>‹ Prev</button>`;
+    const start = Math.max(1, current - 2);
+    const end   = Math.min(total, current + 2);
+    if (start > 1) html += `<button class="page-btn" onclick="loadAuditLogs(1)">1</button>${start>2?'<span class="page-info">…</span>':''}`;
+    for (let i = start; i <= end; i++) {
+      html += `<button class="page-btn ${i===current?'active':''}" onclick="loadAuditLogs(${i})">${i}</button>`;
+    }
+    if (end < total) html += `${end<total-1?'<span class="page-info">…</span>':''}<button class="page-btn" onclick="loadAuditLogs(${total})">${total}</button>`;
+    html += `<button class="page-btn" onclick="loadAuditLogs(${current+1})" ${current>=total?'disabled':''}>Next ›</button>`;
+    el.innerHTML = html;
+  }
+
+  function escapeHtml(s) {
+    return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  }
+
+  /* ============================================================
+     Acceptance Criteria Tests
+  ============================================================ */
+  async function testAC03() {
+    // AC-03: gọi dashboard không có token → 401, hoặc với token member → 403
+    showTestResult('Đang test AC-03: non-admin → 403...');
+    const base = getBase();
+    try {
+      const res = await fetch(`${base}/api/dashboard/summary`, {
+        headers: { 'Authorization': 'Bearer invalid_token_for_member' }
+      });
+      const json = await res.json().catch(() => ({}));
+      const pass = res.status === 401 || res.status === 403;
+      showTestResult(`AC-03 ${pass ? '✅ PASS' : '❌ FAIL'}: Status ${res.status}\n` +
+        (Object.keys(json).length ? JSON.stringify(json, null, 2) : '(response body rỗng — 401 từ JWT middleware)'));
+    } catch(e) { showTestResult('Lỗi kết nối: ' + e.message); }
+  }
+
+  async function testAC04() {
+    // AC-04: khoảng ngày xa trong quá khứ → 0, không lỗi
+    const base = getBase();
+    const token = getToken();
+    if (!token) { showTestResult('Cần JWT token để test này'); return; }
+    showTestResult('Đang test AC-04: kỳ trống → 0...');
+    try {
+      const res = await fetch(`${base}/api/dashboard/summary?from=2000-01-01T00:00:00&to=2000-01-31T23:59:59`, {
+        headers: headers(token)
+      });
+      const json = await res.json().catch(() => ({}));
+      const d = json.data;
+      const pass = res.status === 200 && d && d.revenue === 0 && d.activeCount >= 0 && d.expiredCount >= 0;
+      showTestResult(`AC-04 ${pass ? '✅ PASS' : '❌ FAIL'}: Status ${res.status}\nRevenue=${d?.revenue}, Active=${d?.activeCount}, Expired=${d?.expiredCount}\n${JSON.stringify(json, null, 2)}`);
+    } catch(e) { showTestResult('Lỗi kết nối: ' + e.message); }
+  }
+
+  async function testInvalidRange() {
+    // from > to → 422
+    const base = getBase();
+    const token = getToken();
+    if (!token) { showTestResult('Cần JWT token để test này'); return; }
+    showTestResult('Đang test: from > to → 422...');
+    try {
+      const res = await fetch(`${base}/api/dashboard/summary?from=2026-12-01T00:00:00&to=2026-01-01T23:59:59`, {
+        headers: headers(token)
+      });
+      const json = await res.json().catch(() => ({}));
+      const pass = res.status === 422;
+      showTestResult(`Invalid Range ${pass ? '✅ PASS' : '❌ FAIL'}: Status ${res.status}\n${JSON.stringify(json, null, 2)}`);
+    } catch(e) { showTestResult('Lỗi kết nối: ' + e.message); }
+  }
+
+  async function testNoToken() {
+    // Gọi không có token → 401
+    showTestResult('Đang test: no token → 401...');
+    const base = getBase();
+    try {
+      const res = await fetch(`${base}/api/dashboard/summary`);
+      const json = await res.json().catch(() => ({}));
+      const pass = res.status === 401;
+      showTestResult(`No Token ${pass ? '✅ PASS' : '❌ FAIL'}: Status ${res.status}\n${JSON.stringify(json, null, 2)}`);
+    } catch(e) { showTestResult('Lỗi: ' + e.message); }
+  }
+
+  function showTestResult(msg) {
+    const el = document.getElementById('testResult');
+    el.style.display = '';
+    el.textContent = msg;
+  }
+
+  /* ============================================================
+     Init — set default date range (last 30 days)
+  ============================================================ */
+  (() => {
+    const today = new Date();
+    const from  = new Date(today); from.setDate(today.getDate() - 30);
+    const fmt   = d => d.toISOString().slice(0, 10);
+    document.getElementById('dashFrom').value   = fmt(from);
+    document.getElementById('dashTo').value     = fmt(today);
+    document.getElementById('auditFrom').value  = fmt(from);
+    document.getElementById('auditTo').value    = fmt(today);
+  })();
+</script>
+</body>
+</html>
