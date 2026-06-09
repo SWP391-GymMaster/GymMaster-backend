@@ -42,6 +42,8 @@ public sealed class GymMasterDbContext : DbContext
 
     public DbSet<CalorieTarget> CalorieTargets => Set<CalorieTarget>();
 
+    public DbSet<CheckIn> CheckIns => Set<CheckIn>();
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.Entity<User>(entity =>
@@ -243,6 +245,24 @@ public sealed class GymMasterDbContext : DbContext
             entity.Property(target => target.CarbG).HasPrecision(8, 2);
             entity.Property(target => target.FatG).HasPrecision(8, 2);
             entity.HasIndex(target => new { target.MemberId, target.EffectiveDate }).IsUnique();
+        });
+
+        // Spec 004 — check_ins (map theo schema DB that: Id, MemberId, CheckInAt, CreatedBy).
+        modelBuilder.Entity<CheckIn>(entity =>
+        {
+            entity.ToTable("check_ins");
+            entity.HasKey(checkIn => checkIn.Id);
+            entity.HasIndex(checkIn => new { checkIn.MemberId, checkIn.CheckInAt });
+
+            entity
+                .HasOne<MemberProfile>()
+                .WithMany()
+                .HasForeignKey(checkIn => checkIn.MemberId);
+
+            entity
+                .HasOne<User>()
+                .WithMany()
+                .HasForeignKey(checkIn => checkIn.CreatedBy);
         });
     }
 }

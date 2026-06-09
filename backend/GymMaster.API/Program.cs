@@ -20,6 +20,8 @@ builder.Services.Configure<JwtOptions>(
     builder.Configuration.GetSection(JwtOptions.SectionName));
 builder.Services.Configure<GoogleAuthOptions>(
     builder.Configuration.GetSection(GoogleAuthOptions.SectionName));
+builder.Services.Configure<CheckInOptions>(
+    builder.Configuration.GetSection(CheckInOptions.SectionName));
 
 var jwtOptions = builder.Configuration
     .GetSection(JwtOptions.SectionName)
@@ -55,6 +57,7 @@ builder.Services.AddScoped<IPaymentService, PaymentService>();
 builder.Services.AddScoped<IProgressService, ProgressService>();
 builder.Services.AddScoped<IFoodItemService, FoodItemService>();
 builder.Services.AddScoped<INutritionService, NutritionService>();
+builder.Services.AddScoped<ICheckInService, CheckInService>();
 
 builder.Services.AddCors(options =>
 {
