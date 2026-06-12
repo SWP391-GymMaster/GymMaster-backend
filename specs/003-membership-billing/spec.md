@@ -51,7 +51,7 @@ Quản lý gói tập mẫu, bán/gia hạn gói cho hội viên và ghi nhận 
 | GET | /api/packages | Admin, Staff | — | 200 | 401 |
 | POST | /api/memberships/sell | Admin, Staff | {memberId, packageId, startDate} | 201 {membership: PendingPayment} | 400, 404, 422 |
 | POST | /api/memberships/{id}/payment | Admin, Staff | {amount, method} | 201 {status: Active} | 404, 409, 422 |
-| POST | /api/memberships/{id}/renew | Admin, Staff | {packageId} | 201 | 404, 422 |
+| POST | /api/memberships/{id}/renew | Admin, Staff | {packageId, method} | 201 | 404, 422 |
 | POST | /api/memberships/renewal-request | Member | {packageId} | 201 (request) | 422 |
 
 ## 7. Error Handling (EARS Unwanted)
@@ -72,3 +72,15 @@ Quản lý gói tập mẫu, bán/gia hạn gói cho hội viên và ghi nhận 
 
 ## 9. Out of Scope
 - Payment gateway tự động, hóa đơn điện tử/VAT, trả góp, hoàn tiền tự động, khuyến mãi/voucher (secondary).
+
+## 10. Cập nhật triển khai (2026-06-12)
+> Addendum ghi nhận quyết định khi code (BE-first, bám spec). KHÔNG sửa thân spec đã duyệt ở trên.
+
+- **Gia hạn (FR-MS-03) = kéo dài tại chỗ.** Vì ràng buộc "1 Active/member", `renew` KHÔNG tạo membership PendingPayment riêng mà **kéo dài `EndDate` của membership hiện tại** (nối tiếp từ EndDate cũ nếu còn hạn, từ hôm nay nếu đã hết) và **ghi nhận thanh toán ngay** với phương thức từ request. Request đổi `{packageId}` → **`{packageId, method}`**.
+- **`method` nhận tên enum dạng chuỗi** (`"cash"`/`"transfer"`/`"card"`), parse không phân biệt hoa thường — áp dụng cho cả `confirm payment` lẫn `renew`. Đã **bỏ hardcode `Cash`** ở gia hạn.
+- **Chặn gia hạn gói đã hủy**: nếu membership ở trạng thái `Cancelled`, `renew` trả `422 MEMBERSHIP_CANCELLED` (không hồi sinh gói đã hủy).
+- **Mã lỗi §7 đã khớp code**: `INVALID_START_DATE` (StartDate < hôm nay), `INSUFFICIENT_AMOUNT` (Amount < giá gói), `DUPLICATE_PAYMENT` (ghi thanh toán cho membership đã Active).
+- **Response §6**: `sell` → `{ membership }`, `payment` → `{ membership, payment, status }`. Trạng thái serialize theo **tên enum (PascalCase)**; FE tự map casing nếu cần (không hạ chuẩn BE theo FE).
+- **Online banking / payment gateway = tương lai** (ADR-03 vẫn thủ công ở MVP). Giữ code mở rộng: thêm `PaymentMethod.Online` + webhook (file mới) + cột `provider_ref` nullable (DB team) khi làm thật — KHÔNG over-engineer trước.
+- **`GET /api/v1/memberships` (roster, ngoài §6)**: đổi từ list phẳng → **`PagedResult`** `{ items, page, pageSize, totalItems, totalPages }`, `pageSize = 20` (đồng bộ với `members`/`users`). **FE phải đọc `.items`** thay vì coi response là mảng.
+- **Test**: 8 unit test (xUnit + EF Core InMemory) ở `tests/GymMaster.Api.Tests` — sell/payment/renew, INVALID_START_DATE/INSUFFICIENT_AMOUNT/DUPLICATE_PAYMENT, MEMBERSHIP_CANCELLED, PagedResult.

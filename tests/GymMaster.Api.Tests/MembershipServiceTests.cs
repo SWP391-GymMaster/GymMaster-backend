@@ -1,0 +1,197 @@
+using System.Security.Claims;
+using GymMaster.API.Data;
+using GymMaster.API.DTOs;
+using GymMaster.API.Entities;
+using GymMaster.API.Services;
+using Microsoft.EntityFrameworkCore;
+using Xunit;
+
+namespace GymMaster.Api.Tests;
+
+// Test logic 3 luong tien cua spec 003 bang EF Core InMemory (khong can DB that).
+public class MembershipServiceTests
+{
+    private const decimal Price = 500_000m;
+    private const short Days = 30;
+
+    private static GymMasterDbContext NewDb()
+    {
+        var options = new DbContextOptionsBuilder<GymMasterDbContext>()
+            .UseInMemoryDatabase($"gym-{Guid.NewGuid()}")
+            .Options;
+        return new GymMasterDbContext(options);
+    }
+
+    private static MembershipService NewService(GymMasterDbContext db) => new(db, new NoopAudit());
+
+    private static ClaimsPrincipal Staff(long userId = 99)
+    {
+        var identity = new ClaimsIdentity(
+            new[] { new Claim(ClaimTypes.NameIdentifier, userId.ToString()) }, "test");
+        return new ClaimsPrincipal(identity);
+    }
+
+    private static async Task<(long memberId, long packageId)> SeedAsync(GymMasterDbContext db)
+    {
+        db.MemberProfiles.Add(new MemberProfile { Id = 1, UserId = 10, IsDeleted = false });
+        db.MembershipPackages.Add(new MembershipPackage
+        {
+            Id = 1,
+            Name = "Goi 1 thang",
+            DurationDays = Days,
+            Price = Price,
+            IsActive = true,
+        });
+        await db.SaveChangesAsync();
+        return (1, 1);
+    }
+
+    private sealed class NoopAudit : IAuditService
+    {
+        public Task LogAsync(string action, string entity, long entityId, object? metadata, CancellationToken ct)
+            => Task.CompletedTask;
+    }
+
+    [Fact] // FR-MS-01: ban goi -> PendingPayment, EndDate = StartDate + DurationDays
+    public async Task Sell_creates_pending_membership_with_correct_end_date()
+    {
+        using var db = NewDb();
+        var (memberId, packageId) = await SeedAsync(db);
+        var start = DateOnly.FromDateTime(DateTime.UtcNow);
+
+        var result = await NewService(db).SellAsync(
+            new SellMembershipRequest(memberId, packageId, start), Staff(), default);
+
+        Assert.True(result.Succeeded);
+        Assert.Equal("PendingPayment", result.Value!.Membership.Status);
+        Assert.Equal(start.AddDays(Days), result.Value.Membership.EndDate);
+    }
+
+    [Fact] // §7: ban goi voi ngay bat dau qua khu -> INVALID_START_DATE
+    public async Task Sell_with_past_start_date_is_rejected()
+    {
+        using var db = NewDb();
+        var (memberId, packageId) = await SeedAsync(db);
+        var past = DateOnly.FromDateTime(DateTime.UtcNow).AddDays(-1);
+
+        var result = await NewService(db).SellAsync(
+            new SellMembershipRequest(memberId, packageId, past), Staff(), default);
+
+        Assert.False(result.Succeeded);
+        Assert.Equal("INVALID_START_DATE", result.ErrorCode);
+    }
+
+    [Fact] // FR-MS-02: ghi thanh toan -> Active + luu DUNG phuong thuc (khong hardcode Cash)
+    public async Task ConfirmPayment_activates_and_keeps_request_method()
+    {
+        using var db = NewDb();
+        var (memberId, packageId) = await SeedAsync(db);
+        var service = NewService(db);
+        var sold = await service.SellAsync(
+            new SellMembershipRequest(memberId, packageId, DateOnly.FromDateTime(DateTime.UtcNow)), Staff(), default);
+
+        var result = await service.ConfirmPaymentAsync(
+            sold.Value!.Membership.Id, new ConfirmPaymentRequest(Price, "transfer"), Staff(), default);
+
+        Assert.True(result.Succeeded);
+        Assert.Equal("Active", result.Value!.Status);
+        Assert.Equal(PaymentMethod.Transfer, (await db.Payments.SingleAsync()).PaymentMethod);
+    }
+
+    [Fact] // §7: tra it hon gia goi -> INSUFFICIENT_AMOUNT
+    public async Task ConfirmPayment_with_insufficient_amount_is_rejected()
+    {
+        using var db = NewDb();
+        var (memberId, packageId) = await SeedAsync(db);
+        var service = NewService(db);
+        var sold = await service.SellAsync(
+            new SellMembershipRequest(memberId, packageId, DateOnly.FromDateTime(DateTime.UtcNow)), Staff(), default);
+
+        var result = await service.ConfirmPaymentAsync(
+            sold.Value!.Membership.Id, new ConfirmPaymentRequest(100_000m, "cash"), Staff(), default);
+
+        Assert.False(result.Succeeded);
+        Assert.Equal("INSUFFICIENT_AMOUNT", result.ErrorCode);
+    }
+
+    [Fact] // FR-PAY-01: tra tien lan 2 cho cung membership -> DUPLICATE_PAYMENT (409)
+    public async Task ConfirmPayment_twice_is_rejected_as_duplicate()
+    {
+        using var db = NewDb();
+        var (memberId, packageId) = await SeedAsync(db);
+        var service = NewService(db);
+        var sold = await service.SellAsync(
+            new SellMembershipRequest(memberId, packageId, DateOnly.FromDateTime(DateTime.UtcNow)), Staff(), default);
+        var membershipId = sold.Value!.Membership.Id;
+        await service.ConfirmPaymentAsync(membershipId, new ConfirmPaymentRequest(Price, "cash"), Staff(), default);
+
+        var second = await service.ConfirmPaymentAsync(
+            membershipId, new ConfirmPaymentRequest(Price, "cash"), Staff(), default);
+
+        Assert.False(second.Succeeded);
+        Assert.Equal("DUPLICATE_PAYMENT", second.ErrorCode);
+    }
+
+    [Fact] // FR-MS-03 (Option 1): gia han noi tiep EndDate + ghi DUNG method, KHONG hardcode Cash
+    public async Task Renew_extends_end_date_and_records_request_method()
+    {
+        using var db = NewDb();
+        var (memberId, packageId) = await SeedAsync(db);
+        var service = NewService(db);
+        var membershipId = (await service.SellAsync(
+            new SellMembershipRequest(memberId, packageId, DateOnly.FromDateTime(DateTime.UtcNow)), Staff(), default))
+            .Value!.Membership.Id;
+        await service.ConfirmPaymentAsync(membershipId, new ConfirmPaymentRequest(Price, "cash"), Staff(), default);
+        var endBefore = (await db.Memberships.SingleAsync(x => x.Id == membershipId)).EndDate;
+
+        var result = await service.RenewAsync(
+            membershipId, new RenewMembershipRequest(packageId, "card"), Staff(), default);
+
+        Assert.True(result.Succeeded);
+        Assert.Equal("Active", result.Value!.Status);
+        Assert.Equal(endBefore.AddDays(Days), result.Value.EndDate); // noi tiep, khong trung ngay
+        Assert.Equal(PaymentMethod.Card, (await db.Payments.OrderBy(p => p.Id).LastAsync()).PaymentMethod);
+    }
+
+    [Fact] // Gia han goi da Cancelled -> tu choi (MEMBERSHIP_CANCELLED)
+    public async Task Renew_cancelled_membership_is_rejected()
+    {
+        using var db = NewDb();
+        var (memberId, packageId) = await SeedAsync(db);
+        var service = NewService(db);
+        var membershipId = (await service.SellAsync(
+            new SellMembershipRequest(memberId, packageId, DateOnly.FromDateTime(DateTime.UtcNow)), Staff(), default))
+            .Value!.Membership.Id;
+
+        var membership = await db.Memberships.SingleAsync(x => x.Id == membershipId);
+        membership.Status = MembershipStatus.Cancelled;
+        await db.SaveChangesAsync();
+
+        var result = await service.RenewAsync(
+            membershipId, new RenewMembershipRequest(packageId, "cash"), Staff(), default);
+
+        Assert.False(result.Succeeded);
+        Assert.Equal("MEMBERSHIP_CANCELLED", result.ErrorCode);
+    }
+
+    [Fact] // GET /memberships tra ve PagedResult { items, totalItems, pageSize 20 }
+    public async Task GetAll_returns_paged_result()
+    {
+        using var db = NewDb();
+        var (memberId, packageId) = await SeedAsync(db);
+        var service = NewService(db);
+        for (var i = 0; i < 3; i++)
+        {
+            await service.SellAsync(
+                new SellMembershipRequest(memberId, packageId, DateOnly.FromDateTime(DateTime.UtcNow)), Staff(), default);
+        }
+
+        var result = await service.GetAllAsync(null, null, Staff(), default);
+
+        Assert.True(result.Succeeded);
+        Assert.Equal(3, result.Value!.TotalItems);
+        Assert.Equal(20, result.Value.PageSize);
+        Assert.Equal(1, result.Value.Page);
+        Assert.Equal(3, result.Value.Items.Count);
+    }
+}

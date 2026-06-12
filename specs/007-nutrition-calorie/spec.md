@@ -68,3 +68,12 @@ Member ghi nhật ký bữa ăn từ food database (nhập tay — ADR-04), hệ
 
 ## 9. Out of Scope
 - Tự định lượng calo từ ảnh (chỉ gợi ý tên — spec 009 enhancement), gợi ý thực đơn AI, quét barcode dinh dưỡng (secondary), đồng bộ app dinh dưỡng bên thứ ba.
+
+## 10. Cần bàn rõ với team — open items (2026-06-12)
+> Các đề xuất nâng cấp CHƯA chốt, cần thống nhất với team trước khi làm. Code 007 hiện vẫn đúng spec §6 ở trên; các mục này là hướng mở rộng.
+
+- **Gộp 1 API tổng quan theo ngày (daily-overview)** thay vì để FE ghép nhiều call:
+  `GET /api/v1/members/{memberId}/nutrition/daily-overview?date=` → `{ date, consumed, target, remaining, protein, carb, fat, meals: [ { mealType, items: [ { foodName, quantity, calories, protein, carb, fat } ] } ] }`.
+  **Cần chốt**: làm gộp, hay giữ `calorie-summary` + `meal-logs` tách như §6. (Làm được ngay phía BE, không đụng DB.)
+- **Snapshot macro cho lịch sử (NFR-02)**: `meal_log_items` hiện CHỈ snapshot `Calories` → tổng calo lịch sử đúng, nhưng **macro (đạm/tinh bột/béo) đang lấy từ `food_items` sống** nên sẽ lệch nếu admin sửa món. Để đúng NFR-02 **cần DB team thêm cột** `FoodNameSnapshot/ProteinGSnapshot/CarbGSnapshot/FatGSnapshot` (giữ `FoodItemId` để biết món gốc). Backend sẽ ưu tiên đọc snapshot khi có cột.
+- **Online food search / barcode (secondary/Future)**: proxy Open Food Facts — `GET /api/v1/food-items/online-search?query=`, `GET /api/v1/food-items/barcode/{barcode}`; chọn món online → lưu vào `food_items` rồi dùng như món local. §9 đã liệt barcode là out-of-scope MVP → làm sau khi team đồng ý.

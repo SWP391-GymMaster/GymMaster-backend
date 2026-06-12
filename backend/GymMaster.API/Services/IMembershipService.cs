@@ -5,12 +5,12 @@ namespace GymMaster.API.Services;
 
 public interface IMembershipService
 {
-    Task<AuthServiceResult<MembershipResponse>> SellAsync(
+    Task<AuthServiceResult<SellMembershipResponse>> SellAsync(
         SellMembershipRequest request,
         ClaimsPrincipal principal,
         CancellationToken cancellationToken);
 
-    Task<AuthServiceResult<MembershipResponse>> ConfirmPaymentAsync(
+    Task<AuthServiceResult<ConfirmPaymentResult>> ConfirmPaymentAsync(
         long id,
         ConfirmPaymentRequest request,
         ClaimsPrincipal principal,
@@ -32,7 +32,7 @@ public interface IMembershipService
         ClaimsPrincipal principal,
         CancellationToken cancellationToken);
 
-    Task<AuthServiceResult<IReadOnlyList<MembershipResponse>>> GetAllAsync(
+    Task<AuthServiceResult<PagedResult<MembershipResponse>>> GetAllAsync(
         string? status,
         int? page,
         ClaimsPrincipal principal,

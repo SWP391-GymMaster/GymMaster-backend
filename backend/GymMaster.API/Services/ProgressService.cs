@@ -13,11 +13,16 @@ public sealed class ProgressService : IProgressService
 
     private readonly GymMasterDbContext _dbContext;
     private readonly IAuditService _auditService;
+    private readonly INutritionService _nutritionService;
 
-    public ProgressService(GymMasterDbContext dbContext, IAuditService auditService)
+    public ProgressService(
+        GymMasterDbContext dbContext,
+        IAuditService auditService,
+        INutritionService nutritionService)
     {
         _dbContext = dbContext;
         _auditService = auditService;
+        _nutritionService = nutritionService;
     }
 
     // FR-PROG-01
@@ -41,7 +46,7 @@ public sealed class ProgressService : IProgressService
 
         if (!HasAnyMeasurement(request) ||
             !IsInRange(request.WeightKg, 20, 300) ||
-            !IsInRange(request.BodyFatPercent, 0, 70) ||
+            !IsInRange(request.BodyFatPct, 0, 70) ||
             !IsInRange(request.ChestCm, 30, 200) ||
             !IsInRange(request.WaistCm, 30, 200) ||
             !IsInRange(request.HipCm, 30, 200))
@@ -74,7 +79,7 @@ public sealed class ProgressService : IProgressService
             MemberId = profile.Id,
             MeasuredAt = measuredAt,
             WeightKg = request.WeightKg,
-            BodyFatPercent = request.BodyFatPercent,
+            BodyFatPercent = request.BodyFatPct,
             ChestCm = request.ChestCm,
             WaistCm = request.WaistCm,
             HipCm = request.HipCm,
@@ -145,44 +150,77 @@ public sealed class ProgressService : IProgressService
         }
 
         var today = DateOnly.FromDateTime(DateTime.UtcNow);
+
+        // 1) Membership: tat ca (moi nhat truoc) + dong bo trang thai het han.
         var memberships = await _dbContext.Memberships
             .Include(item => item.Package)
             .Where(item => item.MemberId == memberId)
             .OrderByDescending(item => item.CreatedAt)
             .ToListAsync(cancellationToken);
 
-        // Dong bo trang thai het han (lazy) giong cac endpoint membership khac (FR-MS-07),
-        // tranh 360 hien Status "Active" cho membership da qua EndDate.
         if (ExpireIfPastDue(memberships, today))
         {
             await _dbContext.SaveChangesAsync(cancellationToken);
         }
 
-        var currentMembership = memberships.FirstOrDefault(
-            item => item.Status == MembershipStatus.Active && item.EndDate >= today);
+        // Membership nao da thanh toan (1 truy van, tranh N+1) de suy paymentStatus.
+        var membershipIds = memberships.Select(item => item.Id).ToList();
+        var paidIds = await _dbContext.Payments
+            .Where(item => membershipIds.Contains(item.MembershipId) && item.Status == PaymentStatus.Paid)
+            .Select(item => item.MembershipId)
+            .Distinct()
+            .ToListAsync(cancellationToken);
+        var paidSet = paidIds.ToHashSet();
 
+        var membershipDtos = memberships.Select(item => ToMembership360(item, paidSet)).ToList();
+
+        // 2) Check-in gan nhat (chi DOC bang check_ins, khong sua code spec 004).
+        var recentCheckIns = await _dbContext.CheckIns
+            .Where(item => item.MemberId == memberId)
+            .OrderByDescending(item => item.CheckInAt)
+            .Take(5)
+            .Select(item => new CheckIn360(item.Id, item.CheckInAt))
+            .ToListAsync(cancellationToken);
+
+        // 3) Tien do (timeline tang dan theo ngay do).
         var progress = await _dbContext.ProgressLogs
             .Where(item => item.MemberId == memberId)
             .OrderBy(item => item.MeasuredAt)
             .ToListAsync(cancellationToken);
 
+        // 4) Tom tat dinh duong hom nay (dung lai service 007 cua chinh Part Y).
+        var nutrition = await _nutritionService.GetSummaryAsync(memberId, today, principal, cancellationToken);
+
         var response = new Profile360Response(
-            new MemberInfo(
+            new Member360Info(
                 profile.Id,
-                profile.UserId,
                 profile.User.FullName,
                 profile.User.Email,
                 profile.User.Phone,
+                profile.User.Status,
                 profile.DateOfBirth,
                 profile.Gender),
-            currentMembership is null ? null : ToMembershipResponse(currentMembership),
-            memberships.Select(item => (object)ToMembershipResponse(item)).ToList(),
+            membershipDtos.FirstOrDefault(),
+            membershipDtos,
+            recentCheckIns,
             progress.Select(ToResponse).ToList(),
-            null,
-            null,
-            null);
+            nutrition.Succeeded ? nutrition.Value : null,
+            null); // AssignedPT: cho spec 005 (chua co bang phan cong PT)
 
         return AuthServiceResult<Profile360Response>.Success(response);
+    }
+
+    // Mot membership -> DTO 360. Status/PaymentStatus giu nguyen ten enum (PascalCase)
+    // dong bo voi spec 003 va endpoint /memberships; paymentStatus suy tu danh sach da thanh toan.
+    private static Membership360 ToMembership360(Membership membership, HashSet<long> paidIds)
+    {
+        return new Membership360(
+            membership.Id,
+            membership.Package.Name,
+            membership.StartDate,
+            membership.EndDate,
+            membership.Status.ToString(),
+            paidIds.Contains(membership.Id) ? PaymentStatus.Paid.ToString() : PaymentStatus.Pending.ToString());
     }
 
     private Task<MemberProfile?> FindMemberAsync(long memberId, CancellationToken cancellationToken)
@@ -210,7 +248,7 @@ public sealed class ProgressService : IProgressService
     private static bool HasAnyMeasurement(RecordProgressRequest request)
     {
         return request.WeightKg is not null ||
-            request.BodyFatPercent is not null ||
+            request.BodyFatPct is not null ||
             request.ChestCm is not null ||
             request.WaistCm is not null ||
             request.HipCm is not null;
@@ -249,24 +287,6 @@ public sealed class ProgressService : IProgressService
             log.HipCm,
             log.Note,
             log.CreatedAt);
-    }
-
-    private static MembershipResponse ToMembershipResponse(Membership membership)
-    {
-        var today = DateOnly.FromDateTime(DateTime.UtcNow);
-        var daysRemaining = membership.EndDate.DayNumber - today.DayNumber;
-
-        return new MembershipResponse(
-            membership.Id,
-            membership.MemberId,
-            membership.PackageId,
-            membership.Package.Name,
-            membership.StartDate,
-            membership.EndDate,
-            membership.Status.ToString(),
-            daysRemaining,
-            membership.Status == MembershipStatus.Active && daysRemaining is >= 0 and <= 7,
-            membership.CreatedAt);
     }
 
     private static long? GetActorId(ClaimsPrincipal principal)

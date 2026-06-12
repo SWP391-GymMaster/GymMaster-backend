@@ -19,7 +19,7 @@ public sealed class MembershipService : IMembershipService
     }
 
     // FR-MS-01
-    public async Task<AuthServiceResult<MembershipResponse>> SellAsync(
+    public async Task<AuthServiceResult<SellMembershipResponse>> SellAsync(
         SellMembershipRequest request,
         ClaimsPrincipal principal,
         CancellationToken cancellationToken)
@@ -27,7 +27,7 @@ public sealed class MembershipService : IMembershipService
         var actorId = GetActorId(principal);
         if (actorId is null)
         {
-            return Fail<MembershipResponse>("FORBIDDEN", "Khong xac dinh duoc nguoi thao tac.", StatusCodes.Status403Forbidden);
+            return Fail<SellMembershipResponse>("FORBIDDEN", "Khong xac dinh duoc nguoi thao tac.", StatusCodes.Status403Forbidden);
         }
 
         var memberExists = await _dbContext.MemberProfiles.AnyAsync(
@@ -35,7 +35,7 @@ public sealed class MembershipService : IMembershipService
 
         if (!memberExists)
         {
-            return Fail<MembershipResponse>("NOT_FOUND", "Khong tim thay hoi vien.", StatusCodes.Status404NotFound);
+            return Fail<SellMembershipResponse>("NOT_FOUND", "Khong tim thay hoi vien.", StatusCodes.Status404NotFound);
         }
 
         var package = await _dbContext.MembershipPackages.FirstOrDefaultAsync(
@@ -43,15 +43,20 @@ public sealed class MembershipService : IMembershipService
 
         if (package is null)
         {
-            return Fail<MembershipResponse>("NOT_FOUND", "Khong tim thay goi tap.", StatusCodes.Status404NotFound);
+            return Fail<SellMembershipResponse>("NOT_FOUND", "Khong tim thay goi tap.", StatusCodes.Status404NotFound);
         }
 
         if (!package.IsActive)
         {
-            return Fail<MembershipResponse>("PACKAGE_INACTIVE", "Goi tap da ngung ban.", StatusCodes.Status422UnprocessableEntity);
+            return Fail<SellMembershipResponse>("PACKAGE_INACTIVE", "Goi tap da ngung ban.", StatusCodes.Status422UnprocessableEntity);
         }
 
         var startDate = request.StartDate ?? Today();
+        if (startDate < Today())
+        {
+            return Fail<SellMembershipResponse>("INVALID_START_DATE", "Ngay bat dau khong duoc o qua khu.", StatusCodes.Status422UnprocessableEntity);
+        }
+
         var membership = new Membership
         {
             MemberId = request.MemberId,
@@ -74,13 +79,13 @@ public sealed class MembershipService : IMembershipService
             new { membership.MemberId, membership.PackageId },
             cancellationToken);
 
-        return AuthServiceResult<MembershipResponse>.Success(
-            ToResponse(membership),
+        return AuthServiceResult<SellMembershipResponse>.Success(
+            new SellMembershipResponse(ToResponse(membership)),
             StatusCodes.Status201Created);
     }
 
-    // FR-MS-02 / FR-PAY-02 / FR-MS-08
-    public async Task<AuthServiceResult<MembershipResponse>> ConfirmPaymentAsync(
+    // FR-MS-02 / FR-PAY-01
+    public async Task<AuthServiceResult<ConfirmPaymentResult>> ConfirmPaymentAsync(
         long id,
         ConfirmPaymentRequest request,
         ClaimsPrincipal principal,
@@ -89,7 +94,7 @@ public sealed class MembershipService : IMembershipService
         var actorId = GetActorId(principal);
         if (actorId is null)
         {
-            return Fail<MembershipResponse>("FORBIDDEN", "Khong xac dinh duoc nguoi thao tac.", StatusCodes.Status403Forbidden);
+            return Fail<ConfirmPaymentResult>("FORBIDDEN", "Khong xac dinh duoc nguoi thao tac.", StatusCodes.Status403Forbidden);
         }
 
         var membership = await _dbContext.Memberships
@@ -98,17 +103,22 @@ public sealed class MembershipService : IMembershipService
 
         if (membership is null)
         {
-            return Fail<MembershipResponse>("NOT_FOUND", "Khong tim thay membership.", StatusCodes.Status404NotFound);
+            return Fail<ConfirmPaymentResult>("NOT_FOUND", "Khong tim thay membership.", StatusCodes.Status404NotFound);
         }
 
         if (membership.Status != MembershipStatus.PendingPayment)
         {
-            return Fail<MembershipResponse>("ALREADY_PAID", "Membership nay da duoc thanh toan.", StatusCodes.Status409Conflict);
+            return Fail<ConfirmPaymentResult>("DUPLICATE_PAYMENT", "Membership nay da duoc thanh toan.", StatusCodes.Status409Conflict);
         }
 
-        if (request.Amount <= 0 || !Enum.IsDefined(typeof(PaymentMethod), request.Method))
+        if (!TryParsePaymentMethod(request.Method, out var method) || request.Amount <= 0)
         {
-            return Fail<MembershipResponse>("VALIDATION_ERROR", "Thong tin thanh toan khong hop le.", StatusCodes.Status422UnprocessableEntity);
+            return Fail<ConfirmPaymentResult>("VALIDATION_ERROR", "Thong tin thanh toan khong hop le.", StatusCodes.Status422UnprocessableEntity);
+        }
+
+        if (request.Amount < membership.Package.Price)
+        {
+            return Fail<ConfirmPaymentResult>("INSUFFICIENT_AMOUNT", "So tien thanh toan it hon gia goi tap.", StatusCodes.Status422UnprocessableEntity);
         }
 
         var today = Today();
@@ -120,7 +130,7 @@ public sealed class MembershipService : IMembershipService
 
         if (otherMemberships.Any(item => item.Status == MembershipStatus.Active && item.EndDate >= today))
         {
-            return Fail<MembershipResponse>(
+            return Fail<ConfirmPaymentResult>(
                 "ALREADY_HAS_ACTIVE",
                 "Hoi vien da co membership dang hieu luc.",
                 StatusCodes.Status409Conflict);
@@ -130,7 +140,7 @@ public sealed class MembershipService : IMembershipService
         {
             MembershipId = membership.Id,
             Amount = request.Amount,
-            PaymentMethod = (PaymentMethod)request.Method,
+            PaymentMethod = method,
             Status = PaymentStatus.Paid,
             PaidAt = DateTime.UtcNow,
             CreatedByUserId = actorId.Value,
@@ -150,8 +160,11 @@ public sealed class MembershipService : IMembershipService
             new { membershipId = membership.Id },
             cancellationToken);
 
-        return AuthServiceResult<MembershipResponse>.Success(
-            ToResponse(membership),
+        return AuthServiceResult<ConfirmPaymentResult>.Success(
+            new ConfirmPaymentResult(
+                ToResponse(membership),
+                new PaymentBrief(payment.Id, membership.Id, payment.PaidAt),
+                membership.Status.ToString()),
             StatusCodes.Status201Created);
     }
 
@@ -177,6 +190,11 @@ public sealed class MembershipService : IMembershipService
             return Fail<MembershipResponse>("NOT_FOUND", "Khong tim thay membership.", StatusCodes.Status404NotFound);
         }
 
+        if (membership.Status == MembershipStatus.Cancelled)
+        {
+            return Fail<MembershipResponse>("MEMBERSHIP_CANCELLED", "Khong the gia han goi da huy.", StatusCodes.Status422UnprocessableEntity);
+        }
+
         var package = await _dbContext.MembershipPackages.FirstOrDefaultAsync(
             item => item.Id == request.PackageId, cancellationToken);
 
@@ -190,62 +208,43 @@ public sealed class MembershipService : IMembershipService
             return Fail<MembershipResponse>("PACKAGE_INACTIVE", "Goi tap da ngung ban.", StatusCodes.Status422UnprocessableEntity);
         }
 
-        var today = Today();
-        if (membership.PackageId == package.Id &&
-            membership.Status == MembershipStatus.Active &&
-            membership.EndDate >= today)
+        if (!TryParsePaymentMethod(request.Method, out var method))
         {
-            membership.EndDate = membership.EndDate.AddDays(package.DurationDays);
-            membership.UpdatedAt = DateTime.UtcNow;
-
-            _dbContext.Payments.Add(new Payment
-            {
-                MembershipId = membership.Id,
-                Amount = package.Price,
-                PaymentMethod = PaymentMethod.Cash,
-                Status = PaymentStatus.Paid,
-                PaidAt = DateTime.UtcNow,
-                CreatedByUserId = actorId.Value,
-                CreatedAt = DateTime.UtcNow
-            });
-
-            await _dbContext.SaveChangesAsync(cancellationToken);
-
-            await _auditService.LogAsync(
-                "RENEW_MEMBERSHIP",
-                "Membership",
-                membership.Id,
-                new { extendedTo = membership.EndDate },
-                cancellationToken);
-
-            return AuthServiceResult<MembershipResponse>.Success(ToResponse(membership));
+            return Fail<MembershipResponse>("VALIDATION_ERROR", "Phuong thuc thanh toan khong hop le.", StatusCodes.Status422UnprocessableEntity);
         }
 
-        var newMembership = new Membership
+        var today = Today();
+
+        // Noi tiep tai cho: keo dai EndDate tu han hien tai (con han) hoac tu hom nay (da het).
+        var baseDate = membership.EndDate > today ? membership.EndDate : today;
+        membership.PackageId = package.Id;
+        membership.Package = package;
+        membership.EndDate = baseDate.AddDays(package.DurationDays);
+        membership.Status = MembershipStatus.Active;
+        membership.UpdatedAt = DateTime.UtcNow;
+
+        // Ghi nhan thanh toan voi dung phuong thuc tu request (khong hardcode Cash).
+        _dbContext.Payments.Add(new Payment
         {
-            MemberId = membership.MemberId,
-            PackageId = package.Id,
-            Package = package,
-            StartDate = today,
-            EndDate = today.AddDays(package.DurationDays),
-            Status = MembershipStatus.PendingPayment,
+            MembershipId = membership.Id,
+            Amount = package.Price,
+            PaymentMethod = method,
+            Status = PaymentStatus.Paid,
+            PaidAt = DateTime.UtcNow,
             CreatedByUserId = actorId.Value,
             CreatedAt = DateTime.UtcNow
-        };
+        });
 
-        _dbContext.Memberships.Add(newMembership);
         await _dbContext.SaveChangesAsync(cancellationToken);
 
         await _auditService.LogAsync(
             "RENEW_MEMBERSHIP",
             "Membership",
-            newMembership.Id,
-            new { sourceMembershipId = membership.Id },
+            membership.Id,
+            new { extendedTo = membership.EndDate, method = method.ToString() },
             cancellationToken);
 
-        return AuthServiceResult<MembershipResponse>.Success(
-            ToResponse(newMembership),
-            StatusCodes.Status201Created);
+        return AuthServiceResult<MembershipResponse>.Success(ToResponse(membership));
     }
 
     // FR-MS-04
@@ -344,18 +343,21 @@ public sealed class MembershipService : IMembershipService
     }
 
     // 🆕 API_CONTRACT_Y: roster tat ca membership cho Admin/Staff.
-    public async Task<AuthServiceResult<IReadOnlyList<MembershipResponse>>> GetAllAsync(
+    // Tra ve PagedResult { items, page, pageSize, totalItems, totalPages } — dong bo voi members/users.
+    public async Task<AuthServiceResult<PagedResult<MembershipResponse>>> GetAllAsync(
         string? status,
         int? page,
         ClaimsPrincipal principal,
         CancellationToken cancellationToken)
     {
+        const int pageSize = 20;
+
         MembershipStatus? statusFilter = null;
         if (!string.IsNullOrWhiteSpace(status))
         {
             if (!Enum.TryParse<MembershipStatus>(status, ignoreCase: true, out var parsed))
             {
-                return Fail<IReadOnlyList<MembershipResponse>>(
+                return Fail<PagedResult<MembershipResponse>>(
                     "VALIDATION_ERROR",
                     "Trang thai membership khong hop le.",
                     StatusCodes.Status422UnprocessableEntity);
@@ -386,18 +388,24 @@ public sealed class MembershipService : IMembershipService
             query = query.Where(item => item.Status == statusFilter);
         }
 
-        query = query.OrderByDescending(item => item.CreatedAt);
+        var pageNumber = page is int p && p > 0 ? p : 1;
+        var totalItems = await query.CountAsync(cancellationToken);
+        var totalPages = (int)Math.Ceiling(totalItems / (double)pageSize);
 
-        if (page is int pageNumber && pageNumber > 0)
-        {
-            const int pageSize = 50;
-            query = query.Skip((pageNumber - 1) * pageSize).Take(pageSize);
-        }
+        var memberships = await query
+            .OrderByDescending(item => item.CreatedAt)
+            .Skip((pageNumber - 1) * pageSize)
+            .Take(pageSize)
+            .ToListAsync(cancellationToken);
 
-        var memberships = await query.ToListAsync(cancellationToken);
+        var result = new PagedResult<MembershipResponse>(
+            memberships.Select(ToResponse).ToList(),
+            pageNumber,
+            pageSize,
+            totalItems,
+            totalPages);
 
-        return AuthServiceResult<IReadOnlyList<MembershipResponse>>.Success(
-            memberships.Select(ToResponse).ToList());
+        return AuthServiceResult<PagedResult<MembershipResponse>>.Success(result);
     }
 
     private static void ExpireIfPastDue(IEnumerable<Membership> memberships, DateOnly today)
@@ -453,6 +461,13 @@ public sealed class MembershipService : IMembershipService
             principal.FindFirstValue(JwtRegisteredClaimNames.Sub);
 
         return long.TryParse(value, out var userId) ? userId : null;
+    }
+
+    // Parse ten phuong thuc ("cash"/"transfer"/"card") sang enum, khong phan biet hoa thuong.
+    private static bool TryParsePaymentMethod(string? method, out PaymentMethod result)
+    {
+        return Enum.TryParse(method, ignoreCase: true, out result)
+            && Enum.IsDefined(typeof(PaymentMethod), result);
     }
 
     private static AuthServiceResult<T> Fail<T>(string code, string message, int statusCode)
