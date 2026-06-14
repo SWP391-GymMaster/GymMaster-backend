@@ -59,6 +59,16 @@ builder.Services.AddScoped<IFoodItemService, FoodItemService>();
 builder.Services.AddScoped<INutritionService, NutritionService>();
 builder.Services.AddScoped<ICheckInService, CheckInService>();
 
+// Tim mon online (Open Food Facts): nho tam ket qua + HttpClient co timeout + User-Agent.
+builder.Services.AddMemoryCache();
+builder.Services.AddHttpClient<IFoodOnlineSearchService, FoodOnlineSearchService>(client =>
+{
+    var baseUrl = builder.Configuration["OpenFoodFacts:BaseUrl"] ?? "https://world.openfoodfacts.org/";
+    client.BaseAddress = new Uri(baseUrl);
+    client.Timeout = TimeSpan.FromSeconds(5);
+    client.DefaultRequestHeaders.UserAgent.ParseAdd("GymMasterApp-SWP391 (admin@gymmaster.local)");
+});
+
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("Frontend", policy =>
