@@ -378,7 +378,10 @@ public sealed class NutritionService : INutritionService
                 item.FoodItemId,
                 item.FoodItem.Name,
                 item.Quantity,
-                item.Calories))
+                item.Calories,
+                item.FoodItem.ProteinG * item.Quantity,
+                item.FoodItem.CarbG * item.Quantity,
+                item.FoodItem.FatG * item.Quantity))
             .ToList();
 
         return new MealLogResponse(

@@ -49,7 +49,10 @@ public sealed record MealItemResponse(
     long FoodItemId,
     string FoodName,
     decimal Quantity,
-    decimal Calories);
+    decimal Calories,
+    decimal? ProteinG,
+    decimal? CarbG,
+    decimal? FatG);
 
 public sealed record MealLogResponse(
     long Id,
