@@ -471,7 +471,7 @@ public sealed class MemberService : IMemberService
             profile.CreatedAt);
     }
 
-    private static string ToMembershipStatus(byte status)
+    private static string ToMembershipStatus(MembershipStatus status)
     {
         return status switch
         {

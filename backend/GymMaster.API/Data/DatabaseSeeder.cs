@@ -26,35 +26,41 @@ public static class DatabaseSeeder
 
         await dbContext.SaveChangesAsync();
 
-        var adminRole = await dbContext.Roles.SingleAsync(role => role.Name == RoleNames.Admin);
-        var admin = await dbContext.Users
-            .Include(user => user.UserRoles)
-            .FirstOrDefaultAsync(user => user.Email == "admin@gymmaster.local");
+        // Tai khoan demo san co cho moi role (de test). Chi tao neu CHUA co — khong reset mat khau da doi.
+        await EnsureUserAsync(dbContext, "admin@gymmaster.local", "GymMaster Admin", "Admin123!", RoleNames.Admin);
+        await EnsureUserAsync(dbContext, "staff@gymmaster.local", "GymMaster Staff", "Staff123!", RoleNames.Staff);
+        await EnsureUserAsync(dbContext, "pt@gymmaster.local", "GymMaster PT", "Pt123!", RoleNames.Pt);
+        await EnsureUserAsync(dbContext, "member@gymmaster.local", "GymMaster Member", "Member123!", RoleNames.Member);
+    }
 
-        if (admin is null)
+    private static async Task EnsureUserAsync(
+        GymMasterDbContext dbContext,
+        string email,
+        string fullName,
+        string password,
+        string roleName)
+    {
+        var role = await dbContext.Roles.SingleAsync(item => item.Name == roleName);
+        var user = await dbContext.Users
+            .Include(item => item.UserRoles)
+            .FirstOrDefaultAsync(item => item.Email == email);
+
+        if (user is null)
         {
-            admin = new User
+            user = new User
             {
-                Email = "admin@gymmaster.local",
-                FullName = "GymMaster Admin",
+                Email = email,
+                FullName = fullName,
+                PasswordHash = BCrypt.Net.BCrypt.HashPassword(password, 12),
                 Status = UserStatuses.Active
             };
 
-            dbContext.Users.Add(admin);
+            dbContext.Users.Add(user);
         }
 
-        admin.FullName = "GymMaster Admin";
-        admin.PasswordHash = BCrypt.Net.BCrypt.HashPassword("Admin123!", 12);
-        admin.Status = UserStatuses.Active;
-        admin.UpdatedAt = DateTime.UtcNow;
-
-        if (admin.UserRoles.All(userRole => userRole.RoleId != adminRole.Id))
+        if (user.UserRoles.All(userRole => userRole.RoleId != role.Id))
         {
-            admin.UserRoles.Add(new UserRole
-            {
-                User = admin,
-                Role = adminRole
-            });
+            user.UserRoles.Add(new UserRole { User = user, Role = role });
         }
 
         await dbContext.SaveChangesAsync();

@@ -42,6 +42,16 @@ public sealed class GymMasterDbContext : DbContext
 
     public DbSet<Payment> Payments => Set<Payment>();
 
+    public DbSet<ProgressLog> ProgressLogs => Set<ProgressLog>();
+
+    public DbSet<FoodItem> FoodItems => Set<FoodItem>();
+
+    public DbSet<MealLog> MealLogs => Set<MealLog>();
+
+    public DbSet<MealLogItem> MealLogItems => Set<MealLogItem>();
+
+    public DbSet<CalorieTarget> CalorieTargets => Set<CalorieTarget>();
+
     public DbSet<CheckIn> CheckIns => Set<CheckIn>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -242,58 +252,124 @@ public sealed class GymMasterDbContext : DbContext
         modelBuilder.Entity<MembershipPackage>(entity =>
         {
             entity.ToTable("membership_packages");
-            entity.HasKey(p => p.Id);
-            entity.Property(p => p.Name).HasMaxLength(150).IsRequired();
-            entity.Property(p => p.Price).HasPrecision(12, 2);
+            entity.HasKey(package => package.Id);
+            entity.Property(package => package.Name).HasMaxLength(100).IsRequired();
+            entity.Property(package => package.Description).HasMaxLength(500);
+            entity.Property(package => package.Price).HasPrecision(12, 2);
+            entity.HasIndex(package => package.Name).IsUnique();
         });
 
         modelBuilder.Entity<Membership>(entity =>
         {
             entity.ToTable("memberships");
-            entity.HasKey(m => m.Id);
+            entity.HasKey(membership => membership.Id);
+            entity.Property(membership => membership.StartDate).HasColumnType("date");
+            entity.Property(membership => membership.EndDate).HasColumnType("date");
+            entity.Property(membership => membership.Status).HasConversion<byte>().HasColumnType("tinyint");
+            entity.HasIndex(membership => membership.MemberId);
 
             entity
-                .HasOne(m => m.Member)
+                .HasOne(membership => membership.Member)
                 .WithMany()
-                .HasForeignKey(m => m.MemberId);
+                .HasForeignKey(membership => membership.MemberId);
 
             entity
-                .HasOne(m => m.Package)
+                .HasOne(membership => membership.Package)
                 .WithMany()
-                .HasForeignKey(m => m.PackageId);
-
-            entity.HasIndex(m => new { m.MemberId, m.Status });
+                .HasForeignKey(membership => membership.PackageId);
         });
 
         modelBuilder.Entity<Payment>(entity =>
         {
             entity.ToTable("payments");
-            entity.HasKey(p => p.Id);
-            entity.Property(p => p.Amount).HasPrecision(12, 2);
-            entity.Property(p => p.Method).HasColumnName("PaymentMethod");
-            entity.Property(p => p.CreatedBy).HasColumnName("CreatedByUserId");
-
-            entity
-                .HasOne(p => p.Membership)
-                .WithMany()
-                .HasForeignKey(p => p.MembershipId);
-
-            entity.HasIndex(p => p.MembershipId);
-            entity.HasIndex(p => p.PaidAt);
+            entity.HasKey(payment => payment.Id);
+            entity.Property(payment => payment.Amount).HasPrecision(12, 2);
+            entity.Property(payment => payment.PaymentMethod).HasConversion<byte>().HasColumnType("tinyint");
+            entity.Property(payment => payment.Status).HasConversion<byte>().HasColumnType("tinyint");
+            entity.HasIndex(payment => payment.MembershipId);
         });
 
+        modelBuilder.Entity<ProgressLog>(entity =>
+        {
+            entity.ToTable("progress_logs");
+            entity.HasKey(progress => progress.Id);
+            entity.Property(progress => progress.WeightKg).HasPrecision(5, 2);
+            entity.Property(progress => progress.BodyFatPercent).HasPrecision(5, 2);
+            entity.Property(progress => progress.ChestCm).HasPrecision(5, 2);
+            entity.Property(progress => progress.WaistCm).HasPrecision(5, 2);
+            entity.Property(progress => progress.HipCm).HasPrecision(5, 2);
+            entity.Property(progress => progress.Note).HasMaxLength(500);
+            entity.HasIndex(progress => new { progress.MemberId, progress.MeasuredAt });
+        });
+
+        modelBuilder.Entity<FoodItem>(entity =>
+        {
+            entity.ToTable("food_items");
+            entity.HasKey(food => food.Id);
+            entity.Property(food => food.Name).HasMaxLength(150).IsRequired();
+            entity.Property(food => food.Unit).HasMaxLength(30).IsRequired();
+            entity.Property(food => food.CaloriesPerUnit).HasPrecision(8, 2);
+            entity.Property(food => food.ProteinG).HasPrecision(8, 2);
+            entity.Property(food => food.CarbG).HasPrecision(8, 2);
+            entity.Property(food => food.FatG).HasPrecision(8, 2);
+            entity.HasIndex(food => food.Name).IsUnique();
+        });
+
+        modelBuilder.Entity<MealLog>(entity =>
+        {
+            entity.ToTable("meal_logs");
+            entity.HasKey(log => log.Id);
+            entity.Property(log => log.LogDate).HasColumnType("date");
+            entity.Property(log => log.MealType).HasConversion<byte>().HasColumnType("tinyint");
+            entity.HasIndex(log => new { log.MemberId, log.LogDate });
+
+            entity
+                .HasMany(log => log.Items)
+                .WithOne()
+                .HasForeignKey(item => item.MealLogId);
+        });
+
+        modelBuilder.Entity<MealLogItem>(entity =>
+        {
+            entity.ToTable("meal_log_items");
+            entity.HasKey(item => item.Id);
+            entity.Property(item => item.Quantity).HasPrecision(8, 2);
+            entity.Property(item => item.Calories).HasPrecision(8, 2);
+
+            entity
+                .HasOne(item => item.FoodItem)
+                .WithMany()
+                .HasForeignKey(item => item.FoodItemId);
+        });
+
+        modelBuilder.Entity<CalorieTarget>(entity =>
+        {
+            entity.ToTable("calorie_targets");
+            entity.HasKey(target => target.Id);
+            entity.Property(target => target.EffectiveDate).HasColumnType("date");
+            entity.Property(target => target.DailyCalories).HasPrecision(8, 2);
+            entity.Property(target => target.ProteinG).HasPrecision(8, 2);
+            entity.Property(target => target.CarbG).HasPrecision(8, 2);
+            entity.Property(target => target.FatG).HasPrecision(8, 2);
+            entity.HasIndex(target => new { target.MemberId, target.EffectiveDate }).IsUnique();
+        });
+
+        // Spec 004 — check_ins (map theo schema DB that: Id, MemberId, CheckInAt, CreatedBy).
         modelBuilder.Entity<CheckIn>(entity =>
         {
             entity.ToTable("check_ins");
-            entity.HasKey(c => c.Id);
-            entity.Property(c => c.CreatedBy).HasColumnName("CreatedByUserId");
+            entity.HasKey(checkIn => checkIn.Id);
+            entity.HasIndex(checkIn => new { checkIn.MemberId, checkIn.CheckInAt });
 
             entity
-                .HasOne(c => c.Member)
+                .HasOne<MemberProfile>()
                 .WithMany()
-                .HasForeignKey(c => c.MemberId);
+                .HasForeignKey(checkIn => checkIn.MemberId);
 
-            entity.HasIndex(c => new { c.MemberId, c.CheckInAt });
+            entity
+                .HasOne<User>()
+                .WithMany()
+                .HasForeignKey(checkIn => checkIn.CreatedBy);
         });
     }
 }

@@ -1,0 +1,41 @@
+namespace GymMaster.API.DTOs;
+
+public sealed record PaymentHistoryResponse(
+    long Id,
+    long MembershipId,
+    long MemberId,
+    string MemberName,
+    string MemberEmail,
+    long PackageId,
+    string PackageName,
+    decimal Amount,
+    string PaymentMethod,
+    string Status,
+    DateTime PaymentDate,
+    DateTime? PaidAt,
+    DateTime CreatedAt,
+    long CreatedByUserId,
+    string? CreatedByName);
+
+public sealed record PaymentSummaryResponse(
+    DateOnly? From,
+    DateOnly? To,
+    int TotalPayments,
+    int PaidPayments,
+    int PendingPayments,
+    int RefundedPayments,
+    decimal GrossRevenue,
+    decimal RefundedAmount,
+    decimal NetRevenue,
+    IReadOnlyList<PaymentMethodSummaryResponse> ByMethod,
+    IReadOnlyList<DailyRevenueResponse> ByDay);
+
+public sealed record PaymentMethodSummaryResponse(
+    string PaymentMethod,
+    int Count,
+    decimal Amount);
+
+public sealed record DailyRevenueResponse(
+    DateOnly Date,
+    int Count,
+    decimal Amount);

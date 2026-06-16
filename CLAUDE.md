@@ -41,9 +41,21 @@ Layered: **Controller → Service → Repository → DbContext** (xem `CONSTITUT
 ## NHỮNG GÌ ĐÃ CHỐT KHÔNG LÀM (Out of Scope MVP)
 - Multi-branch, payment gateway tự động, realtime dashboard, booking lịch, mobile app native.
 
-## CURRENT STATE
-- Phase: **Phase 0–1 (Context Discovery + Specification)**. Đang hoàn thiện bộ 15 spec docs.
-- Chưa scaffold code. Bước tiếp: chốt spec → PLAN → TASKS → implement theo sprint (xem `07_ROADMAP_RELEASES.md`).
+## CURRENT STATE (cập nhật 2026-06-02)
+- ✅ **Spec 001 (Auth)** + **Spec 002 (User/Member/PT)** — code XONG, đã merge vào `main`.
+- Code thật ở `backend/GymMaster.API/` — **1 project**, sắp xếp theo lớp (Controllers/Services/DTOs/Entities/Data/Options). KHÁC sơ đồ `/src` 4-project ở trên (chưa tách, để vậy được).
+- **DB:** dùng DB ngoài **`GymMasterDb`** trên SQL Server `BanhMiChao` (team DB cung cấp, snake_case khớp code). Backend **KHÔNG tự tạo schema** (đã bỏ `EnsureCreated`). Seeder chỉ tạo roles + 4 tài khoản demo.
+- **Secret** (connection string + JWT key) trong **User Secrets** (không commit). Đổi DB: `dotnet user-secrets set "ConnectionStrings:DefaultConnection" "..."`.
+- **Repo:** đã tách 2 — `GymMaster-backend` (C#, private) + `GymMaster-frontend` (Next.js, public, repo riêng). File SQL tạo DB ở `database/`.
+- **4 tài khoản test:** `admin@gymmaster.local`/`Admin123!` · `staff@`/`Staff123!` · `pt@`/`Pt123!` · `member@gymmaster.local`/`Member123!`.
+
+## CÒN DANG DỞ / CHÚ Ý (cho session sau)
+- ⬜ **Unit test** (DoD ≥80%) chưa viết.
+- ⬜ **Spec 003–008** chưa làm. Frontend đã có UI nutrition/progress/dashboard → gọi backend chưa có → lỗi/mock = **BÌNH THƯỜNG**.
+- ⚠️ **Lệch path** với frontend: FE gọi `/api/members`, `/api/trainers` (không `v1`) còn backend dùng `/api/v1/...` → cần đồng bộ với bạn frontend (auth + users đã khớp `/api/v1/`).
+- ⚠️ Seeder thêm 4 tài khoản demo (`EnsureUserAsync`) — thay đổi này **CHƯA commit**.
+- 📄 Chi tiết thay đổi: `CHANGELOG_vs_old_spec.md` · So sánh DB cũ/mới: `DB_DIFF_FOR_DBTEAM.md` · Schema chuẩn: `15_DATABASE_SCHEMA.md`.
+- ▶️ Chạy: backend `dotnet run` ở `backend/GymMaster.API` (cổng 5042) TRƯỚC → frontend `npm run dev` (cổng 3000). Login: `localhost:3000/login`.
 
 ## LESSONS LEARNED
 - [2026-05-30] DB từng được chốt MySQL, sau đó team **đổi sang SQL Server** (D-17). Đã cập nhật toàn bộ docs + kiểu dữ liệu (IDENTITY/NVARCHAR/DATETIME2/BIT, không dùng ENUM). Nguồn sự thật stack: `CONSTITUTION.md` Layer 3. Bài học: chốt DB sớm trước khi viết schema chi tiết.

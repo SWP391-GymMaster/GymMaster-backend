@@ -20,6 +20,8 @@ builder.Services.Configure<JwtOptions>(
     builder.Configuration.GetSection(JwtOptions.SectionName));
 builder.Services.Configure<GoogleAuthOptions>(
     builder.Configuration.GetSection(GoogleAuthOptions.SectionName));
+builder.Services.Configure<CheckInOptions>(
+    builder.Configuration.GetSection(CheckInOptions.SectionName));
 
 var jwtOptions = builder.Configuration
     .GetSection(JwtOptions.SectionName)
@@ -49,10 +51,19 @@ builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<IMemberService, MemberService>();
 builder.Services.AddScoped<ITrainerService, TrainerService>();
+// spec5vs8 — trainer assignment, workout plan, trainer note, dashboard
 builder.Services.AddScoped<IAssignmentService, AssignmentService>();
 builder.Services.AddScoped<IWorkoutPlanService, WorkoutPlanService>();
 builder.Services.AddScoped<ITrainerNoteService, TrainerNoteService>();
 builder.Services.AddScoped<IDashboardService, DashboardService>();
+// spec 003/004/006/007 — membership, payment, progress, nutrition, check-in
+builder.Services.AddScoped<IMembershipPackageService, MembershipPackageService>();
+builder.Services.AddScoped<IMembershipService, MembershipService>();
+builder.Services.AddScoped<IPaymentService, PaymentService>();
+builder.Services.AddScoped<IProgressService, ProgressService>();
+builder.Services.AddScoped<IFoodItemService, FoodItemService>();
+builder.Services.AddScoped<INutritionService, NutritionService>();
+builder.Services.AddScoped<ICheckInService, CheckInService>();
 
 builder.Services.AddCors(options =>
 {
