@@ -131,10 +131,8 @@ public sealed class PaymentService : IPaymentService
 
         var rows = await BuildPaymentQuery(from, to).ToListAsync(cancellationToken);
         var paidRows = rows.Where(item => item.Status == PaymentStatus.Paid).ToList();
-        var refundedRows = rows.Where(item => item.Status == PaymentStatus.Refunded).ToList();
 
-        var grossRevenue = paidRows.Sum(item => item.Amount);
-        var refundedAmount = refundedRows.Sum(item => item.Amount);
+        var revenue = paidRows.Sum(item => item.Amount);
 
         var byMethod = paidRows
             .GroupBy(item => item.PaymentMethod)
@@ -160,10 +158,7 @@ public sealed class PaymentService : IPaymentService
             rows.Count,
             paidRows.Count,
             rows.Count(item => item.Status == PaymentStatus.Pending),
-            refundedRows.Count,
-            grossRevenue,
-            refundedAmount,
-            grossRevenue - refundedAmount,
+            revenue,
             byMethod,
             byDay);
 

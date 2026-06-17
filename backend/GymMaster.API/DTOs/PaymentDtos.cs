@@ -23,10 +23,7 @@ public sealed record PaymentSummaryResponse(
     int TotalPayments,
     int PaidPayments,
     int PendingPayments,
-    int RefundedPayments,
-    decimal GrossRevenue,
-    decimal RefundedAmount,
-    decimal NetRevenue,
+    decimal Revenue,
     IReadOnlyList<PaymentMethodSummaryResponse> ByMethod,
     IReadOnlyList<DailyRevenueResponse> ByDay);
 
