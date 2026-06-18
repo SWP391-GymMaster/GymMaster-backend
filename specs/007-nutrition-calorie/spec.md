@@ -78,19 +78,3 @@ Member ghi nhật ký bữa ăn từ food database (nhập tay — ADR-04), hệ
   `GET /api/v1/members/{memberId}/nutrition/daily-overview?date=` → `{ date, consumed, target, remaining, protein, carb, fat, meals: [ { mealType, items: [ { foodName, quantity, calories, protein, carb, fat } ] } ] }`.
   **Cần chốt**: làm gộp, hay giữ `calorie-summary` + `meal-logs` tách như §6. (Làm được ngay phía BE, không đụng DB.)
 - **Snapshot macro cho lịch sử (NFR-02)**: `meal_log_items` hiện CHỈ snapshot `Calories` → tổng calo lịch sử đúng, nhưng **macro (đạm/tinh bột/béo) đang lấy từ `food_items` sống** nên sẽ lệch nếu admin sửa món. Để đúng NFR-02 **cần DB team thêm cột** `FoodNameSnapshot/ProteinGSnapshot/CarbGSnapshot/FatGSnapshot` (giữ `FoodItemId` để biết món gốc). Backend sẽ ưu tiên đọc snapshot khi có cột.
-### Online food search — bản tối thiểu (đã chốt hướng, CHƯA code)
-> Proxy server-side đúng tầm SWP391, **KHÔNG đụng cấu trúc DB**. Tính năng phụ — chỉ làm sau khi phần lõi chắc.
-
-- **Endpoint**: `GET /api/v1/food-items/online-search?query=` (FE đã có client sẵn). `GET /api/v1/food-items/barcode/{barcode}` = **tùy chọn** (§9 xếp barcode secondary).
-- **Luồng**: tìm kho nội bộ trước → thiếu thì hội viên **bấm "Tìm online"** → BE gọi Open Food Facts (timeout 5s) → **lỗi/quá giờ trả `[]`** để FE tự lùi về kết quả local.
-- **Limit (tránh vượt 10 req/phút của OFF)**: (1) chỉ gọi khi **bấm tay** (không search-as-you-type); (2) **nhớ tạm** kết quả online theo từ khóa bằng `IMemoryCache` (TTL ~vài giờ) — **chỉ cache dữ liệu online công khai, KHÔNG cache dữ liệu nội bộ/member**; (3) tùy chọn cooldown vài giây/người.
-- **Lưu món = Find-or-Create**: sửa `POST /api/v1/food-items` → trùng tên thì **trả món cũ (200) + `meta.found_existing`** thay vì 409.
-- **Chống món rác (DB-free)**: validate (tên ≤150, calo/macro trong khoảng 0..max) + Find-or-Create chống trùng + admin ẩn bằng `IsActive` có sẵn.
-- **Attribution**: ghi nguồn "Dữ liệu từ Open Food Facts" (ODbL yêu cầu).
-- **Lưu ý triển khai (đã kiểm code 2026-06-12)**:
-  - `food_items` đã đủ cột (Name **max 150**, Unit 30, macro, IsActive) → **không thêm cột**. Cắt tên OFF về **≤150** (không phải 100 như tài liệu FE đoán).
-  - Có **unique index trên `Name`** → hiện trùng tên trả **409 sạch (không crash 500)**; Find-or-Create chỉ đổi 409→trả-món-cũ, nên bắt thêm `DbUpdateException` cho trường hợp đua hiếm.
-  - Cần thêm `builder.Services.AddMemoryCache()` + `AddHttpClient()` trong `Program.cs` (không đụng DB).
-  - `AddAsync` đã validate số âm; thêm chặn **trên** (vd calo ≤ 10000) nếu muốn.
-- **❌ KHÔNG làm**: Redis, USDA/đa nhà cung cấp, circuit-breaker, member-private (cần cột `CreatedByUserId` — chưa có), cron crawl, Elasticsearch.
-- **Công sức**: ~0.5–1 ngày, BE-only, gọn trong Part Y.
