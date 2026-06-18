@@ -12,14 +12,10 @@ namespace GymMaster.API.Controllers;
 public sealed class FoodItemsController : ApiControllerBase
 {
     private readonly IFoodItemService _foodItemService;
-    private readonly IFoodOnlineSearchService _onlineSearchService;
 
-    public FoodItemsController(
-        IFoodItemService foodItemService,
-        IFoodOnlineSearchService onlineSearchService)
+    public FoodItemsController(IFoodItemService foodItemService)
     {
         _foodItemService = foodItemService;
-        _onlineSearchService = onlineSearchService;
     }
 
     // FR-FOOD-01
@@ -32,16 +28,6 @@ public sealed class FoodItemsController : ApiControllerBase
     {
         var result = await _foodItemService.SearchAsync(query, page, pageSize, cancellationToken);
         return ToActionResult(result);
-    }
-
-    // FR-FOOD (online assist): tim mon tu Open Food Facts de FE hien cho user chon.
-    [HttpGet("online-search")]
-    public async Task<IActionResult> OnlineSearch(
-        [FromQuery] string? query,
-        CancellationToken cancellationToken)
-    {
-        var items = await _onlineSearchService.SearchAsync(query, cancellationToken);
-        return ToActionResult(AuthServiceResult<IReadOnlyList<OnlineFoodItemResponse>>.Success(items));
     }
 
     // FR-FOOD-02
