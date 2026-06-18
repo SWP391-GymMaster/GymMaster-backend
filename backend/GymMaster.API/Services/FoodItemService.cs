@@ -78,13 +78,9 @@ public sealed class FoodItemService : IFoodItemService
             return Fail<FoodItemResponse>("VALIDATION_ERROR", "Thong tin dinh duong khong hop le.", StatusCodes.Status400BadRequest);
         }
 
-        // Find-or-Create: trung ten thi tra mon co san (200) thay vi bao loi 409.
-        // Phuc vu luu mon tu tim kiem online ma khong lam crash khi trung ten.
-        var existing = await _dbContext.FoodItems
-            .FirstOrDefaultAsync(item => item.Name == name, cancellationToken);
-        if (existing is not null)
+        if (await _dbContext.FoodItems.AnyAsync(item => item.Name == name, cancellationToken))
         {
-            return AuthServiceResult<FoodItemResponse>.Success(ToResponse(existing), StatusCodes.Status200OK);
+            return Fail<FoodItemResponse>("DUPLICATE", "Mon nay da ton tai.", StatusCodes.Status409Conflict);
         }
 
         var foodItem = new FoodItem

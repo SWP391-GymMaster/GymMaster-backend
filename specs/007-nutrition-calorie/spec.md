@@ -78,10 +78,8 @@ Member ghi nhật ký bữa ăn từ food database (nhập tay — ADR-04), hệ
   `GET /api/v1/members/{memberId}/nutrition/daily-overview?date=` → `{ date, consumed, target, remaining, protein, carb, fat, meals: [ { mealType, items: [ { foodName, quantity, calories, protein, carb, fat } ] } ] }`.
   **Cần chốt**: làm gộp, hay giữ `calorie-summary` + `meal-logs` tách như §6. (Làm được ngay phía BE, không đụng DB.)
 - **Snapshot macro cho lịch sử (NFR-02)**: `meal_log_items` hiện CHỈ snapshot `Calories` → tổng calo lịch sử đúng, nhưng **macro (đạm/tinh bột/béo) đang lấy từ `food_items` sống** nên sẽ lệch nếu admin sửa món. Để đúng NFR-02 **cần DB team thêm cột** `FoodNameSnapshot/ProteinGSnapshot/CarbGSnapshot/FatGSnapshot` (giữ `FoodItemId` để biết món gốc). Backend sẽ ưu tiên đọc snapshot khi có cột.
-### Online food search — bản tối thiểu (ĐÃ CODE 2026-06-15)
-> Proxy server-side đúng tầm SWP391, **KHÔNG đụng cấu trúc DB**. Tính năng phụ.
-
-**Đã triển khai (BE-only):** `GET /api/v1/food-items/online-search?query=` qua `FoodOnlineSearchService` (HttpClient + `IMemoryCache` TTL 6h + timeout 5s + lỗi-thì-rỗng) → đăng ký ở `Program.cs`. `POST /api/v1/food-items` đã thành **Find-or-Create** (trùng tên trả món cũ 200, KHÔNG còn 409). Test: bóc tách JSON OFF + làm sạch + Find-or-Create ở `tests/GymMaster.Api.Tests`. **Lưu ý:** cú gọi OFF thật chỉ verify khi chạy máy có internet (không unit-test offline). `barcode` + cooldown + `meta.found_existing` chưa làm (để sau). Chi tiết thiết kế bên dưới.
+### Online food search — bản tối thiểu (đã chốt hướng, CHƯA code)
+> Proxy server-side đúng tầm SWP391, **KHÔNG đụng cấu trúc DB**. Tính năng phụ — chỉ làm sau khi phần lõi chắc.
 
 - **Endpoint**: `GET /api/v1/food-items/online-search?query=` (FE đã có client sẵn). `GET /api/v1/food-items/barcode/{barcode}` = **tùy chọn** (§9 xếp barcode secondary).
 - **Luồng**: tìm kho nội bộ trước → thiếu thì hội viên **bấm "Tìm online"** → BE gọi Open Food Facts (timeout 5s) → **lỗi/quá giờ trả `[]`** để FE tự lùi về kết quả local.

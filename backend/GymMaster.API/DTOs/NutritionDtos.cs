@@ -18,17 +18,6 @@ public sealed record FoodItemResponse(
     decimal? FatG,
     bool IsActive);
 
-// Ket qua tim mon tu nguon online (Open Food Facts). Chua luu vao DB —
-// chi de FE hien cho user chon, sau do POST /food-items moi luu.
-public sealed record OnlineFoodItemResponse(
-    string Name,
-    string Unit,
-    decimal CaloriesPerUnit,
-    decimal? ProteinG,
-    decimal? CarbG,
-    decimal? FatG,
-    string Source);
-
 public sealed record SetCalorieTargetRequest(
     DateOnly? EffectiveDate,
     decimal DailyCalories,
