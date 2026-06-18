@@ -346,12 +346,12 @@ CREATE TABLE dbo.check_ins (
     CheckInAt       DATETIME2 NOT NULL CONSTRAINT DF_check_ins_CheckInAt DEFAULT SYSUTCDATETIME(),
     -- Cột ngày persisted cho báo cáo "check-in theo ngày" (index được, khác với index trên biểu thức).
     CheckInDate     AS CONVERT(DATE, CheckInAt) PERSISTED,
-    CreatedByUserId BIGINT    NULL,
+    CreatedBy       BIGINT    NULL,   -- khop code (CheckIn.CreatedBy); NULL = member tu check-in
     Note            NVARCHAR(255) NULL,
 
     CONSTRAINT PK_check_ins PRIMARY KEY (Id),
-    CONSTRAINT FK_check_ins_member_profiles FOREIGN KEY (MemberId)        REFERENCES dbo.member_profiles(Id),
-    CONSTRAINT FK_check_ins_users           FOREIGN KEY (CreatedByUserId) REFERENCES dbo.users(Id)
+    CONSTRAINT FK_check_ins_member_profiles FOREIGN KEY (MemberId)  REFERENCES dbo.member_profiles(Id),
+    CONSTRAINT FK_check_ins_users           FOREIGN KEY (CreatedBy) REFERENCES dbo.users(Id)
 );
 GO
 CREATE INDEX IX_check_ins_MemberId_CheckInAt ON dbo.check_ins(MemberId, CheckInAt DESC);
