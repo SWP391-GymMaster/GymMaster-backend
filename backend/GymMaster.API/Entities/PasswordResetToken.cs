@@ -14,5 +14,8 @@ public sealed class PasswordResetToken
 
     public DateTime? UsedAt { get; set; }
 
+    // So lan nhap OTP sai (gioi han 3 lan -> vo hieu ma).
+    public int AttemptCount { get; set; }
+
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 }

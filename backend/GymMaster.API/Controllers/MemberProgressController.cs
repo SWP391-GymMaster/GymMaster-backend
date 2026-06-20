@@ -37,7 +37,10 @@ public sealed class MemberProgressController : ApiControllerBase
     }
 
     // FR-360-01
-    [HttpGet("{id:long}/profile-360")]
+    // Route doi tu "profile-360" -> "progress-360" de tranh trung voi
+    // MembersController.GetProfile360 (ca hai cung map /members/{id}/profile-360
+    // gay AmbiguousMatchException). FE goi profile-360 -> dung ban MembersController.
+    [HttpGet("{id:long}/progress-360")]
     public async Task<IActionResult> GetProfile360(long id, CancellationToken cancellationToken)
     {
         var result = await _progressService.GetProfile360Async(id, User, cancellationToken);
