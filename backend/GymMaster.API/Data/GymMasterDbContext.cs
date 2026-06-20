@@ -26,6 +26,16 @@ public sealed class GymMasterDbContext : DbContext
 
     public DbSet<AuditLog> AuditLogs => Set<AuditLog>();
 
+    public DbSet<TrainerAssignment> TrainerAssignments => Set<TrainerAssignment>();
+
+    public DbSet<WorkoutPlan> WorkoutPlans => Set<WorkoutPlan>();
+
+    public DbSet<WorkoutExercise> WorkoutExercises => Set<WorkoutExercise>();
+
+    public DbSet<ExerciseCatalog> ExerciseCatalogs => Set<ExerciseCatalog>();
+
+    public DbSet<TrainerNote> TrainerNotes => Set<TrainerNote>();
+
     public DbSet<MembershipPackage> MembershipPackages => Set<MembershipPackage>();
 
     public DbSet<Membership> Memberships => Set<Membership>();
@@ -147,6 +157,98 @@ public sealed class GymMasterDbContext : DbContext
             entity.HasIndex(log => new { log.Entity, log.EntityId });
         });
 
+        modelBuilder.Entity<TrainerAssignment>(entity =>
+        {
+            entity.ToTable("trainer_assignments");
+            entity.HasKey(a => a.Id);
+
+            entity
+                .HasOne(a => a.Member)
+                .WithMany()
+                .HasForeignKey(a => a.MemberId);
+
+            entity
+                .HasOne(a => a.Trainer)
+                .WithMany()
+                .HasForeignKey(a => a.TrainerId);
+
+            entity.HasIndex(a => new { a.MemberId, a.Status });
+            entity.HasIndex(a => new { a.TrainerId, a.Status });
+        });
+
+        modelBuilder.Entity<WorkoutPlan>(entity =>
+        {
+            entity.ToTable("workout_plans", t => t.UseSqlOutputClause(false));
+            entity.HasKey(p => p.Id);
+            entity.Property(p => p.Title).HasMaxLength(150).IsRequired();
+            entity.Property(p => p.Goal).HasMaxLength(255);
+
+            entity
+                .HasOne(p => p.Member)
+                .WithMany()
+                .HasForeignKey(p => p.MemberId);
+
+            entity
+                .HasOne(p => p.Trainer)
+                .WithMany()
+                .HasForeignKey(p => p.TrainerId);
+
+            entity.HasIndex(p => new { p.MemberId, p.Status });
+            entity.HasIndex(p => new { p.TrainerId, p.Status });
+        });
+
+        modelBuilder.Entity<ExerciseCatalog>(entity =>
+        {
+            entity.ToTable("exercise_catalog");
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.Name).HasMaxLength(150).IsRequired();
+            entity.Property(e => e.MuscleGroup).HasMaxLength(80);
+            entity.Property(e => e.Description).HasMaxLength(500);
+            entity.HasIndex(e => e.Name).IsUnique();
+        });
+
+        modelBuilder.Entity<WorkoutExercise>(entity =>
+        {
+            entity.ToTable("workout_exercises");
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.Note).HasMaxLength(255);
+            entity.Property(e => e.WeightKg).HasPrecision(6, 2);
+
+            entity
+                .HasOne(e => e.WorkoutPlan)
+                .WithMany(p => p.Exercises)
+                .HasForeignKey(e => e.WorkoutPlanId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            entity
+                .HasOne(e => e.Exercise)
+                .WithMany()
+                .HasForeignKey(e => e.ExerciseId);
+
+            entity.HasIndex(e => new { e.WorkoutPlanId, e.SortOrder }).IsUnique();
+            entity.HasIndex(e => e.ExerciseId);
+        });
+
+        modelBuilder.Entity<TrainerNote>(entity =>
+        {
+            entity.ToTable("trainer_notes");
+            entity.HasKey(n => n.Id);
+            entity.Property(n => n.Content).HasMaxLength(1000).IsRequired();
+
+            entity
+                .HasOne(n => n.Member)
+                .WithMany()
+                .HasForeignKey(n => n.MemberId);
+
+            entity
+                .HasOne(n => n.Trainer)
+                .WithMany()
+                .HasForeignKey(n => n.TrainerId);
+
+            entity.HasIndex(n => new { n.MemberId, n.NoteDate });
+            entity.HasIndex(n => new { n.TrainerId, n.NoteDate });
+        });
+
         modelBuilder.Entity<MembershipPackage>(entity =>
         {
             entity.ToTable("membership_packages");
@@ -165,6 +267,11 @@ public sealed class GymMasterDbContext : DbContext
             entity.Property(membership => membership.EndDate).HasColumnType("date");
             entity.Property(membership => membership.Status).HasConversion<byte>().HasColumnType("tinyint");
             entity.HasIndex(membership => membership.MemberId);
+
+            entity
+                .HasOne(membership => membership.Member)
+                .WithMany()
+                .HasForeignKey(membership => membership.MemberId);
 
             entity
                 .HasOne(membership => membership.Package)

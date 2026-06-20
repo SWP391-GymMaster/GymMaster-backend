@@ -22,6 +22,7 @@ public sealed record TrainerResponse(
     long UserId,
     string Email,
     string FullName,
+    string Status,
     string? Specialty,
     string? Bio,
     string? Gender,

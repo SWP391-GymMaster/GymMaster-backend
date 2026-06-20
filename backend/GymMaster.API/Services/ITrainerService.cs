@@ -8,7 +8,7 @@ public interface ITrainerService
         CreateTrainerRequest request, CancellationToken cancellationToken);
 
     Task<AuthServiceResult<PagedResult<TrainerResponse>>> ListAsync(
-        int page, int pageSize, CancellationToken cancellationToken);
+        string? query, int page, int pageSize, CancellationToken cancellationToken);
 
     Task<AuthServiceResult<TrainerResponse>> GetByIdAsync(
         long id, CancellationToken cancellationToken);

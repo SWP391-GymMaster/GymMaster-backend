@@ -16,6 +16,12 @@ public interface IUserService
     Task<AuthServiceResult<AdminUserResponse>> UpdateAsync(
         long id, UpdateUserRequest request, CancellationToken cancellationToken);
 
+    Task<AuthServiceResult<AdminUserResponse>> UpdateStatusAsync(
+        long id, string status, CancellationToken cancellationToken);
+
+    Task<AuthServiceResult<ResetUserPasswordResponse>> ResetPasswordAsync(
+        long id, CancellationToken cancellationToken);
+
     Task<AuthServiceResult<object>> DeleteAsync(
         long id, CancellationToken cancellationToken);
 }

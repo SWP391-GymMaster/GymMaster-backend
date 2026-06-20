@@ -20,5 +20,7 @@ public sealed class Membership
 
     public DateTime? UpdatedAt { get; set; }
 
+    public MemberProfile Member { get; set; } = null!;
+
     public MembershipPackage Package { get; set; } = null!;
 }

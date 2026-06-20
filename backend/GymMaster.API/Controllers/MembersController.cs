@@ -6,16 +6,24 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace GymMaster.API.Controllers;
 
+
 [ApiController]
 [Route("api/v1/members")]
 [Authorize]
 public sealed class MembersController : ApiControllerBase
 {
     private readonly IMemberService _memberService;
+    private readonly IWorkoutPlanService _workoutPlanService;
+    private readonly ITrainerNoteService _trainerNoteService;
 
-    public MembersController(IMemberService memberService)
+    public MembersController(
+        IMemberService memberService,
+        IWorkoutPlanService workoutPlanService,
+        ITrainerNoteService trainerNoteService)
     {
         _memberService = memberService;
+        _workoutPlanService = workoutPlanService;
+        _trainerNoteService = trainerNoteService;
     }
 
     // FR-MEM-01
@@ -42,11 +50,70 @@ public sealed class MembersController : ApiControllerBase
         return ToActionResult(result);
     }
 
+    [HttpGet("me/profile-360")]
+    [Authorize(Roles = RoleNames.Member)]
+    public async Task<IActionResult> GetMyProfile360(CancellationToken cancellationToken)
+    {
+        var memberIdResult = await _memberService.GetCurrentMemberProfileIdAsync(User, cancellationToken);
+        if (!memberIdResult.Succeeded)
+        {
+            return ToActionResult(memberIdResult);
+        }
+
+        var result = await _memberService.GetProfile360Async(memberIdResult.Value, User, cancellationToken);
+        return ToActionResult(result);
+    }
+
+    [HttpGet("me/workout-plans")]
+    [Authorize(Roles = RoleNames.Member)]
+    public async Task<IActionResult> GetMyWorkoutPlans(CancellationToken cancellationToken)
+    {
+        var memberIdResult = await _memberService.GetCurrentMemberProfileIdAsync(User, cancellationToken);
+        if (!memberIdResult.Succeeded)
+        {
+            return ToActionResult(memberIdResult);
+        }
+
+        var result = await _workoutPlanService.GetByMemberAsync(memberIdResult.Value, User, cancellationToken);
+        return ToActionResult(result);
+    }
+
+    [HttpGet("me/notes")]
+    [Authorize(Roles = RoleNames.Member)]
+    public async Task<IActionResult> GetMyNotes(CancellationToken cancellationToken)
+    {
+        var memberIdResult = await _memberService.GetCurrentMemberProfileIdAsync(User, cancellationToken);
+        if (!memberIdResult.Succeeded)
+        {
+            return ToActionResult(memberIdResult);
+        }
+
+        var result = await _trainerNoteService.GetByMemberAsync(memberIdResult.Value, User, cancellationToken);
+        return ToActionResult(result);
+    }
+
     // FR-MEM-05: ownership check trong service (Member chi xem cua minh).
     [HttpGet("{id:long}")]
     public async Task<IActionResult> GetById(long id, CancellationToken cancellationToken)
     {
         var result = await _memberService.GetByIdAsync(id, User, cancellationToken);
+        return ToActionResult(result);
+    }
+
+    // Canonical Member 360 profile used by PT/Admin/Staff/member workspaces.
+    [HttpGet("{id:long}/profile-360")]
+    [Authorize(Roles = $"{RoleNames.Admin},{RoleNames.Staff},{RoleNames.Pt},{RoleNames.Member}")]
+    public async Task<IActionResult> GetProfile360(long id, CancellationToken cancellationToken)
+    {
+        var result = await _memberService.GetProfile360Async(id, User, cancellationToken);
+        return ToActionResult(result);
+    }
+
+    [HttpGet("{id:long}/360")]
+    [Authorize(Roles = $"{RoleNames.Admin},{RoleNames.Staff},{RoleNames.Pt},{RoleNames.Member}")]
+    public async Task<IActionResult> Get360(long id, CancellationToken cancellationToken)
+    {
+        var result = await _memberService.GetProfile360Async(id, User, cancellationToken);
         return ToActionResult(result);
     }
 
@@ -71,5 +138,47 @@ public sealed class MembersController : ApiControllerBase
         return result.Succeeded
             ? NoContent()
             : ToActionResult(result);
+    }
+
+    // FR-WP-01 / AC-04: PT tao giao an cho member duoc phan cong.
+    [HttpPost("{id:long}/workout-plans")]
+    [Authorize(Roles = RoleNames.Pt)]
+    public async Task<IActionResult> CreateWorkoutPlan(
+        long id,
+        [FromBody] CreateWorkoutPlanRequest request,
+        CancellationToken cancellationToken)
+    {
+        var result = await _workoutPlanService.CreateAsync(id, request, User, cancellationToken);
+        return ToActionResult(result);
+    }
+
+    // FR-PT-04 / AC-06: PT(assigned)/Admin/Member(self) xem giao an.
+    [HttpGet("{id:long}/workout-plans")]
+    [Authorize(Roles = $"{RoleNames.Pt},{RoleNames.Admin},{RoleNames.Member}")]
+    public async Task<IActionResult> GetWorkoutPlans(long id, CancellationToken cancellationToken)
+    {
+        var result = await _workoutPlanService.GetByMemberAsync(id, User, cancellationToken);
+        return ToActionResult(result);
+    }
+
+    // FR-NOTE-01: PT ghi note cho member duoc phan cong.
+    [HttpPost("{id:long}/notes")]
+    [Authorize(Roles = RoleNames.Pt)]
+    public async Task<IActionResult> CreateNote(
+        long id,
+        [FromBody] CreateTrainerNoteRequest request,
+        CancellationToken cancellationToken)
+    {
+        var result = await _trainerNoteService.CreateAsync(id, request, User, cancellationToken);
+        return ToActionResult(result);
+    }
+
+    // FR-PT-04: PT(assigned)/Admin/Member(self) xem ghi chu.
+    [HttpGet("{id:long}/notes")]
+    [Authorize(Roles = $"{RoleNames.Pt},{RoleNames.Admin},{RoleNames.Member}")]
+    public async Task<IActionResult> GetNotes(long id, CancellationToken cancellationToken)
+    {
+        var result = await _trainerNoteService.GetByMemberAsync(id, User, cancellationToken);
+        return ToActionResult(result);
     }
 }

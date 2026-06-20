@@ -51,6 +51,12 @@ builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<IMemberService, MemberService>();
 builder.Services.AddScoped<ITrainerService, TrainerService>();
+// spec5vs8 — trainer assignment, workout plan, trainer note, dashboard
+builder.Services.AddScoped<IAssignmentService, AssignmentService>();
+builder.Services.AddScoped<IWorkoutPlanService, WorkoutPlanService>();
+builder.Services.AddScoped<ITrainerNoteService, TrainerNoteService>();
+builder.Services.AddScoped<IDashboardService, DashboardService>();
+// spec 003/004/006/007 — membership, payment, progress, nutrition, check-in
 builder.Services.AddScoped<IMembershipPackageService, MembershipPackageService>();
 builder.Services.AddScoped<IMembershipService, MembershipService>();
 builder.Services.AddScoped<IPaymentService, PaymentService>();
