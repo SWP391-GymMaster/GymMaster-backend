@@ -219,6 +219,40 @@ public sealed class MemberService : IMemberService
             .Select(checkIn => new Member360CheckInResponse(checkIn.Id, checkIn.CheckInAt))
             .ToListAsync(cancellationToken);
 
+        // Gop tu spec 006 (Loc): lich su goi tap.
+        var allMemberships = await _dbContext.Memberships
+            .Include(membership => membership.Package)
+            .Where(membership => membership.MemberId == id)
+            .OrderByDescending(membership => membership.StartDate)
+            .ToListAsync(cancellationToken);
+
+        var membershipHistory = allMemberships
+            .Select(membership => new Member360MembershipResponse(
+                membership.Id,
+                membership.Package?.Name ?? $"Package #{membership.PackageId}",
+                membership.StartDate,
+                membership.EndDate,
+                ToMembershipStatus(membership.Status),
+                membership.Status == MembershipStatus.Active ? "paid" : "pending"))
+            .ToList();
+
+        // Gop tu spec 006 (Loc): tien do (progress timeline).
+        var progressTimeline = await _dbContext.ProgressLogs
+            .Where(log => log.MemberId == id)
+            .OrderBy(log => log.MeasuredAt)
+            .Select(log => new ProgressResponse(
+                log.Id,
+                log.MemberId,
+                log.MeasuredAt,
+                log.WeightKg,
+                log.BodyFatPercent,
+                log.ChestCm,
+                log.WaistCm,
+                log.HipCm,
+                log.Note,
+                log.CreatedAt))
+            .ToListAsync(cancellationToken);
+
         var response = new Member360Response(
             new Member360MemberResponse(
                 profile.Id,
@@ -243,7 +277,9 @@ public sealed class MemberService : IMemberService
                     activeAssignment.Trainer?.User?.FullName ?? "Huấn luyện viên",
                     activeAssignment.Trainer?.Specialty,
                     activeAssignment.CreatedAt),
-            recentCheckIns);
+            recentCheckIns,
+            membershipHistory,
+            progressTimeline);
 
         return AuthServiceResult<Member360Response>.Success(response);
     }

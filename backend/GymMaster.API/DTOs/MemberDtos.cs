@@ -45,7 +45,10 @@ public sealed record Member360Response(
     Member360MemberResponse Member,
     Member360MembershipResponse? CurrentMembership,
     Member360AssignedPtResponse? AssignedPT,
-    IReadOnlyList<Member360CheckInResponse> RecentCheckIns);
+    IReadOnlyList<Member360CheckInResponse> RecentCheckIns,
+    // Gop tu spec 006 (Loc): lich su goi + tien do. FE chua dung -> bo qua, khong vo.
+    IReadOnlyList<Member360MembershipResponse> MembershipHistory,
+    IReadOnlyList<ProgressResponse> ProgressTimeline);
 
 public sealed record Member360MemberResponse(
     long Id,

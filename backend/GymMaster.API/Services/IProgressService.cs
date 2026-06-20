@@ -15,9 +15,4 @@ public interface IProgressService
         long memberId,
         ClaimsPrincipal principal,
         CancellationToken cancellationToken);
-
-    Task<AuthServiceResult<Profile360Response>> GetProfile360Async(
-        long memberId,
-        ClaimsPrincipal principal,
-        CancellationToken cancellationToken);
 }

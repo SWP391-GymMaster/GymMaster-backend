@@ -126,64 +126,8 @@ public sealed class ProgressService : IProgressService
             logs.Select(ToResponse).ToList());
     }
 
-    // FR-360-01
-    public async Task<AuthServiceResult<Profile360Response>> GetProfile360Async(
-        long memberId,
-        ClaimsPrincipal principal,
-        CancellationToken cancellationToken)
-    {
-        var profile = await FindMemberAsync(memberId, cancellationToken);
-
-        if (profile is null)
-        {
-            return Fail<Profile360Response>("NOT_FOUND", "Khong tim thay hoi vien.", StatusCodes.Status404NotFound);
-        }
-
-        if (!CanAccess(principal, profile))
-        {
-            return Fail<Profile360Response>("FORBIDDEN", "Ban khong co quyen xem ho so 360 nay.", StatusCodes.Status403Forbidden);
-        }
-
-        var today = DateOnly.FromDateTime(DateTime.UtcNow);
-        var memberships = await _dbContext.Memberships
-            .Include(item => item.Package)
-            .Where(item => item.MemberId == memberId)
-            .OrderByDescending(item => item.CreatedAt)
-            .ToListAsync(cancellationToken);
-
-        // Dong bo trang thai het han (lazy) giong cac endpoint membership khac (FR-MS-07),
-        // tranh 360 hien Status "Active" cho membership da qua EndDate.
-        if (ExpireIfPastDue(memberships, today))
-        {
-            await _dbContext.SaveChangesAsync(cancellationToken);
-        }
-
-        var currentMembership = memberships.FirstOrDefault(
-            item => item.Status == MembershipStatus.Active && item.EndDate >= today);
-
-        var progress = await _dbContext.ProgressLogs
-            .Where(item => item.MemberId == memberId)
-            .OrderBy(item => item.MeasuredAt)
-            .ToListAsync(cancellationToken);
-
-        var response = new Profile360Response(
-            new MemberInfo(
-                profile.Id,
-                profile.UserId,
-                profile.User.FullName,
-                profile.User.Email,
-                profile.User.Phone,
-                profile.DateOfBirth,
-                profile.Gender),
-            currentMembership is null ? null : ToMembershipResponse(currentMembership),
-            memberships.Select(item => (object)ToMembershipResponse(item)).ToList(),
-            progress.Select(ToResponse).ToList(),
-            null,
-            null,
-            null);
-
-        return AuthServiceResult<Profile360Response>.Success(response);
-    }
+    // FR-360-01: Member 360 da gop vao MemberService.GetProfile360Async
+    // (/members/{id}/profile-360) — gom du lich su goi + tien do. Bo ban trung o day.
 
     private Task<MemberProfile?> FindMemberAsync(long memberId, CancellationToken cancellationToken)
     {
