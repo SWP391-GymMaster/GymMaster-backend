@@ -16,6 +16,8 @@ namespace GymMaster.API.Services;
 public sealed class AuthService : IAuthService
 {
     private const int MaxFailedAttempts = 5;
+    private const int ResetResendCooldownSeconds = 60;   // chong spam: 60s moi duoc xin OTP moi
+    private const int MaxResetAttempts = 3;              // nhap sai OTP qua 3 lan -> vo hieu ma
     private static readonly TimeSpan FailedAttemptWindow = TimeSpan.FromMinutes(15);
     private static readonly TimeSpan TemporaryLockDuration = TimeSpan.FromMinutes(15);
     private static readonly string InvalidCredentialsMessage = "Email hoac mat khau khong dung.";
@@ -24,17 +26,23 @@ public sealed class AuthService : IAuthService
     private readonly JwtOptions _jwtOptions;
     private readonly GoogleAuthOptions _googleOptions;
     private readonly IWebHostEnvironment _environment;
+    private readonly IEmailSender _emailSender;
+    private readonly EmailOptions _emailOptions;
 
     public AuthService(
         GymMasterDbContext dbContext,
         IOptions<JwtOptions> jwtOptions,
         IOptions<GoogleAuthOptions> googleOptions,
-        IWebHostEnvironment environment)
+        IWebHostEnvironment environment,
+        IEmailSender emailSender,
+        IOptions<EmailOptions> emailOptions)
     {
         _dbContext = dbContext;
         _jwtOptions = jwtOptions.Value;
         _googleOptions = googleOptions.Value;
         _environment = environment;
+        _emailSender = emailSender;
+        _emailOptions = emailOptions.Value;
     }
 
     public async Task<AuthServiceResult<AuthLoginResponse>> RegisterAsync(
@@ -216,31 +224,85 @@ public sealed class AuthService : IAuthService
             return AuthServiceResult<ForgotPasswordResponse>.Success(new ForgotPasswordResponse(message, null));
         }
 
-        var resetToken = CreateShortToken();
+        var now = DateTime.UtcNow;
+
+        // Chong spam: neu vua gui OTP trong vong 60s thi khong gui lai (van tra message chung).
+        var latestToken = await _dbContext.PasswordResetTokens
+            .Where(token => token.UserId == user.Id && token.UsedAt == null)
+            .OrderByDescending(token => token.CreatedAt)
+            .FirstOrDefaultAsync(cancellationToken);
+
+        if (latestToken is not null &&
+            latestToken.CreatedAt > now.AddSeconds(-ResetResendCooldownSeconds))
+        {
+            return AuthServiceResult<ForgotPasswordResponse>.Success(new ForgotPasswordResponse(message, null));
+        }
+
+        // Vo hieu het OTP cu chua dung -> chi giu OTP moi nhat.
+        var activeTokens = await _dbContext.PasswordResetTokens
+            .Where(token => token.UserId == user.Id && token.UsedAt == null)
+            .ToListAsync(cancellationToken);
+        foreach (var old in activeTokens)
+        {
+            old.UsedAt = now;
+        }
+
+        var otp = CreateOtp();
         _dbContext.PasswordResetTokens.Add(new PasswordResetToken
         {
             UserId = user.Id,
-            TokenHash = BCrypt.Net.BCrypt.HashPassword(resetToken, 12),
-            ExpiresAt = DateTime.UtcNow.AddMinutes(30)
+            TokenHash = BCrypt.Net.BCrypt.HashPassword(otp, 12),
+            ExpiresAt = now.AddMinutes(30),
+            CreatedAt = now
         });
 
         await _dbContext.SaveChangesAsync(cancellationToken);
 
+        // Da cau hinh SMTP -> gui email (OTP + link). Khong tra OTP ve response (bao mat).
+        if (_emailOptions.IsConfigured)
+        {
+            await SendResetEmailAsync(user, otp, cancellationToken);
+            return AuthServiceResult<ForgotPasswordResponse>.Success(new ForgotPasswordResponse(message, null));
+        }
+
+        // Chua cau hinh email: fallback dev -> tra OTP ve de test (chi o moi truong Development).
         return AuthServiceResult<ForgotPasswordResponse>.Success(new ForgotPasswordResponse(
             message,
-            _environment.IsDevelopment() ? resetToken : null));
+            _environment.IsDevelopment() ? otp : null));
+    }
+
+    private async Task SendResetEmailAsync(User user, string otp, CancellationToken cancellationToken)
+    {
+        // Link nhay toi trang reset, dien san email; OTP nguoi dung tu nhap (gioi han 3 lan).
+        var link = $"{_emailOptions.FrontendBaseUrl.TrimEnd('/')}/reset-password?email={Uri.EscapeDataString(user.Email)}";
+        var subject = "GymMaster - Ma dat lai mat khau (OTP)";
+        var htmlBody = $"""
+            <div style="font-family:Arial,sans-serif;font-size:14px;color:#111;line-height:1.6">
+              <h2 style="margin:0 0 12px">Dat lai mat khau GymMaster</h2>
+              <p>Xin chao {System.Net.WebUtility.HtmlEncode(user.FullName)},</p>
+              <p>Ma OTP dat lai mat khau cua ban (hieu luc 30 phut, chi nhap toi da 3 lan):</p>
+              <p style="font-family:monospace;font-size:32px;font-weight:bold;letter-spacing:6px;background:#f3f4f6;padding:14px 24px;border-radius:10px;display:inline-block;color:#16a34a">{otp}</p>
+              <p style="margin:20px 0">
+                <a href="{link}" style="background:#16a34a;color:#fff;padding:12px 20px;border-radius:8px;text-decoration:none;font-weight:bold">Mo trang dat lai mat khau</a>
+              </p>
+              <p style="color:#6b7280;margin-top:20px">Neu ban khong yeu cau, hay bo qua email nay.</p>
+            </div>
+            """;
+
+        await _emailSender.SendAsync(user.Email, subject, htmlBody, cancellationToken);
     }
 
     public async Task<AuthServiceResult<object>> ResetPasswordAsync(
         ResetPasswordRequest request,
         CancellationToken cancellationToken)
     {
-        if (string.IsNullOrWhiteSpace(request.ResetToken) ||
+        if (string.IsNullOrWhiteSpace(request.Email) ||
+            string.IsNullOrWhiteSpace(request.ResetToken) ||
             string.IsNullOrWhiteSpace(request.NewPassword))
         {
             return Failure<object>(
                 "VALIDATION_ERROR",
-                "Vui long nhap reset token va mat khau moi.",
+                "Vui long nhap email, ma OTP va mat khau moi.",
                 StatusCodes.Status400BadRequest);
         }
 
@@ -252,25 +314,51 @@ public sealed class AuthService : IAuthService
                 StatusCodes.Status400BadRequest);
         }
 
-        var activeTokens = await _dbContext.PasswordResetTokens
-            .Include(token => token.User)
-            .Where(token => token.UsedAt == null &&
-                token.ExpiresAt > DateTime.UtcNow)
-            .ToListAsync(cancellationToken);
+        var email = NormalizeEmail(request.Email);
+        var now = DateTime.UtcNow;
 
-        var matchedToken = activeTokens.FirstOrDefault(token =>
-            BCrypt.Net.BCrypt.Verify(request.ResetToken, token.TokenHash));
+        // OTP 6 so khong duy nhat -> phai tim theo email + lay ma moi nhat con hieu luc.
+        var matchedToken = await _dbContext.PasswordResetTokens
+            .Include(token => token.User)
+            .Where(token => token.User.Email == email &&
+                token.UsedAt == null &&
+                token.ExpiresAt > now)
+            .OrderByDescending(token => token.CreatedAt)
+            .FirstOrDefaultAsync(cancellationToken);
 
         if (matchedToken is null || matchedToken.User.IsDeleted)
         {
             return Failure<object>(
                 "INVALID_RESET_TOKEN",
-                "Reset token khong hop le hoac da het han.",
+                "Ma khong hop le hoac da het han. Vui long yeu cau ma moi.",
+                StatusCodes.Status401Unauthorized);
+        }
+
+        // Sai OTP -> dem so lan; qua 3 lan thi vo hieu ma, bat xin ma moi.
+        if (!BCrypt.Net.BCrypt.Verify(request.ResetToken, matchedToken.TokenHash))
+        {
+            matchedToken.AttemptCount++;
+
+            if (matchedToken.AttemptCount >= MaxResetAttempts)
+            {
+                matchedToken.UsedAt = now;
+                await _dbContext.SaveChangesAsync(cancellationToken);
+                return Failure<object>(
+                    "TOO_MANY_ATTEMPTS",
+                    "Ban da nhap sai qua 3 lan. Ma da bi vo hieu, vui long yeu cau ma moi.",
+                    StatusCodes.Status401Unauthorized);
+            }
+
+            var remaining = MaxResetAttempts - matchedToken.AttemptCount;
+            await _dbContext.SaveChangesAsync(cancellationToken);
+            return Failure<object>(
+                "INVALID_RESET_TOKEN",
+                $"Ma OTP khong dung. Con {remaining} lan thu.",
                 StatusCodes.Status401Unauthorized);
         }
 
         var user = matchedToken.User;
-        matchedToken.UsedAt = DateTime.UtcNow;
+        matchedToken.UsedAt = now;
         user.PasswordHash = BCrypt.Net.BCrypt.HashPassword(request.NewPassword, 12);
         user.FailedLoginCount = 0;
         user.LoginWindowStartedAt = null;
@@ -358,7 +446,10 @@ public sealed class AuthService : IAuthService
                 request.IdToken,
                 new GoogleJsonWebSignature.ValidationSettings
                 {
-                    Audience = [_googleOptions.ClientId]
+                    Audience = [_googleOptions.ClientId],
+                    // Dung sai 5 phut chong lech dong ho may (tranh loi "JWT is not yet valid").
+                    IssuedAtClockTolerance = TimeSpan.FromMinutes(5),
+                    ExpirationTimeClockTolerance = TimeSpan.FromMinutes(5)
                 });
         }
         catch (InvalidJwtException)
@@ -376,6 +467,15 @@ public sealed class AuthService : IAuthService
             return Failure<AuthLoginResponse>(
                 "VALIDATION_ERROR",
                 "Google account khong co email hop le.",
+                StatusCodes.Status400BadRequest);
+        }
+
+        // Chi nhan email da duoc Google xac minh (chong dung email gia/chua verify).
+        if (payload.EmailVerified != true)
+        {
+            return Failure<AuthLoginResponse>(
+                "GOOGLE_EMAIL_NOT_VERIFIED",
+                "Email Google chua duoc xac minh.",
                 StatusCodes.Status400BadRequest);
         }
 
@@ -430,7 +530,8 @@ public sealed class AuthService : IAuthService
                 StatusCodes.Status423Locked);
         }
 
-        return AuthServiceResult<AuthUserResponse>.Success(ToUserResponse(user));
+        var memberProfileId = await GetMemberProfileIdAsync(user.Id, cancellationToken);
+        return AuthServiceResult<AuthUserResponse>.Success(ToUserResponse(user, memberProfileId));
     }
 
     public async Task<AuthServiceResult<object>> LogoutAsync(
@@ -481,11 +582,13 @@ public sealed class AuthService : IAuthService
 
         await _dbContext.SaveChangesAsync(cancellationToken);
 
+        var memberProfileId = await GetMemberProfileIdAsync(user.Id, cancellationToken);
+
         return AuthServiceResult<AuthLoginResponse>.Success(new AuthLoginResponse(
             accessToken,
             refreshToken,
             expiresAt,
-            ToUserResponse(user),
+            ToUserResponse(user, memberProfileId),
             role,
             GetRedirectPath(role)),
             statusCode);
@@ -626,6 +729,12 @@ public sealed class AuthService : IAuthService
         return Convert.ToHexString(RandomNumberGenerator.GetBytes(24)).ToLowerInvariant();
     }
 
+    // OTP 6 chu so (000000-999999), dung cho dat lai mat khau.
+    private static string CreateOtp()
+    {
+        return RandomNumberGenerator.GetInt32(0, 1_000_000).ToString("D6");
+    }
+
     private static long? GetUserId(ClaimsPrincipal principal)
     {
         var value = principal.FindFirstValue(ClaimTypes.NameIdentifier) ??
@@ -644,14 +753,24 @@ public sealed class AuthService : IAuthService
         return string.IsNullOrWhiteSpace(phone) ? null : phone.Trim();
     }
 
-    private static AuthUserResponse ToUserResponse(User user)
+    private static AuthUserResponse ToUserResponse(User user, long? memberProfileId = null)
     {
         return new AuthUserResponse(
             user.Id,
             user.Email,
             user.FullName,
             GetPrimaryRole(user),
-            user.Status);
+            user.Status,
+            memberProfileId);
+    }
+
+    // Id ho so hoi vien (member_profiles) cua user, null neu khong phai member / chua co ho so.
+    private async Task<long?> GetMemberProfileIdAsync(long userId, CancellationToken cancellationToken)
+    {
+        return await _dbContext.MemberProfiles
+            .Where(profile => profile.UserId == userId && !profile.IsDeleted)
+            .Select(profile => (long?)profile.Id)
+            .FirstOrDefaultAsync(cancellationToken);
     }
 
     private static string GetRedirectPath(string role)

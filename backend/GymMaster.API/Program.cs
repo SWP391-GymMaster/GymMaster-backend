@@ -24,6 +24,8 @@ builder.Services.Configure<CheckInOptions>(
     builder.Configuration.GetSection(CheckInOptions.SectionName));
 builder.Services.Configure<VnPayOptions>(
     builder.Configuration.GetSection(VnPayOptions.SectionName));
+builder.Services.Configure<EmailOptions>(
+    builder.Configuration.GetSection(EmailOptions.SectionName));
 
 var jwtOptions = builder.Configuration
     .GetSection(JwtOptions.SectionName)
@@ -49,6 +51,7 @@ builder.Services
 builder.Services.AddAuthorization();
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddScoped<IAuditService, AuditService>();
+builder.Services.AddScoped<IEmailSender, EmailSender>();
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<IMemberService, MemberService>();

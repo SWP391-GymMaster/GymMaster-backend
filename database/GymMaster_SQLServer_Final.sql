@@ -158,6 +158,7 @@ CREATE TABLE dbo.password_reset_tokens (
     TokenHash NVARCHAR(255) NOT NULL,
     ExpiresAt DATETIME2     NOT NULL,                  -- 30 phút
     UsedAt    DATETIME2     NULL,                       -- đánh dấu đã dùng
+    AttemptCount INT        NOT NULL CONSTRAINT DF_password_reset_tokens_AttemptCount DEFAULT 0,  -- nhập sai OTP quá 3 lần -> vô hiệu
     CreatedAt DATETIME2     NOT NULL CONSTRAINT DF_password_reset_tokens_CreatedAt DEFAULT SYSUTCDATETIME(),
 
     CONSTRAINT PK_password_reset_tokens PRIMARY KEY (Id),

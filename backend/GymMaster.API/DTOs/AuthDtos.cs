@@ -57,7 +57,8 @@ public sealed record AuthUserResponse(
     string Email,
     string FullName,
     string Role,
-    string Status);
+    string Status,
+    long? MemberProfileId);
 
 public sealed record ApiResponse<T>(
     bool Success,

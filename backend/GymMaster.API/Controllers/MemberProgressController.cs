@@ -36,7 +36,9 @@ public sealed class MemberProgressController : ApiControllerBase
         return ToActionResult(result);
     }
 
-    // FR-360-01
+    // FR-360-01: Member 360 day du theo spec 006 (member + gói hien tai + lich su +
+    // check-in + PT + tien do + dinh duong). Day la ban CANONICAL o /profile-360;
+    // ban trung trong MembersController da go de tranh AmbiguousMatchException.
     [HttpGet("{id:long}/profile-360")]
     public async Task<IActionResult> GetProfile360(long id, CancellationToken cancellationToken)
     {
