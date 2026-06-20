@@ -189,7 +189,7 @@ public class MembershipServiceTests
         var result = await service.GetAllAsync(null, null, Staff(), default);
 
         Assert.True(result.Succeeded);
-        Assert.Equal(3, result.Value!.TotalItems);
+        Assert.Equal(3, result.Value!.Total);
         Assert.Equal(20, result.Value.PageSize);
         Assert.Equal(1, result.Value.Page);
         Assert.Equal(3, result.Value.Items.Count);

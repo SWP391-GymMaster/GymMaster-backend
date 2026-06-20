@@ -100,15 +100,9 @@ public sealed class MembersController : ApiControllerBase
         return ToActionResult(result);
     }
 
-    // Canonical Member 360 profile used by PT/Admin/Staff/member workspaces.
-    [HttpGet("{id:long}/profile-360")]
-    [Authorize(Roles = $"{RoleNames.Admin},{RoleNames.Staff},{RoleNames.Pt},{RoleNames.Member}")]
-    public async Task<IActionResult> GetProfile360(long id, CancellationToken cancellationToken)
-    {
-        var result = await _memberService.GetProfile360Async(id, User, cancellationToken);
-        return ToActionResult(result);
-    }
-
+    // NOTE(part-y): route {id}/profile-360 da chuyen ve MemberProgressController (ban day du theo spec 006:
+    // them lich su goi, tien do, dinh duong). Ban member-service o day da go de tranh trung route -> 500.
+    // Endpoint {id}/360 (lean) giu lai cho cac workspace dang dung; me/profile-360 (self) van o duoi.
     [HttpGet("{id:long}/360")]
     [Authorize(Roles = $"{RoleNames.Admin},{RoleNames.Staff},{RoleNames.Pt},{RoleNames.Member}")]
     public async Task<IActionResult> Get360(long id, CancellationToken cancellationToken)

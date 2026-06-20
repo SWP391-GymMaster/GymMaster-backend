@@ -191,9 +191,19 @@ public sealed class ProgressService : IProgressService
         // 4) Tom tat dinh duong hom nay (dung lai service 007 cua chinh Part Y).
         var nutrition = await _nutritionService.GetSummaryAsync(memberId, today, principal, cancellationToken);
 
+        // 5) PT dang phan cong active (spec 005 da co bang trainer_assignments sau merge).
+        var activeAssignment = await _dbContext.TrainerAssignments
+            .Include(item => item.Trainer)
+            .ThenInclude(trainer => trainer.User)
+            .Where(item => item.MemberId == memberId && item.Status == AssignmentStatuses.Active)
+            .OrderByDescending(item => item.StartDate)
+            .ThenByDescending(item => item.CreatedAt)
+            .FirstOrDefaultAsync(cancellationToken);
+
         var response = new Profile360Response(
             new Member360Info(
                 profile.Id,
+                $"MEM-{profile.Id:D6}",
                 profile.User.FullName,
                 profile.User.Email,
                 profile.User.Phone,
@@ -205,7 +215,13 @@ public sealed class ProgressService : IProgressService
             recentCheckIns,
             progress.Select(ToResponse).ToList(),
             nutrition.Succeeded ? nutrition.Value : null,
-            null); // AssignedPT: cho spec 005 (chua co bang phan cong PT)
+            activeAssignment is null
+                ? null
+                : new AssignedPt360(
+                    activeAssignment.TrainerId,
+                    activeAssignment.Trainer?.User?.FullName ?? "Huấn luyện viên",
+                    activeAssignment.Trainer?.Specialty,
+                    activeAssignment.CreatedAt));
 
         return AuthServiceResult<Profile360Response>.Success(response);
     }
