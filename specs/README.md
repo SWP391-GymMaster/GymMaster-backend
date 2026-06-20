@@ -13,6 +13,7 @@ Mỗi feature có `spec.md` theo cấu trúc **9 thành phần** (Context & Goal
 | 007 | [Meal Journal & Calorie Summary](007-nutrition-calorie/spec.md) | Nhật ký ăn, tính calo ngày | F4, UC-16..21 |
 | 008 | [Dashboard & Audit Log](008-dashboard-audit/spec.md) | Dashboard vận hành + audit | F5, UC-22/23 |
 | 009 | [Image Food Recognition Assist](009-image-food-recognition/spec.md) | **Enhancement** — gợi ý tên món từ ảnh | UC-26, ENH-01 |
+| 010 | [Online Payment via VNPay (Sandbox)](010-online-payment-vnpay/spec.md) | Thanh toán online VNPay + IPN auto-activate (mở rộng 003) | Yêu cầu giảng viên, override ADR-03 |
 
 ## Secondary (chưa làm vội)
 Các feature secondary (Barcode, In-app Notification, PT Booking, Group Classes, Combo Packages, PT KPI, Room Booking) được theo dõi ở [SECONDARY_BACKLOG.md](SECONDARY_BACKLOG.md) — trạng thái **Deferred**, chưa viết spec chi tiết cho tới khi core 001–008 ổn định.
