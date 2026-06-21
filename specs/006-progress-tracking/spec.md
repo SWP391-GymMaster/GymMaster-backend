@@ -41,8 +41,8 @@ Member/PT ghi tiến độ luyện tập (cân nặng, số đo, ảnh) theo th�
 ## 6. API Spec
 | Method | Path | Role | Request | Success | Lỗi |
 |---|---|---|---|---|---|
-| POST | /api/members/{id}/progress | Member(self), PT(assigned) | {measuredAt, weightKg, bodyFatPct?, photo?} | 201 | 403, 404, 422 |
-| GET | /api/members/{id}/progress | Member(self), PT(assigned), Admin | — | 200 (timeline) | 403, 404 |
+| POST | /api/v1/members/{id}/progress | Member(self), PT(assigned) | {measuredAt, weightKg, bodyFatPct?, photo?} | 201 | 403, 404, 422 |
+| GET | /api/v1/members/{id}/progress | Member(self), PT(assigned), Admin | — | 200 (timeline) | 403, 404 |
 | GET | /api/v1/members/{id}/profile-360 | Member(self), PT(assigned), Admin/Staff | — | 200 (aggregate) | 403, 404 |
 | GET | /api/v1/members/me/profile-360 | Member(self) | — | 200 (aggregate) | 403, 404 |
 | GET | /api/v1/members/{id}/360 | Admin/Staff/PT(assigned)/Member(self) | — | 200 (aggregate) | 403, 404 |

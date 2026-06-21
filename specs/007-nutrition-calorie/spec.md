@@ -45,12 +45,38 @@ Member ghi nhật ký bữa ăn từ food database (nhập tay — ADR-04), hệ
 ## 6. API Spec
 | Method | Path | Role | Request | Success | Lỗi |
 |---|---|---|---|---|---|
-| POST | /api/members/{id}/calorie-target | Member(self), PT(assigned) | {targetCalories, effectiveFrom} | 201 | 403, 422 |
-| GET | /api/food-items?query=&page= | Member, PT, Admin | — | 200 (paged) | 401 |
-| POST | /api/food-items | Member | {name, unit, caloriesPerUnit} | 201 (custom) | 400 |
-| POST | /api/meal-logs | Member(self) | {logDate, mealType, items:[{foodItemId, quantity}]} | 201 | 404, 422 |
-| GET | /api/members/{id}/calorie-summary?date= | Member(self), PT(assigned) | — | 200 {consumed, target, remaining} | 403 |
-| GET | /api/members/{id}/calorie-history?from=&to= | Member(self), PT(assigned) | — | 200 (daily list) | 403 |
+| POST | /api/v1/members/{id}/calorie-target | Member(self), PT(assigned) | {dailyCalories, effectiveDate?, proteinG?, carbG?, fatG?} | 201 | 403, 422 |
+| GET | /api/v1/food-items?query=&page= | Member, PT, Admin | — | 200 (paged FoodItemResponse) | 401 |
+| POST | /api/v1/food-items | Member | {name, unit, caloriesPerUnit, proteinG?, carbG?, fatG?} | 201 (custom) | 400 |
+| POST | /api/v1/meal-logs | Member(self) | {memberId, logDate, mealType, items:[{foodItemId, quantity}]} | 201 (MealLogResponse) | 404, 422 |
+| GET | /api/v1/meal-logs?memberId=&date= | Member(self), Admin, Staff | — | 200 (mảng MealLogResponse) | 403 |
+| GET | /api/v1/members/{id}/calorie-summary?date= | Member(self), PT(assigned) | — | 200 (CalorieSummaryResponse) | 403 |
+| GET | /api/v1/members/{id}/calorie-history?from=&to= | Member(self), PT(assigned) | — | 200 (mảng CalorieSummaryResponse) | 403 |
+
+### 6.1. Response contract cho FE (đúng field code trả — JSON camelCase)
+
+> **Ai tính:** `calories`/`consumed`/`target`/`remaining` do **backend tính sẵn** (FE chỉ hiển thị). Tổng **macro theo ngày** thì **FE tự cộng** từ `items[]` (mỗi món đã kèm `proteinG/carbG/fatG`). Các field macro có thể `null` nếu món chưa khai báo.
+
+**FoodItemResponse** (`GET/POST /food-items`):
+```json
+{ "id", "name", "unit", "caloriesPerUnit", "proteinG", "carbG", "fatG", "isActive" }
+```
+
+**CalorieTargetResponse** (`POST /calorie-target`):
+```json
+{ "id", "memberId", "effectiveDate", "dailyCalories", "proteinG", "carbG", "fatG" }
+```
+
+**MealLogResponse** (`POST/GET /meal-logs`) — lồng sẵn từng món + macro:
+```json
+{ "id", "memberId", "logDate", "mealType", "totalCalories",
+  "items": [ { "id", "foodItemId", "foodName", "quantity", "calories", "proteinG", "carbG", "fatG" } ] }
+```
+
+**CalorieSummaryResponse** (`GET /calorie-summary`; mỗi phần tử của `calorie-history`):
+```json
+{ "date", "consumed", "target", "remaining" }
+```
 
 ## 7. Error Handling (EARS Unwanted)
 - IF khẩu phần ≤ 0, THEN 422 `INVALID_QUANTITY`.

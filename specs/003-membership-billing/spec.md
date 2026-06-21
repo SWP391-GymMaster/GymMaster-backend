@@ -46,13 +46,45 @@ Quản lý gói tập mẫu, bán/gia hạn gói cho hội viên và ghi nhận 
 ## 6. API Spec
 | Method | Path | Role | Request | Success | Lỗi |
 |---|---|---|---|---|---|
-| POST | /api/packages | Admin | {name, durationDays, price} | 201 | 400 |
-| PUT | /api/packages/{id} | Admin | {…, status} | 200 | 400, 404 |
-| GET | /api/packages | Admin, Staff | — | 200 | 401 |
-| POST | /api/memberships/sell | Admin, Staff | {memberId, packageId, startDate} | 201 {membership: PendingPayment} | 400, 404, 422 |
-| POST | /api/memberships/{id}/payment | Admin, Staff | {amount, method} | 201 {status: Active} | 404, 409, 422 |
-| POST | /api/memberships/{id}/renew | Admin, Staff | {packageId, method} | 201 | 404, 422 |
-| POST | /api/memberships/renewal-request | Member | {packageId} | 201 (request) | 422 |
+| POST | /api/v1/packages | Admin | {name, durationDays, price} | 201 | 400 |
+| PUT | /api/v1/packages/{id} | Admin | {…, status} | 200 | 400, 404 |
+| GET | /api/v1/packages | Admin, Staff | — | 200 | 401 |
+| POST | /api/v1/memberships/sell | Admin, Staff | {memberId, packageId, startDate} | 201 {membership: PendingPayment} | 400, 404, 422 |
+| POST | /api/v1/memberships/{id}/payment | Admin, Staff | {amount, method} | 201 {status: Active} | 404, 409, 422 |
+| POST | /api/v1/memberships/{id}/renew | Admin, Staff | {packageId, method} | 201 | 404, 422 |
+| POST | /api/v1/memberships/renewal-request | Member | {packageId} | 201 (request) | 422 |
+| GET | /api/v1/memberships | Admin, Staff | query: status?, page? | 200 (paged MembershipResponse) | 401, 403 |
+| GET | /api/v1/payments | Admin, Staff | query: from?, to?, status?, memberId?, page=1, pageSize=50 | 200 (paged PaymentHistoryResponse) | 401, 403 |
+| GET | /api/v1/payments/summary | Admin, Staff | query: from?, to? | 200 (PaymentSummaryResponse) | 401, 403 |
+
+### 6.1. Response contract cho FE (đúng field code trả — JSON camelCase)
+
+> Casing enum (`status`, `method`, `paymentMethod`) trả **PascalCase** (`Active`/`Paid`/`Cash`/`Transfer`/`Card`) đồng bộ toàn hệ thống — FE tự map nếu cần.
+
+**MembershipResponse** (dùng ở `sell`, `payment`, `renew`, `GET /memberships`):
+```json
+{ "id", "memberId", "packageId", "packageName", "startDate", "endDate",
+  "status", "daysRemaining", "isExpiringSoon", "createdAt" }
+```
+
+**`POST /memberships/{id}/payment` → ConfirmPaymentResult:**
+```json
+{ "membership": { …MembershipResponse }, "payment": { "id", "membershipId", "paidAt" }, "status" }
+```
+
+**`GET /payments` → mảng PaymentHistoryResponse:**
+```json
+{ "id", "membershipId", "memberId", "memberName", "memberEmail",
+  "packageId", "packageName", "amount", "paymentMethod", "status",
+  "paymentDate", "paidAt", "createdAt", "createdByUserId", "createdByName" }
+```
+
+**`GET /payments/summary` → PaymentSummaryResponse (báo cáo doanh thu):**
+```json
+{ "from", "to", "totalPayments", "paidPayments", "pendingPayments", "revenue",
+  "byMethod": [ { "paymentMethod", "count", "amount" } ],
+  "byDay":    [ { "date", "count", "amount" } ] }
+```
 
 ## 7. Error Handling (EARS Unwanted)
 - IF gói/Member không tồn tại, THEN 404 `NOT_FOUND`.
