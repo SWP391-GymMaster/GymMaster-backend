@@ -43,7 +43,45 @@ Member/PT ghi tiến độ luyện tập (cân nặng, số đo, ảnh) theo th�
 |---|---|---|---|---|---|
 | POST | /api/members/{id}/progress | Member(self), PT(assigned) | {measuredAt, weightKg, bodyFatPct?, photo?} | 201 | 403, 404, 422 |
 | GET | /api/members/{id}/progress | Member(self), PT(assigned), Admin | — | 200 (timeline) | 403, 404 |
-| GET | /api/members/{id}/profile-360 | Member(self), PT(assigned), Admin | — | 200 (aggregate) | 403, 404 |
+| GET | /api/v1/members/{id}/profile-360 | Member(self), PT(assigned), Admin/Staff | — | 200 (aggregate) | 403, 404 |
+| GET | /api/v1/members/me/profile-360 | Member(self) | — | 200 (aggregate) | 403, 404 |
+| GET | /api/v1/members/{id}/360 | Admin/Staff/PT(assigned)/Member(self) | — | 200 (aggregate) | 403, 404 |
+
+> **Một implementation duy nhất:** cả 3 route trên gọi chung `ProgressService.GetProfile360Async`
+> (không còn bản trùng trong `MemberService`). `{id}/profile-360` là canonical; 2 route kia là tiện ích.
+
+### 6.1. Response 360 — Contract cho FE (`Member360Data`)
+
+JSON 200 (camelCase). FE code theo đúng shape này:
+
+```jsonc
+{
+  "member":            { "id": 12, "memberCode": "MEM-000012", "fullName": "...", "email": "...",
+                         "phone": "...", "status": "Active", "dateOfBirth": "1998-05-01", "gender": "Male" },
+  "currentMembership": { "id": 8, "packageName": "Gói 3 tháng", "startDate": "2026-01-01",
+                         "endDate": "2026-04-01", "status": "Active", "paymentStatus": "Paid" },   // | null
+  "membershipHistory": [ /* phần tử giống currentMembership, sắp mới→cũ */ ],
+  "recentCheckIns":    [ { "id": 1, "checkInAt": "2026-06-20T08:00:00Z" } ],                       // tối đa 5
+  "progressTimeline":  [ { "id", "memberId", "measuredAt", "weightKg", "bodyFatPercent",
+                           "chestCm", "waistCm", "hipCm", "note", "createdAt" } ],
+  "nutritionSummary":  { "date": "2026-06-21", "consumed": 1800, "target": 2000, "remaining": 200 }, // | null
+  "assignedPT":        { "id": 3, "fullName": "...", "specialty": "...", "assignedAt": "2026-02-01T..." } // | null
+}
+```
+
+| Field | Kiểu / Nguồn | Ghi chú |
+|---|---|---|
+| `member.memberCode` | string, 006 | format `MEM-{id:D6}` |
+| `member.status` | enum, 002 | **PascalCase** (`Active`/`Pending`/`Expired`/`Locked`) |
+| `currentMembership.status` | enum, 003 | **PascalCase** (`Active`/`PendingPayment`/`Expired`/`Cancelled`) |
+| `currentMembership.paymentStatus` | enum, 003 | **PascalCase** (`Paid`/`Pending`) — **suy từ bảng Payments (THẬT)**, không phải đoán |
+| `membershipHistory[]` | array, 003 | toàn bộ lịch sử gói |
+| `recentCheckIns[]` | array, 004 | tối đa 5, mới nhất trước |
+| `progressTimeline[]` | array, 006 | tăng dần theo `measuredAt` |
+| `nutritionSummary` | object, 007 | **đã tính sẵn** (consumed/target/remaining) — FE chỉ hiển thị, không tự cộng |
+| `assignedPT` | object, 005 | PT đang active (bảng `trainer_assignments`); `assignedAt` = ngày phân công |
+
+⚠️ **Casing cho FE:** các enum `status`/`paymentStatus` trả **PascalCase** để đồng bộ với spec 003 (`/memberships`) và spec 002 trên toàn hệ thống. FE map về casing hiển thị của mình (vd `"Active"` → `"active"`). Backend **không** đổi casing riêng cho 360 để tránh lệch giữa các endpoint.
 
 ## 7. Error Handling (EARS Unwanted)
 - IF chỉ số ≤ 0 hoặc ngày đo trong tương lai, THEN 422 `INVALID_MEASUREMENT`.

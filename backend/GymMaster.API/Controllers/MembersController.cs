@@ -13,15 +13,18 @@ namespace GymMaster.API.Controllers;
 public sealed class MembersController : ApiControllerBase
 {
     private readonly IMemberService _memberService;
+    private readonly IProgressService _progressService;
     private readonly IWorkoutPlanService _workoutPlanService;
     private readonly ITrainerNoteService _trainerNoteService;
 
     public MembersController(
         IMemberService memberService,
+        IProgressService progressService,
         IWorkoutPlanService workoutPlanService,
         ITrainerNoteService trainerNoteService)
     {
         _memberService = memberService;
+        _progressService = progressService;
         _workoutPlanService = workoutPlanService;
         _trainerNoteService = trainerNoteService;
     }
@@ -60,7 +63,7 @@ public sealed class MembersController : ApiControllerBase
             return ToActionResult(memberIdResult);
         }
 
-        var result = await _memberService.GetProfile360Async(memberIdResult.Value, User, cancellationToken);
+        var result = await _progressService.GetProfile360Async(memberIdResult.Value, User, cancellationToken);
         return ToActionResult(result);
     }
 
@@ -100,14 +103,14 @@ public sealed class MembersController : ApiControllerBase
         return ToActionResult(result);
     }
 
-    // NOTE(part-y): route {id}/profile-360 da chuyen ve MemberProgressController (ban day du theo spec 006:
-    // them lich su goi, tien do, dinh duong). Ban member-service o day da go de tranh trung route -> 500.
-    // Endpoint {id}/360 (lean) giu lai cho cac workspace dang dung; me/profile-360 (self) van o duoi.
+    // NOTE(part-y): Member 360 CHI co MOT ban duy nhat = ProgressService.GetProfile360Async
+    // (canonical o {id}/profile-360, spec 006: lich su goi + tien do + dinh duong + PT).
+    // Route {id}/360 (alias) + me/profile-360 (self) deu goi cung ban Y nay -> het ban trung.
     [HttpGet("{id:long}/360")]
     [Authorize(Roles = $"{RoleNames.Admin},{RoleNames.Staff},{RoleNames.Pt},{RoleNames.Member}")]
     public async Task<IActionResult> Get360(long id, CancellationToken cancellationToken)
     {
-        var result = await _memberService.GetProfile360Async(id, User, cancellationToken);
+        var result = await _progressService.GetProfile360Async(id, User, cancellationToken);
         return ToActionResult(result);
     }
 

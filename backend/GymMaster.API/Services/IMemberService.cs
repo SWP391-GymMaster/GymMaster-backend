@@ -14,9 +14,6 @@ public interface IMemberService
     Task<AuthServiceResult<MemberResponse>> GetByIdAsync(
         long id, ClaimsPrincipal principal, CancellationToken cancellationToken);
 
-    Task<AuthServiceResult<Member360Response>> GetProfile360Async(
-        long id, ClaimsPrincipal principal, CancellationToken cancellationToken);
-
     Task<AuthServiceResult<long>> GetCurrentMemberProfileIdAsync(
         ClaimsPrincipal principal, CancellationToken cancellationToken);
 
