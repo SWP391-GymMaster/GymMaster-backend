@@ -25,6 +25,7 @@ Admin phân công PT cho hội viên (mô hình 1-1, D-12); PT lập giáo án +
 - **FR-PT-01 (Event):** WHEN Admin phân công PT cho Member chưa có PT active, THE system SHALL tạo TrainerAssignment `Active` và ghi AuditLog `ASSIGN_PT`.
 - **FR-PT-02 (Unwanted):** IF Member đã có PT active, THEN THE system SHALL đóng assignment cũ (set EndedAt) trước khi tạo mới, đảm bảo tối đa 1 active.
 - **FR-PT-03 (Optional):** WHERE PT thao tác trên Member KHÔNG được phân công cho mình, THE system SHALL trả 403.
+- **FR-PT-05 (Unwanted):** IF Member KHÔNG có Membership đang hiệu lực thuộc gói hỗ trợ PT (tức KHÔNG thỏa: `Status=Active` AND `EndDate>=hôm nay` AND `Package.SupportsPT=true`), THEN THE system SHALL từ chối phân công/đặt lịch PT với 422 `NO_PT_PACKAGE`. → Hội viên thường (gói không PT) hoặc gói PT đã hết hạn KHÔNG vào được luồng PT. Thuộc tính `SupportsPT` định nghĩa ở spec 003 (FR-PKG-03/04).
 - **FR-WP-01 (Event):** WHEN PT tạo WorkoutPlan cho Member được phân công, THE system SHALL lưu plan kèm danh sách WorkoutExercise.
 - **FR-WP-02 (Event):** WHEN PT thêm/sửa bài tập trong plan của mình, THE system SHALL lưu (tên, sets, reps, ghi chú).
 - **FR-NOTE-01 (Event):** WHEN PT ghi TrainerNote cho Member được phân công, THE system SHALL lưu note kèm timestamp và tác giả.
@@ -45,7 +46,7 @@ Admin phân công PT cho hội viên (mô hình 1-1, D-12); PT lập giáo án +
 ## 6. API Spec
 | Method | Path | Role | Request | Success | Lỗi |
 |---|---|---|---|---|---|
-| POST | /api/assignments | Admin | {memberId, trainerId} | 201 | 404, 422 |
+| POST | /api/assignments | Admin | {memberId, trainerId} | 201 | 404, 422 (`NO_PT_PACKAGE` nếu member không có gói PT còn hạn) |
 | GET | /api/pt/members | PT | — | 200 (assigned list) | 401, 403 |
 | POST | /api/members/{id}/workout-plans | PT(assigned) | {title, exercises[]} | 201 | 403, 404 |
 | PUT | /api/workout-plans/{id} | PT(owner) | {…} | 200 | 403, 404 |
@@ -55,12 +56,14 @@ Admin phân công PT cho hội viên (mô hình 1-1, D-12); PT lập giáo án +
 ## 7. Error Handling (EARS Unwanted)
 - IF Member/PT không tồn tại, THEN 404 `NOT_FOUND`.
 - IF Member đã có PT active (và không cho phép ghi đè), THEN 422 `ALREADY_ASSIGNED`.
+- IF Member không có gói hỗ trợ PT đang hiệu lực, THEN 422 `NO_PT_PACKAGE` (xem FR-PT-05).
 - IF PT thao tác trên member không thuộc mình, THEN 403 `FORBIDDEN`.
 - IF plan rỗng (0 bài tập) khi yêu cầu ≥1, THEN 422 `EMPTY_PLAN`.
 
 ## 8. Acceptance Criteria (Given-When-Then)
 - [ ] **AC-01:** Given Member chưa có PT, When Admin phân công, Then TrainerAssignment Active + AuditLog.
 - [ ] **AC-02:** Given Member đã có PT active, When phân công PT mới, Then assignment cũ Ended, mới Active (vẫn tối đa 1).
+- [ ] **AC-07:** Given Member chỉ có gói thường (SupportsPT=false) hoặc gói PT đã hết hạn, When Admin phân công PT, Then 422 `NO_PT_PACKAGE`. Given Member có gói PT đang hiệu lực, When phân công, Then 201.
 - [ ] **AC-03:** Given PT đăng nhập, When xem danh sách member, Then chỉ thấy member được phân công.
 - [ ] **AC-04:** Given PT, When tạo plan + ≥1 bài tập cho member của mình, Then lưu thành công.
 - [ ] **AC-05:** Given PT, When tạo plan cho member người khác, Then 403.

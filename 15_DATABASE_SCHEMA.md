@@ -142,6 +142,10 @@
 
 > Các bảng này là **bản thiết kế dự kiến**, sẽ chốt khi implement spec tương ứng. Tên bảng/cột cuối cùng theo code lúc đó (giữ quy ước snake_case, BIGINT, DATETIME2). Tham khảo thêm `05_DATABASE_SPEC.md`.
 
+## `membership_packages` (spec 003)
+Id PK · Name · Description · DurationDays SMALLINT · Price DECIMAL(12,2) · **SupportsPT BIT NOT NULL DEFAULT 0** (0=gói thường, 1=gói có PT) · IsActive BIT · CreatedAt/UpdatedAt.
+> `SupportsPT` thêm bằng `database/008_package_supports_pt.sql`. Quyết định một gói có hỗ trợ PT hay không; quyền PT của hội viên **suy ra động** từ gói còn hiệu lực (spec 003 FR-PKG-04, gác PT ở spec 005 FR-PT-05) — KHÔNG lưu cờ PT ở `users`/`member_profiles`.
+
 ## `memberships` (spec 003)
 Id PK · MemberId FK→member_profiles · PackageId FK→membership_packages · StartDate DATE · EndDate DATE · Status (0=PendingPayment,1=Active,2=Expired,3=Cancelled) · CreatedAt/UpdatedAt.
 
