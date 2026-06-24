@@ -24,6 +24,8 @@ Quản lý gói tập mẫu, bán/gia hạn gói cho hội viên và ghi nhận 
 ## 3. Functional Requirements (EARS)
 - **FR-PKG-01 (Event):** WHEN Admin tạo/sửa gói với DurationDays > 0 và Price ≥ 0, THE system SHALL lưu MembershipPackage.
 - **FR-PKG-02 (State):** WHILE gói ở trạng thái Inactive, THE system SHALL KHÔNG cho bán gói đó.
+- **FR-PKG-03 (Event):** WHEN Admin tạo/sửa gói, THE system SHALL cho phép đánh dấu gói **có hỗ trợ PT hay không** qua thuộc tính `SupportsPT` (mặc định `false`). Đây là thuộc tính quyết định một gói thuộc loại "có PT" hay "thường".
+- **FR-PKG-04 (Ubiquitous):** THE system SHALL coi việc hội viên **được dùng dịch vụ PT** là dữ liệu **suy ra động từ gói đang hiệu lực** — KHÔNG cố định ở tài khoản/hồ sơ. Hội viên được dùng PT ⇔ tồn tại một Membership của họ thỏa: `Status = Active` AND `EndDate >= hôm nay` AND `Package.SupportsPT = true`. (Quy tắc gác PT cụ thể thuộc spec 005 — xem FR-PT-05.)
 - **FR-MS-01 (Event):** WHEN Staff bán gói hợp lệ cho Member, THE system SHALL tạo Membership trạng thái `PendingPayment` với `EndDate = StartDate + Package.DurationDays`.
 - **FR-MS-02 (Event):** WHEN payment cho membership được ghi nhận `Paid`, THE system SHALL chuyển Membership → `Active` và ghi AuditLog `CONFIRM_PAYMENT`.
 - **FR-MS-03 (Event):** WHEN gia hạn cho Member đang có gói `Active`, THE system SHALL đặt `StartDate = EndDate hiện tại` để nối tiếp, không trùng ngày.
@@ -38,7 +40,7 @@ Quản lý gói tập mẫu, bán/gia hạn gói cho hội viên và ghi nhận 
 - **NFR-03:** Mọi bước có audit + truy vết người thực hiện (CreatedBy từ JWT).
 
 ## 5. Data Model
-- **MembershipPackages**(Id, Name, DurationDays, Price DECIMAL(12,2), Status{Active,Inactive}, IsDeleted, CreatedAt, UpdatedAt)
+- **MembershipPackages**(Id, Name, DurationDays, Price DECIMAL(12,2), **SupportsPT BIT NOT NULL DEFAULT 0** {0=gói thường, 1=gói có PT}, Status{Active,Inactive}, IsDeleted, CreatedAt, UpdatedAt) — `SupportsPT` thêm ở `database/008_package_supports_pt.sql`.
 - **Memberships**(Id, MemberId→MemberProfiles, PackageId→MembershipPackages, StartDate, EndDate, Status{PendingPayment,Active,Expired,Cancelled}, CreatedAt, UpdatedAt)
 - **Payments**(Id, MembershipId→Memberships, Amount, Method{Cash,Transfer,Card}, Status{Pending,Paid,Refunded}, PaidAt, CreatedBy→Users, CreatedAt)
 - Trạng thái map TINYINT+CHECK (SQL Server). Xem `15_DATABASE_SCHEMA.md` §2.4–2.5.
@@ -46,9 +48,9 @@ Quản lý gói tập mẫu, bán/gia hạn gói cho hội viên và ghi nhận 
 ## 6. API Spec
 | Method | Path | Role | Request | Success | Lỗi |
 |---|---|---|---|---|---|
-| POST | /api/v1/packages | Admin | {name, durationDays, price} | 201 | 400 |
-| PUT | /api/v1/packages/{id} | Admin | {…, status} | 200 | 400, 404 |
-| GET | /api/v1/packages | Admin, Staff | — | 200 | 401 |
+| POST | /api/v1/packages | Admin | {name, durationDays, price, **supportsPT**} | 201 | 400 |
+| PUT | /api/v1/packages/{id} | Admin | {…, status, **supportsPT**} | 200 | 400, 404 |
+| GET | /api/v1/packages | Admin, Staff | — | 200 (mỗi gói kèm `supportsPT`) | 401 |
 | POST | /api/v1/memberships/sell | Admin, Staff | {memberId, packageId, startDate} | 201 {membership: PendingPayment} | 400, 404, 422 |
 | POST | /api/v1/memberships/{id}/payment | Admin, Staff | {amount, method} | 201 {status: Active} | 404, 409, 422 |
 | POST | /api/v1/memberships/{id}/renew | Admin, Staff | {packageId, method} | 201 | 404, 422 |
@@ -101,6 +103,8 @@ Quản lý gói tập mẫu, bán/gia hạn gói cho hội viên và ghi nhận 
 - [ ] **AC-04:** Given Membership PendingPayment, When Member check-in, Then bị từ chối.
 - [ ] **AC-05:** Given payment đã ghi, When ghi lại trùng kỳ, Then 409.
 - [ ] **AC-06:** Given Member gửi yêu cầu gia hạn, When chưa Admin/Staff xác nhận, Then chưa Active.
+- [ ] **AC-07:** Given Admin tạo gói với `supportsPT=true`, When lưu, Then gói có `SupportsPT=1`; mặc định không gửi thì `SupportsPT=0`.
+- [ ] **AC-08:** Given Member mua gói `SupportsPT=true` đang Active còn hạn, When kiểm tra quyền PT, Then "được dùng PT" = true. Given gói `SupportsPT=false` hoặc gói đã hết hạn, Then = false.
 
 ## 9. Out of Scope
 - Payment gateway tự động, hóa đơn điện tử/VAT, trả góp, hoàn tiền tự động, khuyến mãi/voucher (secondary).
