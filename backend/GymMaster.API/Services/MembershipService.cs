@@ -264,7 +264,16 @@ public sealed class MembershipService : IMembershipService
 
         if (profile is null)
         {
-            return Fail<MembershipResponse>("FORBIDDEN", "Ban khong co quyen tao yeu cau gia han.", StatusCodes.Status403Forbidden);
+            // Tu phuc vu: user role member chua co ho so -> tao ho so khi mua/yeu cau goi dau tien.
+            // (Mua goi == tro thanh hoi vien; khong con phu thuoc admin "Them hoi vien".)
+            profile = new MemberProfile
+            {
+                UserId = actorId.Value,
+                JoinedAt = DateTime.UtcNow
+            };
+            _dbContext.MemberProfiles.Add(profile);
+            await _dbContext.SaveChangesAsync(cancellationToken);
+            await _auditService.LogAsync("CREATE_MEMBER", "MemberProfile", profile.Id, new { selfService = true }, cancellationToken);
         }
 
         var package = await _dbContext.MembershipPackages.FirstOrDefaultAsync(
