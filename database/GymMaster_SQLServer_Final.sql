@@ -267,6 +267,7 @@ CREATE TABLE dbo.membership_packages (
     DurationDays SMALLINT      NOT NULL,
     Price        DECIMAL(12,2) NOT NULL,
     IsActive     BIT           NOT NULL CONSTRAINT DF_membership_packages_IsActive DEFAULT 1,
+    SupportsPT   BIT           NOT NULL CONSTRAINT DF_membership_packages_SupportsPT DEFAULT 0, -- 0=gói thường, 1=gói có PT (xem 008_package_supports_pt.sql)
     CreatedAt    DATETIME2     NOT NULL CONSTRAINT DF_membership_packages_CreatedAt DEFAULT SYSUTCDATETIME(),
     UpdatedAt    DATETIME2     NULL,
 
