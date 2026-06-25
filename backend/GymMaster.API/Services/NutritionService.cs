@@ -234,11 +234,23 @@ public sealed class NutritionService : INutritionService
         }
 
         var logDate = date ?? Today();
-        var consumed = await _dbContext.MealLogs
+        var items = await _dbContext.MealLogs
             .Where(item => item.MemberId == memberId && item.LogDate == logDate)
             .SelectMany(item => item.Items)
-            .Select(item => (decimal?)item.Calories)
-            .SumAsync(cancellationToken) ?? 0;
+            .Select(item => new
+            {
+                item.Calories,
+                item.Quantity,
+                P = item.FoodItem.ProteinG,
+                C = item.FoodItem.CarbG,
+                F = item.FoodItem.FatG
+            })
+            .ToListAsync(cancellationToken);
+
+        var consumed = items.Sum(item => item.Calories);
+        var consumedProtein = items.Sum(item => (item.P ?? 0) * item.Quantity);
+        var consumedCarb = items.Sum(item => (item.C ?? 0) * item.Quantity);
+        var consumedFat = items.Sum(item => (item.F ?? 0) * item.Quantity);
 
         var target = await GetTargetForDateAsync(memberId, logDate, cancellationToken);
 
@@ -246,8 +258,17 @@ public sealed class NutritionService : INutritionService
             new CalorieSummaryResponse(
                 logDate,
                 consumed,
-                target,
-                target is null ? null : target - consumed));
+                target?.DailyCalories,
+                target is null ? null : target.DailyCalories - consumed,
+                consumedProtein,
+                consumedCarb,
+                consumedFat,
+                target?.ProteinG,
+                target?.CarbG,
+                target?.FatG,
+                target?.ProteinG is null ? null : target.ProteinG - consumedProtein,
+                target?.CarbG is null ? null : target.CarbG - consumedCarb,
+                target?.FatG is null ? null : target.FatG - consumedFat));
     }
 
     // FR-CAL-01
@@ -323,7 +344,7 @@ public sealed class NutritionService : INutritionService
         return AuthServiceResult<IReadOnlyList<CalorieSummaryResponse>>.Success(results);
     }
 
-    private async Task<decimal?> GetTargetForDateAsync(
+    private async Task<CalorieTarget?> GetTargetForDateAsync(
         long memberId,
         DateOnly date,
         CancellationToken cancellationToken)
@@ -331,7 +352,6 @@ public sealed class NutritionService : INutritionService
         return await _dbContext.CalorieTargets
             .Where(item => item.MemberId == memberId && item.EffectiveDate <= date)
             .OrderByDescending(item => item.EffectiveDate)
-            .Select(item => (decimal?)item.DailyCalories)
             .FirstOrDefaultAsync(cancellationToken);
     }
 

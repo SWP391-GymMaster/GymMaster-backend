@@ -66,4 +66,13 @@ public sealed record CalorieSummaryResponse(
     DateOnly Date,
     decimal Consumed,
     decimal? Target,
-    decimal? Remaining);
+    decimal? Remaining,
+    decimal ConsumedProteinG = 0,
+    decimal ConsumedCarbG = 0,
+    decimal ConsumedFatG = 0,
+    decimal? TargetProteinG = null,
+    decimal? TargetCarbG = null,
+    decimal? TargetFatG = null,
+    decimal? RemainingProteinG = null,
+    decimal? RemainingCarbG = null,
+    decimal? RemainingFatG = null);
