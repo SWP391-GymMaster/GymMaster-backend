@@ -106,6 +106,11 @@ public sealed class MembershipService : IMembershipService
             return Fail<ConfirmPaymentResult>("NOT_FOUND", "Khong tim thay membership.", StatusCodes.Status404NotFound);
         }
 
+        if (membership.Status == MembershipStatus.Cancelled)
+        {
+            return Fail<ConfirmPaymentResult>("MEMBERSHIP_CANCELLED", "Don da bi huy, khong the thanh toan.", StatusCodes.Status409Conflict);
+        }
+
         if (membership.Status != MembershipStatus.PendingPayment)
         {
             return Fail<ConfirmPaymentResult>("DUPLICATE_PAYMENT", "Membership nay da duoc thanh toan.", StatusCodes.Status409Conflict);
@@ -310,6 +315,58 @@ public sealed class MembershipService : IMembershipService
         return AuthServiceResult<MembershipResponse>.Success(
             ToResponse(membership),
             StatusCodes.Status201Created);
+    }
+
+    // FR-MS-08 — Huy membership.
+    // Member: chi huy don Pending HOAC goi Active cua CHINH MINH.
+    // Staff/Admin: huy Pending/Active bat ky. Khong hoan tien (ngoai pham vi).
+    public async Task<AuthServiceResult<MembershipResponse>> CancelAsync(
+        long id,
+        ClaimsPrincipal principal,
+        CancellationToken cancellationToken)
+    {
+        var actorId = GetActorId(principal);
+        if (actorId is null)
+        {
+            return Fail<MembershipResponse>("FORBIDDEN", "Khong xac dinh duoc nguoi thao tac.", StatusCodes.Status403Forbidden);
+        }
+
+        var membership = await _dbContext.Memberships
+            .Include(item => item.Package)
+            .Include(item => item.Member)
+            .FirstOrDefaultAsync(item => item.Id == id, cancellationToken);
+
+        if (membership is null)
+        {
+            return Fail<MembershipResponse>("NOT_FOUND", "Khong tim thay membership.", StatusCodes.Status404NotFound);
+        }
+
+        // Chi huy duoc don cho thanh toan hoac goi dang hoat dong.
+        if (membership.Status is not (MembershipStatus.PendingPayment or MembershipStatus.Active))
+        {
+            return Fail<MembershipResponse>("CANNOT_CANCEL", "Chi huy duoc don cho thanh toan hoac goi dang hoat dong.", StatusCodes.Status422UnprocessableEntity);
+        }
+
+        // Phan quyen: Staff/Admin huy bat ky; Member chi huy membership cua chinh minh.
+        var isStaffOrAdmin = principal.IsInRole(RoleNames.Admin) || principal.IsInRole(RoleNames.Staff);
+        if (!isStaffOrAdmin && membership.Member.UserId != actorId.Value)
+        {
+            return Fail<MembershipResponse>("FORBIDDEN", "Ban khong co quyen huy membership nay.", StatusCodes.Status403Forbidden);
+        }
+
+        var previousStatus = membership.Status;
+        membership.Status = MembershipStatus.Cancelled;
+        membership.UpdatedAt = DateTime.UtcNow;
+        await _dbContext.SaveChangesAsync(cancellationToken);
+
+        await _auditService.LogAsync(
+            "CANCEL_MEMBERSHIP",
+            "Membership",
+            membership.Id,
+            new { previousStatus = previousStatus.ToString(), byStaff = isStaffOrAdmin },
+            cancellationToken);
+
+        return AuthServiceResult<MembershipResponse>.Success(ToResponse(membership));
     }
 
     // FR-MS-09

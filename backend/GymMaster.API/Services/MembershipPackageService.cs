@@ -50,6 +50,7 @@ public sealed class MembershipPackageService : IMembershipPackageService
             Description = NormalizeOptional(request.Description),
             DurationDays = request.DurationDays,
             Price = request.Price,
+            SupportsPT = request.SupportsPT,
             IsActive = true,
             CreatedAt = DateTime.UtcNow
         };
@@ -123,6 +124,11 @@ public sealed class MembershipPackageService : IMembershipPackageService
             package.IsActive = request.IsActive.Value;
         }
 
+        if (request.SupportsPT is not null)
+        {
+            package.SupportsPT = request.SupportsPT.Value;
+        }
+
         package.UpdatedAt = DateTime.UtcNow;
         await _dbContext.SaveChangesAsync(cancellationToken);
 
@@ -161,6 +167,7 @@ public sealed class MembershipPackageService : IMembershipPackageService
             package.DurationDays,
             package.Price,
             package.IsActive,
+            package.SupportsPT,
             package.CreatedAt);
     }
 

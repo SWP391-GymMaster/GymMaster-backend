@@ -6,6 +6,8 @@ using GymMaster.API.Options;
 using GymMaster.API.Services;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
+using System.Security.Cryptography;
+using System.Text;
 using Xunit;
 
 namespace GymMaster.Api.Tests;
@@ -106,6 +108,12 @@ public class VnPayServiceTests
         return p;
     }
 
+    private static string HmacSha512(string secret, string data)
+    {
+        using var hmac = new HMACSHA512(Encoding.UTF8.GetBytes(secret));
+        return Convert.ToHexString(hmac.ComputeHash(Encoding.UTF8.GetBytes(data))).ToLowerInvariant();
+    }
+
     private sealed class NoopAudit : IAuditService
     {
         public Task LogAsync(string action, string entity, long entityId, object? metadata, CancellationToken ct)
@@ -148,6 +156,25 @@ public class VnPayServiceTests
         var payment = await db.Payments.SingleAsync();
         Assert.Equal(PaymentStatus.Paid, payment.Status);
         Assert.NotNull(payment.PaidAt);
+    }
+
+    [Fact] // TxnRef moi co timestamp van map ve dung Payment.Id.
+    public async Task Ipn_valid_success_with_timestamped_txnref_activates_membership()
+    {
+        using var db = NewDb();
+        await SeedPendingMembershipAsync(db);
+        var service = NewService(db);
+        var paymentId = (await service.CreatePaymentUrlAsync(
+            new CreateVnPayPaymentRequest(1), "127.0.0.1", Staff(), default)).Value!.PaymentId;
+
+        var query = SuccessParams(paymentId, Price);
+        query["vnp_TxnRef"] = $"GM{paymentId}T20260625160000000";
+
+        var response = await service.HandleIpnAsync(Signed(query, Secret), default);
+
+        Assert.Equal("00", response.RspCode);
+        Assert.Equal(MembershipStatus.Active, (await db.Memberships.SingleAsync()).Status);
+        Assert.Equal(PaymentStatus.Paid, (await db.Payments.SingleAsync()).Status);
     }
 
     [Fact] // IPN lan 2 -> idempotent, tra "02".
@@ -224,5 +251,24 @@ public class VnPayServiceTests
         tampered.AddResponseData("vnp_TxnRef", "1");
         tampered.AddResponseData("vnp_ResponseCode", "00");
         Assert.False(tampered.ValidateSignature(hash, Secret));
+    }
+
+    [Fact] // VNPAY PHP/Java demo ky tren query da sort va URL-encode.
+    public void CreateRequestUrl_signs_encoded_sorted_data()
+    {
+        var library = new VnPayLibrary();
+        library.AddRequestData("vnp_ReturnUrl", "http://localhost:3000/member/membership/vnpay-return");
+        library.AddRequestData("vnp_OrderInfo", "Thanh toan goi tap membership 9");
+        library.AddRequestData("vnp_TmnCode", "TESTCODE");
+
+        var url = library.CreateRequestUrl("https://sandbox.vnpayment.vn/paymentv2/vpcpay.html", Secret);
+        var hash = url[(url.IndexOf("vnp_SecureHash=", StringComparison.Ordinal) + "vnp_SecureHash=".Length)..];
+        var encodedSignData =
+            "vnp_OrderInfo=Thanh+toan+goi+tap+membership+9" +
+            "&vnp_ReturnUrl=http%3A%2F%2Flocalhost%3A3000%2Fmember%2Fmembership%2Fvnpay-return" +
+            "&vnp_TmnCode=TESTCODE";
+
+        Assert.Contains("vnp_ReturnUrl=http%3A%2F%2Flocalhost%3A3000%2Fmember%2Fmembership%2Fvnpay-return", url);
+        Assert.Equal(HmacSha512(Secret, encodedSignData), hash);
     }
 }

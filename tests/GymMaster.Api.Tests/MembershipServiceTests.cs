@@ -31,6 +31,30 @@ public class MembershipServiceTests
         return new ClaimsPrincipal(identity);
     }
 
+    // Principal co role member (de test phan quyen huy - member chi huy cua minh).
+    private static ClaimsPrincipal Member(long userId)
+    {
+        var identity = new ClaimsIdentity(
+            new[]
+            {
+                new Claim(ClaimTypes.NameIdentifier, userId.ToString()),
+                new Claim(ClaimTypes.Role, RoleNames.Member),
+            }, "test");
+        return new ClaimsPrincipal(identity);
+    }
+
+    // Principal co role staff (huy bat ky).
+    private static ClaimsPrincipal StaffRole(long userId = 99)
+    {
+        var identity = new ClaimsIdentity(
+            new[]
+            {
+                new Claim(ClaimTypes.NameIdentifier, userId.ToString()),
+                new Claim(ClaimTypes.Role, RoleNames.Staff),
+            }, "test");
+        return new ClaimsPrincipal(identity);
+    }
+
     private static async Task<(long memberId, long packageId)> SeedAsync(GymMasterDbContext db)
     {
         db.MemberProfiles.Add(new MemberProfile { Id = 1, UserId = 10, IsDeleted = false });
@@ -193,5 +217,97 @@ public class MembershipServiceTests
         Assert.Equal(20, result.Value.PageSize);
         Assert.Equal(1, result.Value.Page);
         Assert.Equal(3, result.Value.Items.Count);
+    }
+
+    private async Task<long> SeedPendingMembershipAsync(GymMasterDbContext db, MembershipService service)
+    {
+        var (memberId, packageId) = await SeedAsync(db);
+        return (await service.SellAsync(
+            new SellMembershipRequest(memberId, packageId, DateOnly.FromDateTime(DateTime.UtcNow)), Staff(), default))
+            .Value!.Membership.Id;
+    }
+
+    [Fact] // FR-MS-08: member huy don Pending cua CHINH MINH -> Cancelled
+    public async Task Cancel_pending_by_owner_member_succeeds()
+    {
+        using var db = NewDb();
+        var service = NewService(db);
+        var membershipId = await SeedPendingMembershipAsync(db, service);
+
+        var result = await service.CancelAsync(membershipId, Member(10), default); // UserId chu so huu = 10
+
+        Assert.True(result.Succeeded);
+        Assert.Equal("Cancelled", result.Value!.Status);
+        Assert.Equal(MembershipStatus.Cancelled, (await db.Memberships.SingleAsync(x => x.Id == membershipId)).Status);
+    }
+
+    [Fact] // FR-MS-08: member huy goi Active cua chinh minh (vd doi sang goi PT) - khong hoan tien
+    public async Task Cancel_active_by_owner_member_succeeds()
+    {
+        using var db = NewDb();
+        var service = NewService(db);
+        var membershipId = await SeedPendingMembershipAsync(db, service);
+        await service.ConfirmPaymentAsync(membershipId, new ConfirmPaymentRequest(Price, "cash"), Staff(), default);
+
+        var result = await service.CancelAsync(membershipId, Member(10), default);
+
+        Assert.True(result.Succeeded);
+        Assert.Equal("Cancelled", result.Value!.Status);
+    }
+
+    [Fact] // FR-MS-08: member KHONG huy duoc membership cua nguoi khac -> FORBIDDEN
+    public async Task Cancel_by_non_owner_member_is_forbidden()
+    {
+        using var db = NewDb();
+        var service = NewService(db);
+        var membershipId = await SeedPendingMembershipAsync(db, service);
+
+        var result = await service.CancelAsync(membershipId, Member(999), default); // UserId khac chu so huu (10)
+
+        Assert.False(result.Succeeded);
+        Assert.Equal("FORBIDDEN", result.ErrorCode);
+    }
+
+    [Fact] // FR-MS-08: Staff huy duoc membership bat ky (goi Active)
+    public async Task Cancel_active_by_staff_succeeds()
+    {
+        using var db = NewDb();
+        var service = NewService(db);
+        var membershipId = await SeedPendingMembershipAsync(db, service);
+        await service.ConfirmPaymentAsync(membershipId, new ConfirmPaymentRequest(Price, "cash"), Staff(), default);
+
+        var result = await service.CancelAsync(membershipId, StaffRole(), default);
+
+        Assert.True(result.Succeeded);
+        Assert.Equal("Cancelled", result.Value!.Status);
+    }
+
+    [Fact] // FR-MS-08: khong huy lai goi da Cancelled -> CANNOT_CANCEL
+    public async Task Cancel_already_cancelled_is_rejected()
+    {
+        using var db = NewDb();
+        var service = NewService(db);
+        var membershipId = await SeedPendingMembershipAsync(db, service);
+        await service.CancelAsync(membershipId, StaffRole(), default);
+
+        var second = await service.CancelAsync(membershipId, StaffRole(), default);
+
+        Assert.False(second.Succeeded);
+        Assert.Equal("CANNOT_CANCEL", second.ErrorCode);
+    }
+
+    [Fact] // Gap E: thanh toan cho don da Cancelled -> MEMBERSHIP_CANCELLED (khong phai DUPLICATE_PAYMENT)
+    public async Task ConfirmPayment_on_cancelled_returns_membership_cancelled()
+    {
+        using var db = NewDb();
+        var service = NewService(db);
+        var membershipId = await SeedPendingMembershipAsync(db, service);
+        await service.CancelAsync(membershipId, StaffRole(), default);
+
+        var result = await service.ConfirmPaymentAsync(
+            membershipId, new ConfirmPaymentRequest(Price, "cash"), Staff(), default);
+
+        Assert.False(result.Succeeded);
+        Assert.Equal("MEMBERSHIP_CANCELLED", result.ErrorCode);
     }
 }

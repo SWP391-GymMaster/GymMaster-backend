@@ -38,20 +38,21 @@ public sealed class VnPayLibrary
     // Tao URL thanh toan day du (da gan vnp_SecureHash).
     public string CreateRequestUrl(string baseUrl, string hashSecret)
     {
-        var data = BuildDataString(_requestData);
-        var secureHash = HmacSha512(hashSecret, data);
-        return $"{baseUrl}?{data}&vnp_SecureHash={secureHash}";
+        var query = BuildDataString(_requestData, encode: true);
+        var signData = BuildDataString(_requestData, encode: true);
+        var secureHash = HmacSha512(hashSecret, signData);
+        return $"{baseUrl}?{query}&vnp_SecureHash={secureHash}";
     }
 
     // Verify chu ky tu callback/IPN. So sanh khong phan biet hoa thuong.
     public bool ValidateSignature(string inputHash, string hashSecret)
     {
-        var data = BuildDataString(_responseData);
+        var data = BuildDataString(_responseData, encode: true);
         var computed = HmacSha512(hashSecret, data);
         return computed.Equals(inputHash, StringComparison.InvariantCultureIgnoreCase);
     }
 
-    private static string BuildDataString(SortedDictionary<string, string> data)
+    private static string BuildDataString(SortedDictionary<string, string> data, bool encode)
     {
         var builder = new StringBuilder();
         foreach (var (key, value) in data)
@@ -66,12 +67,17 @@ public sealed class VnPayLibrary
                 builder.Append('&');
             }
 
-            builder.Append(WebUtility.UrlEncode(key))
+            builder.Append(Encode(key, encode))
                 .Append('=')
-                .Append(WebUtility.UrlEncode(value));
+                .Append(Encode(value, encode));
         }
 
         return builder.ToString();
+    }
+
+    private static string Encode(string value, bool encode)
+    {
+        return encode ? WebUtility.UrlEncode(value) ?? string.Empty : value;
     }
 
     private static string HmacSha512(string key, string input)
