@@ -80,6 +80,36 @@ public sealed class NutritionService : INutritionService
         return AuthServiceResult<CalorieTargetResponse>.Success(ToResponse(target), statusCode);
     }
 
+    public async Task<AuthServiceResult<CalorieTargetResponse>> GetTargetAsync(
+        long memberId,
+        ClaimsPrincipal principal,
+        CancellationToken cancellationToken)
+    {
+        var profile = await FindMemberAsync(memberId, cancellationToken);
+
+        if (profile is null)
+        {
+            return Fail<CalorieTargetResponse>("NOT_FOUND", "Khong tim thay hoi vien.", StatusCodes.Status404NotFound);
+        }
+
+        if (!CanAccess(principal, profile))
+        {
+            return Fail<CalorieTargetResponse>("FORBIDDEN", "Ban khong co quyen xem muc tieu calo.", StatusCodes.Status403Forbidden);
+        }
+
+        var target = await _dbContext.CalorieTargets
+            .Where(t => t.MemberId == memberId && t.EffectiveDate <= Today())
+            .OrderByDescending(t => t.EffectiveDate)
+            .FirstOrDefaultAsync(cancellationToken);
+
+        if (target is null)
+        {
+            return Fail<CalorieTargetResponse>("NO_TARGET", "Hoi vien chua dat muc tieu calo.", StatusCodes.Status404NotFound);
+        }
+
+        return AuthServiceResult<CalorieTargetResponse>.Success(ToResponse(target));
+    }
+
     // FR-MEAL-01 / FR-MEAL-02 / FR-MEAL-03
     public async Task<AuthServiceResult<MealLogResponse>> CreateMealLogAsync(
         CreateMealLogRequest request,

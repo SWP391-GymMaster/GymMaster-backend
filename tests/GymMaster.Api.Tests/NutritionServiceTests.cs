@@ -168,4 +168,76 @@ public class NutritionServiceTests
         Assert.Equal(160m, summary.Value.RemainingCarbG);
         Assert.Equal(40m, summary.Value.RemainingFatG);
     }
+
+    [Fact]
+    public async Task GetTargetAsync_when_no_target_returns_not_found_with_no_target_code()
+    {
+        using var db = NewDb();
+        db.Users.Add(new User { Id = 10, IsDeleted = false });
+        db.MemberProfiles.Add(new MemberProfile { Id = 1, UserId = 10, IsDeleted = false });
+        await db.SaveChangesAsync();
+
+        var service = new NutritionService(db, new NoopAudit());
+        var result = await service.GetTargetAsync(1, Staff(), default);
+
+        Assert.False(result.Succeeded);
+        Assert.Equal("NO_TARGET", result.ErrorCode);
+        Assert.Equal(404, result.StatusCode);
+    }
+
+    [Fact]
+    public async Task GetTargetAsync_when_has_target_returns_latest_valid_target()
+    {
+        using var db = NewDb();
+        var today = DateOnly.FromDateTime(DateTime.UtcNow);
+        db.Users.Add(new User { Id = 10, IsDeleted = false });
+        db.MemberProfiles.Add(new MemberProfile { Id = 1, UserId = 10, IsDeleted = false });
+
+        // Older target
+        db.CalorieTargets.Add(new CalorieTarget
+        {
+            Id = 1,
+            MemberId = 1,
+            EffectiveDate = today.AddDays(-2),
+            DailyCalories = 2000,
+            ProteinG = 120,
+            CarbG = 250,
+            FatG = 70
+        });
+
+        // Latest valid target
+        db.CalorieTargets.Add(new CalorieTarget
+        {
+            Id = 2,
+            MemberId = 1,
+            EffectiveDate = today.AddDays(-1),
+            DailyCalories = 2500,
+            ProteinG = 150,
+            CarbG = 300,
+            FatG = 80
+        });
+
+        // Future target (not valid yet)
+        db.CalorieTargets.Add(new CalorieTarget
+        {
+            Id = 3,
+            MemberId = 1,
+            EffectiveDate = today.AddDays(1),
+            DailyCalories = 3000,
+            ProteinG = 180,
+            CarbG = 350,
+            FatG = 90
+        });
+
+        await db.SaveChangesAsync();
+
+        var service = new NutritionService(db, new NoopAudit());
+        var result = await service.GetTargetAsync(1, Staff(), default);
+
+        Assert.True(result.Succeeded);
+        Assert.Equal(2500m, result.Value!.DailyCalories);
+        Assert.Equal(150m, result.Value.ProteinG);
+        Assert.Equal(300m, result.Value.CarbG);
+        Assert.Equal(80m, result.Value.FatG);
+    }
 }

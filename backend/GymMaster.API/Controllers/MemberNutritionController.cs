@@ -28,6 +28,14 @@ public sealed class MemberNutritionController : ApiControllerBase
         return ToActionResult(result);
     }
 
+    // FR-CAL-TGT-02
+    [HttpGet("{id:long}/calorie-target")]
+    public async Task<IActionResult> GetTarget(long id, CancellationToken cancellationToken)
+    {
+        var result = await _nutritionService.GetTargetAsync(id, User, cancellationToken);
+        return ToActionResult(result);
+    }
+
     // FR-CAL-01
     [HttpGet("{id:long}/calorie-summary")]
     public async Task<IActionResult> GetSummary(
