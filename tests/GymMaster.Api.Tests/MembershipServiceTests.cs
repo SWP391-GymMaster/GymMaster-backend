@@ -310,4 +310,36 @@ public class MembershipServiceTests
         Assert.False(result.Succeeded);
         Assert.Equal("MEMBERSHIP_CANCELLED", result.ErrorCode);
     }
+
+    [Fact] // Chong thu 2 lan: da co payment Pending (vd VNPay khoi tao) -> staff confirm TAI DUNG dong do, khong de moi
+    public async Task ConfirmPayment_reuses_existing_pending_payment_no_duplicate_row()
+    {
+        using var db = NewDb();
+        var service = NewService(db);
+        var membershipId = await SeedPendingMembershipAsync(db, service);
+
+        // Gia lap VNPay da tao 1 payment Pending (method Transfer) cho don nay.
+        db.Payments.Add(new Payment
+        {
+            MembershipId = membershipId,
+            Amount = Price,
+            PaymentMethod = PaymentMethod.Transfer,
+            Status = PaymentStatus.Pending,
+            CreatedByUserId = 10,
+            CreatedAt = DateTime.UtcNow,
+        });
+        await db.SaveChangesAsync();
+
+        // Staff thu tay (cash) xen vao luong online.
+        var result = await service.ConfirmPaymentAsync(
+            membershipId, new ConfirmPaymentRequest(Price, "cash"), Staff(), default);
+
+        Assert.True(result.Succeeded);
+        Assert.Equal("Active", result.Value!.Status);
+
+        // Chi 1 dong Payment cho don (tai dung, khong de them) va da Paid voi method thu tay.
+        var payment = await db.Payments.SingleAsync(p => p.MembershipId == membershipId);
+        Assert.Equal(PaymentStatus.Paid, payment.Status);
+        Assert.Equal(PaymentMethod.Cash, payment.PaymentMethod);
+    }
 }

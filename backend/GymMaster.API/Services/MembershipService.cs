@@ -141,18 +141,31 @@ public sealed class MembershipService : IMembershipService
                 StatusCodes.Status409Conflict);
         }
 
-        var payment = new Payment
-        {
-            MembershipId = membership.Id,
-            Amount = request.Amount,
-            PaymentMethod = method,
-            Status = PaymentStatus.Paid,
-            PaidAt = DateTime.UtcNow,
-            CreatedByUserId = actorId.Value,
-            CreatedAt = DateTime.UtcNow
-        };
+        // Nguon su that DUY NHAT cho tien cua don = 1 Payment.
+        // Tai dung payment Pending neu da co (vd member da khoi tao VNPay) thay vi tao dong moi
+        // -> tranh 2 dong Payment / 1 don va chong thu tien 2 lan khi staff thu tay xen vao luong online.
+        var payment = await _dbContext.Payments
+            .FirstOrDefaultAsync(
+                item => item.MembershipId == membership.Id && item.Status == PaymentStatus.Pending,
+                cancellationToken);
 
-        _dbContext.Payments.Add(payment);
+        if (payment is null)
+        {
+            payment = new Payment
+            {
+                MembershipId = membership.Id,
+                CreatedByUserId = actorId.Value,
+                CreatedAt = DateTime.UtcNow
+            };
+            _dbContext.Payments.Add(payment);
+        }
+
+        payment.Amount = request.Amount;
+        payment.PaymentMethod = method;
+        payment.Status = PaymentStatus.Paid;
+        payment.PaidAt = DateTime.UtcNow;
+        payment.UpdatedAt = DateTime.UtcNow;
+
         membership.Status = MembershipStatus.Active;
         membership.UpdatedAt = DateTime.UtcNow;
 
