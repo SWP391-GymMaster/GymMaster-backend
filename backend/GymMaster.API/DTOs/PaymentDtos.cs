@@ -11,6 +11,7 @@ public sealed record PaymentHistoryResponse(
     decimal Amount,
     string PaymentMethod,
     string Status,
+    string MembershipStatus,
     DateTime PaymentDate,
     DateTime? PaidAt,
     DateTime CreatedAt,

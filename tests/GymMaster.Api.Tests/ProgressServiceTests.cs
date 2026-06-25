@@ -82,7 +82,7 @@ public class ProgressServiceTests
     {
         using var db = NewDb();
         SeedMember(db);
-        var today = DateOnly.FromDateTime(DateTime.UtcNow);
+        var today = AppClock.Today();
         var pkg = new MembershipPackage { Id = 1, Name = "Goi 1 thang", DurationDays = 30, Price = 500_000, IsActive = true };
         db.MembershipPackages.Add(pkg);
         db.Memberships.Add(new Membership

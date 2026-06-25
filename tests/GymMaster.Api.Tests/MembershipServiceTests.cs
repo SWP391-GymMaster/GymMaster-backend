@@ -81,7 +81,7 @@ public class MembershipServiceTests
     {
         using var db = NewDb();
         var (memberId, packageId) = await SeedAsync(db);
-        var start = DateOnly.FromDateTime(DateTime.UtcNow);
+        var start = AppClock.Today();
 
         var result = await NewService(db).SellAsync(
             new SellMembershipRequest(memberId, packageId, start), Staff(), default);
@@ -96,7 +96,7 @@ public class MembershipServiceTests
     {
         using var db = NewDb();
         var (memberId, packageId) = await SeedAsync(db);
-        var past = DateOnly.FromDateTime(DateTime.UtcNow).AddDays(-1);
+        var past = AppClock.Today().AddDays(-1);
 
         var result = await NewService(db).SellAsync(
             new SellMembershipRequest(memberId, packageId, past), Staff(), default);
@@ -112,7 +112,7 @@ public class MembershipServiceTests
         var (memberId, packageId) = await SeedAsync(db);
         var service = NewService(db);
         var sold = await service.SellAsync(
-            new SellMembershipRequest(memberId, packageId, DateOnly.FromDateTime(DateTime.UtcNow)), Staff(), default);
+            new SellMembershipRequest(memberId, packageId, AppClock.Today()), Staff(), default);
 
         var result = await service.ConfirmPaymentAsync(
             sold.Value!.Membership.Id, new ConfirmPaymentRequest(Price, "transfer"), Staff(), default);
@@ -129,7 +129,7 @@ public class MembershipServiceTests
         var (memberId, packageId) = await SeedAsync(db);
         var service = NewService(db);
         var sold = await service.SellAsync(
-            new SellMembershipRequest(memberId, packageId, DateOnly.FromDateTime(DateTime.UtcNow)), Staff(), default);
+            new SellMembershipRequest(memberId, packageId, AppClock.Today()), Staff(), default);
 
         var result = await service.ConfirmPaymentAsync(
             sold.Value!.Membership.Id, new ConfirmPaymentRequest(100_000m, "cash"), Staff(), default);
@@ -145,7 +145,7 @@ public class MembershipServiceTests
         var (memberId, packageId) = await SeedAsync(db);
         var service = NewService(db);
         var sold = await service.SellAsync(
-            new SellMembershipRequest(memberId, packageId, DateOnly.FromDateTime(DateTime.UtcNow)), Staff(), default);
+            new SellMembershipRequest(memberId, packageId, AppClock.Today()), Staff(), default);
         var membershipId = sold.Value!.Membership.Id;
         await service.ConfirmPaymentAsync(membershipId, new ConfirmPaymentRequest(Price, "cash"), Staff(), default);
 
@@ -163,7 +163,7 @@ public class MembershipServiceTests
         var (memberId, packageId) = await SeedAsync(db);
         var service = NewService(db);
         var membershipId = (await service.SellAsync(
-            new SellMembershipRequest(memberId, packageId, DateOnly.FromDateTime(DateTime.UtcNow)), Staff(), default))
+            new SellMembershipRequest(memberId, packageId, AppClock.Today()), Staff(), default))
             .Value!.Membership.Id;
         await service.ConfirmPaymentAsync(membershipId, new ConfirmPaymentRequest(Price, "cash"), Staff(), default);
         var endBefore = (await db.Memberships.SingleAsync(x => x.Id == membershipId)).EndDate;
@@ -184,7 +184,7 @@ public class MembershipServiceTests
         var (memberId, packageId) = await SeedAsync(db);
         var service = NewService(db);
         var membershipId = (await service.SellAsync(
-            new SellMembershipRequest(memberId, packageId, DateOnly.FromDateTime(DateTime.UtcNow)), Staff(), default))
+            new SellMembershipRequest(memberId, packageId, AppClock.Today()), Staff(), default))
             .Value!.Membership.Id;
 
         var membership = await db.Memberships.SingleAsync(x => x.Id == membershipId);
@@ -204,11 +204,21 @@ public class MembershipServiceTests
         using var db = NewDb();
         var (memberId, packageId) = await SeedAsync(db);
         var service = NewService(db);
+        var today = AppClock.Today();
         for (var i = 0; i < 3; i++)
         {
-            await service.SellAsync(
-                new SellMembershipRequest(memberId, packageId, DateOnly.FromDateTime(DateTime.UtcNow)), Staff(), default);
+            db.Memberships.Add(new Membership
+            {
+                MemberId = memberId,
+                PackageId = packageId,
+                StartDate = today,
+                EndDate = today.AddDays(Days),
+                Status = MembershipStatus.Cancelled,
+                CreatedByUserId = 99,
+                CreatedAt = DateTime.UtcNow.AddMinutes(i),
+            });
         }
+        await db.SaveChangesAsync();
 
         var result = await service.GetAllAsync(null, null, Staff(), default);
 
@@ -223,7 +233,7 @@ public class MembershipServiceTests
     {
         var (memberId, packageId) = await SeedAsync(db);
         return (await service.SellAsync(
-            new SellMembershipRequest(memberId, packageId, DateOnly.FromDateTime(DateTime.UtcNow)), Staff(), default))
+            new SellMembershipRequest(memberId, packageId, AppClock.Today()), Staff(), default))
             .Value!.Membership.Id;
     }
 
@@ -341,5 +351,85 @@ public class MembershipServiceTests
         var payment = await db.Payments.SingleAsync(p => p.MembershipId == membershipId);
         Assert.Equal(PaymentStatus.Paid, payment.Status);
         Assert.Equal(PaymentMethod.Cash, payment.PaymentMethod);
+    }
+
+    [Fact] // Renewal-request lan 2 khi dang co Pending -> tra lai don cu, khong tao them.
+    public async Task RenewalRequest_twice_with_pending_returns_existing_request()
+    {
+        using var db = NewDb();
+        var (_, packageId) = await SeedAsync(db);
+        var service = NewService(db);
+
+        var first = await service.CreateRenewalRequestAsync(new RenewalRequestRequest(packageId), Member(10), default);
+        var second = await service.CreateRenewalRequestAsync(new RenewalRequestRequest(packageId), Member(10), default);
+
+        Assert.True(first.Succeeded);
+        Assert.True(second.Succeeded);
+        Assert.Equal(first.Value!.Id, second.Value!.Id);
+        Assert.Equal(1, await db.Memberships.CountAsync(m => m.Status == MembershipStatus.PendingPayment));
+    }
+
+    [Fact] // Sell khi member da co Active -> ALREADY_HAS_ACTIVE.
+    public async Task Sell_when_member_already_has_active_is_rejected()
+    {
+        using var db = NewDb();
+        var (memberId, packageId) = await SeedAsync(db);
+        var service = NewService(db);
+        var today = AppClock.Today();
+
+        // Goi A: ban + thanh toan -> Active
+        var a = (await service.SellAsync(
+            new SellMembershipRequest(memberId, packageId, today), Staff(), default)).Value!.Membership.Id;
+        await service.ConfirmPaymentAsync(a, new ConfirmPaymentRequest(Price, "cash"), Staff(), default);
+
+        var result = await service.SellAsync(
+            new SellMembershipRequest(memberId, packageId, today), Staff(), default);
+
+        Assert.False(result.Succeeded);
+        Assert.Equal("ALREADY_HAS_ACTIVE", result.ErrorCode);
+        Assert.Equal(1, await db.Memberships.CountAsync(
+            m => m.MemberId == memberId && m.Status == MembershipStatus.Active));
+    }
+
+    [Fact] // ConfirmPayment 1 don -> cac don Pending anh em cua member chuyen Cancelled.
+    public async Task ConfirmPayment_cancels_sibling_pending_memberships()
+    {
+        using var db = NewDb();
+        var (memberId, packageId) = await SeedAsync(db);
+        var service = NewService(db);
+        var today = AppClock.Today();
+        var primaryId = (await service.SellAsync(
+            new SellMembershipRequest(memberId, packageId, today), Staff(), default)).Value!.Membership.Id;
+
+        db.Memberships.AddRange(
+            new Membership
+            {
+                MemberId = memberId,
+                PackageId = packageId,
+                StartDate = today,
+                EndDate = today.AddDays(Days),
+                Status = MembershipStatus.PendingPayment,
+                CreatedByUserId = 99,
+                CreatedAt = DateTime.UtcNow,
+            },
+            new Membership
+            {
+                MemberId = memberId,
+                PackageId = packageId,
+                StartDate = today,
+                EndDate = today.AddDays(Days),
+                Status = MembershipStatus.PendingPayment,
+                CreatedByUserId = 99,
+                CreatedAt = DateTime.UtcNow,
+            });
+        await db.SaveChangesAsync();
+
+        var result = await service.ConfirmPaymentAsync(primaryId, new ConfirmPaymentRequest(Price, "cash"), Staff(), default);
+
+        Assert.True(result.Succeeded);
+        Assert.Equal(1, await db.Memberships.CountAsync(
+            m => m.MemberId == memberId && m.Status == MembershipStatus.Active));
+        Assert.Equal(2, await db.Memberships.CountAsync(
+            m => m.MemberId == memberId && m.Status == MembershipStatus.Cancelled));
     }
 }

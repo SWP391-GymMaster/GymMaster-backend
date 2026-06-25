@@ -51,7 +51,7 @@ public class VnPayServiceTests
 
     private static async Task<long> SeedPendingMembershipAsync(GymMasterDbContext db)
     {
-        var today = DateOnly.FromDateTime(DateTime.UtcNow);
+        var today = AppClock.Today();
         db.MemberProfiles.Add(new MemberProfile { Id = 1, UserId = 10, IsDeleted = false });
         db.MembershipPackages.Add(new MembershipPackage
         {

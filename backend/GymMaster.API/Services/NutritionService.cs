@@ -445,7 +445,7 @@ public sealed class NutritionService : INutritionService
 
     private static DateOnly Today()
     {
-        return DateOnly.FromDateTime(DateTime.UtcNow);
+        return AppClock.Today();
     }
 
     private static long? GetActorId(ClaimsPrincipal principal)

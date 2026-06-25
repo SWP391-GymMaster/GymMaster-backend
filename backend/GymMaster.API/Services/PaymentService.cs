@@ -188,6 +188,7 @@ public sealed class PaymentService : IPaymentService
                 Amount = payment.Amount,
                 PaymentMethod = payment.PaymentMethod,
                 Status = payment.Status,
+                MembershipStatus = membership.Status,
                 PaymentDate = payment.PaidAt ?? payment.CreatedAt,
                 PaidAt = payment.PaidAt,
                 CreatedAt = payment.CreatedAt,
@@ -223,6 +224,7 @@ public sealed class PaymentService : IPaymentService
             row.Amount,
             row.PaymentMethod.ToString(),
             row.Status.ToString(),
+            row.MembershipStatus.ToString(),
             row.PaymentDate,
             row.PaidAt,
             row.CreatedAt,
@@ -292,6 +294,8 @@ public sealed class PaymentService : IPaymentService
         public PaymentMethod PaymentMethod { get; set; }
 
         public PaymentStatus Status { get; set; }
+
+        public MembershipStatus MembershipStatus { get; set; }
 
         public DateTime PaymentDate { get; set; }
 

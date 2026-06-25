@@ -57,7 +57,7 @@ public class NutritionServiceTests
         await db.SaveChangesAsync();
 
         var service = new NutritionService(db, new NoopAudit());
-        var today = DateOnly.FromDateTime(DateTime.UtcNow);
+        var today = AppClock.Today();
 
         await service.CreateMealLogAsync(
             new CreateMealLogRequest(1, today, (byte)MealType.Breakfast, new[] { new MealItemInput(1, 2) }),
@@ -93,7 +93,7 @@ public class NutritionServiceTests
         await db.SaveChangesAsync();
 
         var service = new NutritionService(db, new NoopAudit());
-        var today = DateOnly.FromDateTime(DateTime.UtcNow);
+        var today = AppClock.Today();
 
         await service.CreateMealLogAsync(
             new CreateMealLogRequest(1, today, (byte)MealType.Breakfast, new[] { new MealItemInput(1, 2) }),
@@ -120,7 +120,7 @@ public class NutritionServiceTests
     public async Task Summary_with_target_returns_consumed_target_and_remaining_macros()
     {
         using var db = NewDb();
-        var today = DateOnly.FromDateTime(DateTime.UtcNow);
+        var today = AppClock.Today();
         db.Users.Add(new User { Id = 10, IsDeleted = false });
         db.MemberProfiles.Add(new MemberProfile { Id = 1, UserId = 10, IsDeleted = false });
         db.FoodItems.Add(new FoodItem
@@ -189,7 +189,7 @@ public class NutritionServiceTests
     public async Task GetTargetAsync_when_has_target_returns_latest_valid_target()
     {
         using var db = NewDb();
-        var today = DateOnly.FromDateTime(DateTime.UtcNow);
+        var today = AppClock.Today();
         db.Users.Add(new User { Id = 10, IsDeleted = false });
         db.MemberProfiles.Add(new MemberProfile { Id = 1, UserId = 10, IsDeleted = false });
 
