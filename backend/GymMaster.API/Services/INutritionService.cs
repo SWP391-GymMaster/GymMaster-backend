@@ -11,6 +11,11 @@ public interface INutritionService
         ClaimsPrincipal principal,
         CancellationToken cancellationToken);
 
+    Task<AuthServiceResult<CalorieTargetResponse>> GetTargetAsync(
+        long memberId,
+        ClaimsPrincipal principal,
+        CancellationToken cancellationToken);
+
     Task<AuthServiceResult<MealLogResponse>> CreateMealLogAsync(
         CreateMealLogRequest request,
         ClaimsPrincipal principal,

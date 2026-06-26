@@ -37,4 +37,9 @@ public interface IMembershipService
         int? page,
         ClaimsPrincipal principal,
         CancellationToken cancellationToken);
+
+    Task<AuthServiceResult<MembershipResponse>> CancelAsync(
+        long id,
+        ClaimsPrincipal principal,
+        CancellationToken cancellationToken);
 }

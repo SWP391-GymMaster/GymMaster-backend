@@ -80,6 +80,36 @@ public sealed class NutritionService : INutritionService
         return AuthServiceResult<CalorieTargetResponse>.Success(ToResponse(target), statusCode);
     }
 
+    public async Task<AuthServiceResult<CalorieTargetResponse>> GetTargetAsync(
+        long memberId,
+        ClaimsPrincipal principal,
+        CancellationToken cancellationToken)
+    {
+        var profile = await FindMemberAsync(memberId, cancellationToken);
+
+        if (profile is null)
+        {
+            return Fail<CalorieTargetResponse>("NOT_FOUND", "Khong tim thay hoi vien.", StatusCodes.Status404NotFound);
+        }
+
+        if (!CanAccess(principal, profile))
+        {
+            return Fail<CalorieTargetResponse>("FORBIDDEN", "Ban khong co quyen xem muc tieu calo.", StatusCodes.Status403Forbidden);
+        }
+
+        var target = await _dbContext.CalorieTargets
+            .Where(t => t.MemberId == memberId && t.EffectiveDate <= Today())
+            .OrderByDescending(t => t.EffectiveDate)
+            .FirstOrDefaultAsync(cancellationToken);
+
+        if (target is null)
+        {
+            return Fail<CalorieTargetResponse>("NO_TARGET", "Hoi vien chua dat muc tieu calo.", StatusCodes.Status404NotFound);
+        }
+
+        return AuthServiceResult<CalorieTargetResponse>.Success(ToResponse(target));
+    }
+
     // FR-MEAL-01 / FR-MEAL-02 / FR-MEAL-03
     public async Task<AuthServiceResult<MealLogResponse>> CreateMealLogAsync(
         CreateMealLogRequest request,
@@ -234,11 +264,23 @@ public sealed class NutritionService : INutritionService
         }
 
         var logDate = date ?? Today();
-        var consumed = await _dbContext.MealLogs
+        var items = await _dbContext.MealLogs
             .Where(item => item.MemberId == memberId && item.LogDate == logDate)
             .SelectMany(item => item.Items)
-            .Select(item => (decimal?)item.Calories)
-            .SumAsync(cancellationToken) ?? 0;
+            .Select(item => new
+            {
+                item.Calories,
+                item.Quantity,
+                P = item.FoodItem.ProteinG,
+                C = item.FoodItem.CarbG,
+                F = item.FoodItem.FatG
+            })
+            .ToListAsync(cancellationToken);
+
+        var consumed = items.Sum(item => item.Calories);
+        var consumedProtein = items.Sum(item => (item.P ?? 0) * item.Quantity);
+        var consumedCarb = items.Sum(item => (item.C ?? 0) * item.Quantity);
+        var consumedFat = items.Sum(item => (item.F ?? 0) * item.Quantity);
 
         var target = await GetTargetForDateAsync(memberId, logDate, cancellationToken);
 
@@ -246,8 +288,17 @@ public sealed class NutritionService : INutritionService
             new CalorieSummaryResponse(
                 logDate,
                 consumed,
-                target,
-                target is null ? null : target - consumed));
+                target?.DailyCalories,
+                target is null ? null : target.DailyCalories - consumed,
+                consumedProtein,
+                consumedCarb,
+                consumedFat,
+                target?.ProteinG,
+                target?.CarbG,
+                target?.FatG,
+                target?.ProteinG is null ? null : target.ProteinG - consumedProtein,
+                target?.CarbG is null ? null : target.CarbG - consumedCarb,
+                target?.FatG is null ? null : target.FatG - consumedFat));
     }
 
     // FR-CAL-01
@@ -323,7 +374,7 @@ public sealed class NutritionService : INutritionService
         return AuthServiceResult<IReadOnlyList<CalorieSummaryResponse>>.Success(results);
     }
 
-    private async Task<decimal?> GetTargetForDateAsync(
+    private async Task<CalorieTarget?> GetTargetForDateAsync(
         long memberId,
         DateOnly date,
         CancellationToken cancellationToken)
@@ -331,7 +382,6 @@ public sealed class NutritionService : INutritionService
         return await _dbContext.CalorieTargets
             .Where(item => item.MemberId == memberId && item.EffectiveDate <= date)
             .OrderByDescending(item => item.EffectiveDate)
-            .Select(item => (decimal?)item.DailyCalories)
             .FirstOrDefaultAsync(cancellationToken);
     }
 
@@ -395,7 +445,7 @@ public sealed class NutritionService : INutritionService
 
     private static DateOnly Today()
     {
-        return DateOnly.FromDateTime(DateTime.UtcNow);
+        return AppClock.Today();
     }
 
     private static long? GetActorId(ClaimsPrincipal principal)

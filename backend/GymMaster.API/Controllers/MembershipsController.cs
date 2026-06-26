@@ -64,6 +64,17 @@ public sealed class MembershipsController : ApiControllerBase
         return ToActionResult(result);
     }
 
+    // FR-MS-08 — huy membership (Member: don/goi cua minh; Staff/Admin: bat ky).
+    [HttpPost("{id:long}/cancel")]
+    [Authorize(Roles = $"{RoleNames.Member},{RoleNames.Staff},{RoleNames.Admin}")]
+    public async Task<IActionResult> Cancel(
+        long id,
+        CancellationToken cancellationToken)
+    {
+        var result = await _membershipService.CancelAsync(id, User, cancellationToken);
+        return ToActionResult(result);
+    }
+
     // 🆕 API_CONTRACT_Y: roster tat ca membership (Admin/Staff).
     [HttpGet]
     [Authorize(Roles = $"{RoleNames.Admin},{RoleNames.Staff}")]

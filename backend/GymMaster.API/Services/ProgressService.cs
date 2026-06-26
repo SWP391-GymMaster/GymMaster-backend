@@ -149,7 +149,7 @@ public sealed class ProgressService : IProgressService
             return Fail<Profile360Response>("FORBIDDEN", "Ban khong co quyen xem ho so 360 nay.", StatusCodes.Status403Forbidden);
         }
 
-        var today = DateOnly.FromDateTime(DateTime.UtcNow);
+        var today = AppClock.Today();
 
         // 1) Membership: tat ca (moi nhat truoc) + dong bo trang thai het han.
         var memberships = await _dbContext.Memberships
@@ -173,6 +173,22 @@ public sealed class ProgressService : IProgressService
         var paidSet = paidIds.ToHashSet();
 
         var membershipDtos = memberships.Select(item => ToMembership360(item, paidSet)).ToList();
+
+        // "Goi hien tai" = nguon su that DUY NHAT: uu tien goi Active con han (EndDate lon nhat),
+        // roi den don PendingPayment moi nhat, cuoi cung moi fallback dong moi tao nhat.
+        // Tranh bốc nham dong Cancelled/cu lam "goi hien tai" (mau thuan voi lich su).
+        var currentEntity = memberships
+                .Where(item => item.Status == MembershipStatus.Active && item.EndDate >= today)
+                .OrderByDescending(item => item.EndDate)
+                .FirstOrDefault()
+            ?? memberships
+                .Where(item => item.Status == MembershipStatus.PendingPayment)
+                .OrderByDescending(item => item.CreatedAt)
+                .FirstOrDefault()
+            ?? memberships.FirstOrDefault();
+        var currentMembershipDto = currentEntity is null
+            ? null
+            : membershipDtos.FirstOrDefault(item => item.Id == currentEntity.Id);
 
         // 2) Check-in gan nhat (chi DOC bang check_ins, khong sua code spec 004).
         var recentCheckIns = await _dbContext.CheckIns
@@ -210,7 +226,7 @@ public sealed class ProgressService : IProgressService
                 profile.User.Status,
                 profile.DateOfBirth,
                 profile.Gender),
-            membershipDtos.FirstOrDefault(),
+            currentMembershipDto,
             membershipDtos,
             recentCheckIns,
             progress.Select(ToResponse).ToList(),

@@ -57,6 +57,17 @@ public sealed class VnPayService : IVnPayService
             return Fail<CreateVnPayPaymentResponse>("INVALID_MEMBERSHIP_STATE", "Membership nay khong o trang thai cho thanh toan.", StatusCodes.Status409Conflict);
         }
 
+        // Chan thanh toan khi member da co goi Active khac -> tranh kich hoat goi thu 2 (unique index OneActivePerMember).
+        var todayVn = AppClock.Today();
+        var hasOtherActive = await _dbContext.Memberships.AnyAsync(
+            item => item.MemberId == membership.MemberId && item.Id != membership.Id
+                && item.Status == MembershipStatus.Active && item.EndDate >= todayVn,
+            cancellationToken);
+        if (hasOtherActive)
+        {
+            return Fail<CreateVnPayPaymentResponse>("ALREADY_HAS_ACTIVE", "Hoi vien da co goi dang hieu luc.", StatusCodes.Status409Conflict);
+        }
+
         var profile = await _dbContext.MemberProfiles
             .FirstOrDefaultAsync(item => item.Id == membership.MemberId, cancellationToken);
 
@@ -202,8 +213,23 @@ public sealed class VnPayService : IVnPayService
         var membership = await _dbContext.Memberships.FirstOrDefaultAsync(item => item.Id == payment.MembershipId, cancellationToken);
         if (membership is not null && membership.Status == MembershipStatus.PendingPayment)
         {
-            membership.Status = MembershipStatus.Active;
-            membership.UpdatedAt = DateTime.UtcNow;
+            // Het han goi Active qua han cua member + chi kich hoat khi khong con goi Active that su
+            // -> tranh dung unique index UX_memberships_OneActivePerMember.
+            var todayVn = AppClock.Today();
+            var others = await _dbContext.Memberships
+                .Where(item => item.MemberId == membership.MemberId && item.Id != membership.Id && item.Status == MembershipStatus.Active)
+                .ToListAsync(cancellationToken);
+            foreach (var stale in others.Where(item => item.EndDate < todayVn))
+            {
+                stale.Status = MembershipStatus.Expired;
+                stale.UpdatedAt = DateTime.UtcNow;
+            }
+            if (!others.Any(item => item.EndDate >= todayVn))
+            {
+                membership.Status = MembershipStatus.Active;
+                membership.UpdatedAt = DateTime.UtcNow;
+                await CancelSiblingPendingAsync(membership.MemberId, membership.Id, cancellationToken);
+            }
         }
 
         await _dbContext.SaveChangesAsync(cancellationToken);
@@ -214,6 +240,21 @@ public sealed class VnPayService : IVnPayService
             payment.Id,
             new { membershipId = payment.MembershipId },
             cancellationToken);
+    }
+
+    private async Task CancelSiblingPendingAsync(long memberId, long keepId, CancellationToken cancellationToken)
+    {
+        var siblings = await _dbContext.Memberships
+            .Where(item => item.MemberId == memberId &&
+                item.Id != keepId &&
+                item.Status == MembershipStatus.PendingPayment)
+            .ToListAsync(cancellationToken);
+
+        foreach (var sibling in siblings)
+        {
+            sibling.Status = MembershipStatus.Cancelled;
+            sibling.UpdatedAt = DateTime.UtcNow;
+        }
     }
 
     private string BuildPayUrl(Payment payment, Membership membership, string ipAddress)
@@ -227,12 +268,14 @@ public sealed class VnPayService : IVnPayService
         library.AddRequestData("vnp_TmnCode", _options.TmnCode);
         library.AddRequestData("vnp_Amount", amount);
         library.AddRequestData("vnp_CurrCode", _options.CurrCode);
-        library.AddRequestData("vnp_TxnRef", payment.Id.ToString(CultureInfo.InvariantCulture));
-        library.AddRequestData("vnp_OrderInfo", $"Thanh toan goi tap, membership #{membership.Id}");
+        library.AddRequestData("vnp_TxnRef", CreateTxnRef(payment.Id, nowVn));
+        library.AddRequestData("vnp_OrderInfo", $"Thanh toan goi tap membership {membership.Id}");
         library.AddRequestData("vnp_OrderType", "other");
         library.AddRequestData("vnp_Locale", _options.Locale);
         library.AddRequestData("vnp_ReturnUrl", _options.ReturnUrl);
-        library.AddRequestData("vnp_IpAddr", string.IsNullOrWhiteSpace(ipAddress) ? "127.0.0.1" : ipAddress);
+        // VNPay sandbox khong nhan IPv6 (vd "::1" khi chay local) -> ep ve IPv4.
+        var ipv4 = string.IsNullOrWhiteSpace(ipAddress) || ipAddress.Contains(':') ? "127.0.0.1" : ipAddress;
+        library.AddRequestData("vnp_IpAddr", ipv4);
         library.AddRequestData("vnp_CreateDate", nowVn.ToString("yyyyMMddHHmmss", CultureInfo.InvariantCulture));
         library.AddRequestData("vnp_ExpireDate", nowVn.AddMinutes(15).ToString("yyyyMMddHHmmss", CultureInfo.InvariantCulture));
 
@@ -263,8 +306,34 @@ public sealed class VnPayService : IVnPayService
     private static bool TryGetPaymentId(IReadOnlyDictionary<string, string> query, out long paymentId)
     {
         paymentId = 0;
-        return query.TryGetValue("vnp_TxnRef", out var raw) &&
-            long.TryParse(raw, NumberStyles.Integer, CultureInfo.InvariantCulture, out paymentId);
+        if (!query.TryGetValue("vnp_TxnRef", out var raw) || string.IsNullOrWhiteSpace(raw))
+        {
+            return false;
+        }
+
+        if (long.TryParse(raw, NumberStyles.Integer, CultureInfo.InvariantCulture, out paymentId))
+        {
+            return true;
+        }
+
+        if (!raw.StartsWith("GM", StringComparison.OrdinalIgnoreCase))
+        {
+            return false;
+        }
+
+        var separatorIndex = raw.IndexOf('T', 2);
+        if (separatorIndex <= 2)
+        {
+            return false;
+        }
+
+        var idPart = raw[2..separatorIndex];
+        return long.TryParse(idPart, NumberStyles.Integer, CultureInfo.InvariantCulture, out paymentId);
+    }
+
+    private static string CreateTxnRef(long paymentId, DateTime nowVn)
+    {
+        return $"GM{paymentId.ToString(CultureInfo.InvariantCulture)}T{nowVn:yyyyMMddHHmmssfff}";
     }
 
     private static bool IsAmountMatched(IReadOnlyDictionary<string, string> query, Payment payment)
