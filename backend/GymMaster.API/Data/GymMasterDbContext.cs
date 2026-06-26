@@ -312,6 +312,8 @@ public sealed class GymMasterDbContext : DbContext
             entity.Property(food => food.ProteinG).HasPrecision(8, 2);
             entity.Property(food => food.CarbG).HasPrecision(8, 2);
             entity.Property(food => food.FatG).HasPrecision(8, 2);
+            entity.Property(food => food.ServingSize).HasPrecision(8, 2);
+            entity.Property(food => food.Source).HasMaxLength(20).IsRequired();
             entity.HasIndex(food => food.Name).IsUnique();
         });
 
