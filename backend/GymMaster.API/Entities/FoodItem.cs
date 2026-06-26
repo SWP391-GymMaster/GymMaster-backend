@@ -19,4 +19,9 @@ public sealed class FoodItem
     public bool IsActive { get; set; } = true;
 
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+
+    // Bo sung cho tinh nang Quet anh AI: mon AI luu Source="AI", ServingSize=100.
+    public decimal ServingSize { get; set; } = 100;
+
+    public string Source { get; set; } = "Admin";
 }

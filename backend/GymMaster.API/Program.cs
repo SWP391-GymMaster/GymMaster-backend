@@ -26,6 +26,8 @@ builder.Services.Configure<VnPayOptions>(
     builder.Configuration.GetSection(VnPayOptions.SectionName));
 builder.Services.Configure<EmailOptions>(
     builder.Configuration.GetSection(EmailOptions.SectionName));
+builder.Services.Configure<GeminiOptions>(
+    builder.Configuration.GetSection(GeminiOptions.SectionName));
 
 var jwtOptions = builder.Configuration
     .GetSection(JwtOptions.SectionName)
@@ -68,6 +70,9 @@ builder.Services.AddScoped<IPaymentService, PaymentService>();
 builder.Services.AddScoped<IVnPayService, VnPayService>();
 builder.Services.AddScoped<IProgressService, ProgressService>();
 builder.Services.AddScoped<IFoodItemService, FoodItemService>();
+// Quet anh mon an bang AI (Gemini)
+builder.Services.AddScoped<IFoodScanService, FoodScanService>();
+builder.Services.AddHttpClient<IFoodImageAnalyzer, GeminiService>();
 builder.Services.AddScoped<INutritionService, NutritionService>();
 builder.Services.AddScoped<ICheckInService, CheckInService>();
 
