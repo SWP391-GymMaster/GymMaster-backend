@@ -69,7 +69,7 @@ public sealed class TrainerNoteService : ITrainerNoteService
         {
             TrainerId = trainerProfile.Id,
             MemberId = memberId,
-            NoteDate = DateOnly.FromDateTime(DateTime.UtcNow),
+            NoteDate = AppClock.Today(),
             Content = request.Content.Trim(),
             CreatedByUserId = userId,
             CreatedAt = DateTime.UtcNow
@@ -140,6 +140,93 @@ public sealed class TrainerNoteService : ITrainerNoteService
         var result = notes.Select(n => ToResponse(n, memberProfile, n.Trainer)).ToList();
 
         return AuthServiceResult<IReadOnlyList<TrainerNoteResponse>>.Success(result);
+    }
+
+    // FR-NOTE-02: PT sua ghi chu cua chinh minh.
+    public async Task<AuthServiceResult<TrainerNoteResponse>> UpdateAsync(
+        long noteId,
+        UpdateTrainerNoteRequest request,
+        ClaimsPrincipal principal,
+        CancellationToken cancellationToken)
+    {
+        if (string.IsNullOrWhiteSpace(request.Content))
+        {
+            return Fail<TrainerNoteResponse>("VALIDATION_ERROR", "Noi dung ghi chu khong duoc de trong.", StatusCodes.Status400BadRequest);
+        }
+
+        var trainerProfile = await GetTrainerProfileAsync(principal, cancellationToken);
+
+        if (trainerProfile is null)
+        {
+            return Fail<TrainerNoteResponse>("NOT_FOUND", "Khong tim thay ho so PT.", StatusCodes.Status404NotFound);
+        }
+
+        var note = await _dbContext.TrainerNotes
+            .Include(n => n.Member).ThenInclude(m => m.User)
+            .Include(n => n.Trainer).ThenInclude(t => t.User)
+            .FirstOrDefaultAsync(n => n.Id == noteId, cancellationToken);
+
+        if (note is null)
+        {
+            return Fail<TrainerNoteResponse>("NOT_FOUND", "Khong tim thay ghi chu.", StatusCodes.Status404NotFound);
+        }
+
+        if (note.TrainerId != trainerProfile.Id)
+        {
+            return Fail<TrainerNoteResponse>("FORBIDDEN", "Ban khong co quyen sua ghi chu nay.", StatusCodes.Status403Forbidden);
+        }
+
+        note.Content = request.Content.Trim();
+        note.UpdatedAt = DateTime.UtcNow;
+        await _dbContext.SaveChangesAsync(cancellationToken);
+
+        await _auditService.LogAsync("UPDATE_TRAINER_NOTE", "TrainerNote", note.Id, null, cancellationToken);
+
+        return AuthServiceResult<TrainerNoteResponse>.Success(ToResponse(note, note.Member, trainerProfile));
+    }
+
+    // FR-NOTE-03: PT xoa ghi chu cua chinh minh.
+    public async Task<AuthServiceResult<object?>> DeleteAsync(
+        long noteId,
+        ClaimsPrincipal principal,
+        CancellationToken cancellationToken)
+    {
+        var trainerProfile = await GetTrainerProfileAsync(principal, cancellationToken);
+
+        if (trainerProfile is null)
+        {
+            return Fail<object?>("NOT_FOUND", "Khong tim thay ho so PT.", StatusCodes.Status404NotFound);
+        }
+
+        var note = await _dbContext.TrainerNotes
+            .FirstOrDefaultAsync(n => n.Id == noteId, cancellationToken);
+
+        if (note is null)
+        {
+            return Fail<object?>("NOT_FOUND", "Khong tim thay ghi chu.", StatusCodes.Status404NotFound);
+        }
+
+        if (note.TrainerId != trainerProfile.Id)
+        {
+            return Fail<object?>("FORBIDDEN", "Ban khong co quyen xoa ghi chu nay.", StatusCodes.Status403Forbidden);
+        }
+
+        _dbContext.TrainerNotes.Remove(note);
+        await _dbContext.SaveChangesAsync(cancellationToken);
+
+        await _auditService.LogAsync("DELETE_TRAINER_NOTE", "TrainerNote", noteId, null, cancellationToken);
+
+        return AuthServiceResult<object?>.Success(null, StatusCodes.Status204NoContent);
+    }
+
+    private async Task<TrainerProfile?> GetTrainerProfileAsync(ClaimsPrincipal principal, CancellationToken ct)
+    {
+        var userId = GetActorId(principal);
+        if (userId is null) return null;
+
+        return await _dbContext.TrainerProfiles
+            .Include(p => p.User)
+            .FirstOrDefaultAsync(p => p.UserId == userId && !p.IsDeleted, ct);
     }
 
     private static TrainerNoteResponse ToResponse(TrainerNote note, MemberProfile member, TrainerProfile trainer)

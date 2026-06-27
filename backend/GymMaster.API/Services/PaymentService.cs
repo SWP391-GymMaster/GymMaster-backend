@@ -143,8 +143,9 @@ public sealed class PaymentService : IPaymentService
                 item.Sum(payment => payment.Amount)))
             .ToList();
 
+        // Gom theo NGAY VN (PaymentDate luu UTC -> +7h) de khong dem nham sang ngay khac.
         var byDay = paidRows
-            .GroupBy(item => DateOnly.FromDateTime(item.PaymentDate))
+            .GroupBy(item => DateOnly.FromDateTime(item.PaymentDate.AddHours(7)))
             .OrderBy(item => item.Key)
             .Select(item => new DailyRevenueResponse(
                 item.Key,

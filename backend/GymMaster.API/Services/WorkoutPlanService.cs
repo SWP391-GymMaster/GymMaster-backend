@@ -51,7 +51,7 @@ public sealed class WorkoutPlanService : IWorkoutPlanService
 
         var exerciseMap = await ResolveExercisesAsync(request.Exercises, cancellationToken);
 
-        var today = DateOnly.FromDateTime(DateTime.UtcNow);
+        var today = AppClock.Today();
         var now = DateTime.UtcNow;
         var plan = new WorkoutPlan
         {
