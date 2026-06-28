@@ -15,4 +15,15 @@ public interface ITrainerNoteService
         long memberId,
         ClaimsPrincipal principal,
         CancellationToken cancellationToken);
+
+    Task<AuthServiceResult<TrainerNoteResponse>> UpdateAsync(
+        long noteId,
+        UpdateTrainerNoteRequest request,
+        ClaimsPrincipal principal,
+        CancellationToken cancellationToken);
+
+    Task<AuthServiceResult<object?>> DeleteAsync(
+        long noteId,
+        ClaimsPrincipal principal,
+        CancellationToken cancellationToken);
 }

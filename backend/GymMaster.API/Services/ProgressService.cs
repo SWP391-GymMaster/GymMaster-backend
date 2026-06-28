@@ -39,7 +39,7 @@ public sealed class ProgressService : IProgressService
             return Fail<ProgressResponse>("NOT_FOUND", "Khong tim thay hoi vien.", StatusCodes.Status404NotFound);
         }
 
-        if (!CanAccess(principal, profile))
+        if (!await CanAccessAsync(principal, profile, cancellationToken))
         {
             return Fail<ProgressResponse>("FORBIDDEN", "Ban khong co quyen ghi tien do nay.", StatusCodes.Status403Forbidden);
         }
@@ -57,8 +57,10 @@ public sealed class ProgressService : IProgressService
                 StatusCodes.Status422UnprocessableEntity);
         }
 
+        // FE gui ngay do theo lich VN; so voi "bay gio" gio VN de khong tu choi nham
+        // ngay hom nay khi dang la rang sang gio VN (UTC van la hom truoc).
         var measuredAt = request.MeasuredAt ?? DateTime.UtcNow;
-        if (measuredAt > DateTime.UtcNow)
+        if (measuredAt > AppClock.NowVn())
         {
             return Fail<ProgressResponse>(
                 "INVALID_MEASUREMENT",
@@ -114,7 +116,7 @@ public sealed class ProgressService : IProgressService
                 StatusCodes.Status404NotFound);
         }
 
-        if (!CanAccess(principal, profile))
+        if (!await CanAccessAsync(principal, profile, cancellationToken))
         {
             return Fail<IReadOnlyList<ProgressResponse>>(
                 "FORBIDDEN",
@@ -144,7 +146,7 @@ public sealed class ProgressService : IProgressService
             return Fail<Profile360Response>("NOT_FOUND", "Khong tim thay hoi vien.", StatusCodes.Status404NotFound);
         }
 
-        if (!CanAccess(principal, profile))
+        if (!await CanAccessAsync(principal, profile, cancellationToken))
         {
             return Fail<Profile360Response>("FORBIDDEN", "Ban khong co quyen xem ho so 360 nay.", StatusCodes.Status403Forbidden);
         }
@@ -191,12 +193,18 @@ public sealed class ProgressService : IProgressService
             : membershipDtos.FirstOrDefault(item => item.Id == currentEntity.Id);
 
         // 2) Check-in gan nhat (chi DOC bang check_ins, khong sua code spec 004).
-        var recentCheckIns = await _dbContext.CheckIns
+        var recentCheckInRows = await _dbContext.CheckIns
             .Where(item => item.MemberId == memberId)
             .OrderByDescending(item => item.CheckInAt)
             .Take(5)
-            .Select(item => new CheckIn360(item.Id, item.CheckInAt))
+            .Select(item => new { item.Id, item.CheckInAt })
             .ToListAsync(cancellationToken);
+
+        // NFR-02: datetime2 doc tu DB co Kind=Unspecified -> ep ve UTC de serialize kem 'Z',
+        // FE new Date(checkInAt) moi doi dung gio dia phuong (dong bo voi CheckInService.ToResponse).
+        var recentCheckIns = recentCheckInRows
+            .Select(item => new CheckIn360(item.Id, DateTime.SpecifyKind(item.CheckInAt, DateTimeKind.Utc)))
+            .ToList();
 
         // 3) Tien do (timeline tang dan theo ngay do).
         var progress = await _dbContext.ProgressLogs
@@ -237,7 +245,7 @@ public sealed class ProgressService : IProgressService
                     activeAssignment.TrainerId,
                     activeAssignment.Trainer?.User?.FullName ?? "Huấn luyện viên",
                     activeAssignment.Trainer?.Specialty,
-                    activeAssignment.CreatedAt));
+                    DateTime.SpecifyKind(activeAssignment.CreatedAt, DateTimeKind.Utc)));
 
         return AuthServiceResult<Profile360Response>.Success(response);
     }
@@ -262,7 +270,10 @@ public sealed class ProgressService : IProgressService
             .FirstOrDefaultAsync(item => item.Id == memberId && !item.IsDeleted && !item.User.IsDeleted, cancellationToken);
     }
 
-    private static bool CanAccess(ClaimsPrincipal principal, MemberProfile profile)
+    private async Task<bool> CanAccessAsync(
+        ClaimsPrincipal principal,
+        MemberProfile profile,
+        CancellationToken cancellationToken)
     {
         if (principal.IsInRole(RoleNames.Admin) || principal.IsInRole(RoleNames.Staff))
         {
@@ -272,6 +283,32 @@ public sealed class ProgressService : IProgressService
         if (principal.IsInRole(RoleNames.Member))
         {
             return GetActorId(principal) == profile.UserId;
+        }
+
+        // PT chi xem/ghi duoc hoi vien dang duoc phan cong active cho minh (giong WorkoutPlanService).
+        if (principal.IsInRole(RoleNames.Pt))
+        {
+            var actorId = GetActorId(principal);
+            if (actorId is null)
+            {
+                return false;
+            }
+
+            var trainerProfileId = await _dbContext.TrainerProfiles
+                .Where(item => item.UserId == actorId && !item.IsDeleted)
+                .Select(item => (long?)item.Id)
+                .FirstOrDefaultAsync(cancellationToken);
+
+            if (trainerProfileId is null)
+            {
+                return false;
+            }
+
+            return await _dbContext.TrainerAssignments.AnyAsync(
+                item => item.TrainerId == trainerProfileId
+                    && item.MemberId == profile.Id
+                    && item.Status == AssignmentStatuses.Active,
+                cancellationToken);
         }
 
         return false;

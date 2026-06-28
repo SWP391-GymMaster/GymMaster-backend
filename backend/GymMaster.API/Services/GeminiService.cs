@@ -288,7 +288,7 @@ public sealed class GeminiService : IFoodImageAnalyzer
         try
         {
             var path = System.IO.Path.Combine(System.IO.Path.GetTempPath(), "gemini_diag.log");
-            System.IO.File.AppendAllText(path, $"{DateTime.Now:HH:mm:ss} {line}{Environment.NewLine}");
+            System.IO.File.AppendAllText(path, $"{AppClock.NowVn():HH:mm:ss} {line}{Environment.NewLine}");
         }
         catch { /* khong de logging lam vo luong */ }
     }

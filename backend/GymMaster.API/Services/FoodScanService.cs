@@ -165,7 +165,7 @@ public sealed class FoodScanService : IFoodScanService
             return false;
         }
 
-        var today = DateOnly.FromDateTime(DateTime.UtcNow);
+        var today = AppClock.Today();
         return await _dbContext.Memberships.AnyAsync(
             m => m.MemberId == memberId.Value && m.Status == MembershipStatus.Active && m.EndDate >= today,
             cancellationToken);

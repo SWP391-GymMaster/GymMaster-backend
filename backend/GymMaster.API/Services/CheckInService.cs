@@ -106,16 +106,29 @@ public sealed class CheckInService : ICheckInService
 
         if (date is not null)
         {
-            var start = date.Value.ToDateTime(TimeOnly.MinValue);
-            var end = start.AddDays(1);
+            // `date` la ngay lich theo gio VN -> quy ve khung [dau, cuoi) UTC,
+            // nhat quan voi AppClock/OncePerDay (khong lech 1 ngay vao sang gio VN).
+            var (start, end) = DayUtcRangeVn(date.Value);
             query = query.Where(checkIn => checkIn.CheckInAt >= start && checkIn.CheckInAt < end);
         }
 
-        var items = await query
+        // Kem ten hoi vien (qua subquery) de FE hien "check-in gan day" — giong
+        // pattern RecentlyExpired cua dashboard. CheckIn khong co navigation -> join theo MemberId.
+        var rows = await query
             .OrderByDescending(checkIn => checkIn.CheckInAt)
+            .Select(checkIn => new CheckInRow(
+                checkIn.Id,
+                checkIn.MemberId,
+                checkIn.CheckInAt,
+                checkIn.CreatedBy,
+                _dbContext.MemberProfiles
+                    .Where(profile => profile.Id == checkIn.MemberId)
+                    .Select(profile => profile.User.FullName)
+                    .FirstOrDefault()))
             .ToListAsync(cancellationToken);
 
-        return Ok(items);
+        return AuthServiceResult<IReadOnlyList<CheckInResponse>>.Success(
+            rows.Select(ToResponse).ToList());
     }
 
     // GET /api/v1/members/{id}/checkins  (Admin, Staff, PT, Member self)
@@ -148,6 +161,137 @@ public sealed class CheckInService : ICheckInService
         var items = await _dbContext.CheckIns
             .AsNoTracking()
             .Where(checkIn => checkIn.MemberId == memberId)
+            .OrderByDescending(checkIn => checkIn.CheckInAt)
+            .ToListAsync(cancellationToken);
+
+        return Ok(items);
+    }
+
+    // Spec 005 — PT check-in cho hoi vien duoc phan cong cho minh.
+    // Ownership: PT CHI duoc check-in member dang co assignment Active voi minh (khong cham member cua PT khac).
+    public async Task<AuthServiceResult<CheckInResponse>> CreateForAssignedMemberAsync(
+        long memberId,
+        ClaimsPrincipal principal,
+        CancellationToken cancellationToken)
+    {
+        var actorUserId = GetActorId(principal);
+
+        if (actorUserId is null)
+        {
+            return Fail("UNAUTHORIZED", "Khong xac dinh duoc danh tinh.", StatusCodes.Status401Unauthorized);
+        }
+
+        var trainerProfile = await _dbContext.TrainerProfiles
+            .AsNoTracking()
+            .FirstOrDefaultAsync(p => p.UserId == actorUserId && !p.IsDeleted, cancellationToken);
+
+        if (trainerProfile is null)
+        {
+            return Fail("TRAINER_NOT_FOUND", "Khong tim thay ho so PT.", StatusCodes.Status404NotFound);
+        }
+
+        var profile = await FindProfileAsync(p => p.Id == memberId, cancellationToken);
+
+        // FR-CHK-04: Id khong khop Member nao.
+        if (profile is null)
+        {
+            return Fail("MEMBER_NOT_FOUND", "Khong tim thay hoi vien.", StatusCodes.Status404NotFound);
+        }
+
+        // Ownership (yeu cau cot loi): PT chi check-in hoi vien duoc phan cong cho minh.
+        var isAssigned = await _dbContext.TrainerAssignments.AnyAsync(
+            a => a.TrainerId == trainerProfile.Id
+                && a.MemberId == memberId
+                && a.Status == AssignmentStatuses.Active,
+            cancellationToken);
+
+        if (!isAssigned)
+        {
+            return Fail(
+                "FORBIDDEN",
+                "PT chi co the check-in cho hoi vien duoc phan cong cho minh.",
+                StatusCodes.Status403Forbidden);
+        }
+
+        // FR-CHK-05: tai khoan bi khoa -> tu choi.
+        if (IsAccountLocked(profile.User))
+        {
+            return Fail("ACCOUNT_LOCKED", "Tai khoan dang bi khoa, khong the check-in.", StatusCodes.Status403Forbidden);
+        }
+
+        // FR-CHK-02/03: dung chung quy tac membership voi luong staff/member (theo cau hinh CheckIn:EnforceMembership).
+        if (_options.EnforceMembership)
+        {
+            var membershipError = await ValidateMembershipAsync(profile.Id, cancellationToken);
+            if (membershipError is not null)
+            {
+                return membershipError;
+            }
+        }
+
+        // FR-CHK-03 (OQ-06): tuy chon chan check-in thu 2 trong cung ngay.
+        if (_options.OncePerDay && await HasCheckedInTodayAsync(profile.Id, cancellationToken))
+        {
+            return Fail("ALREADY_CHECKED_IN_TODAY", "Hoi vien da check-in trong hom nay.", StatusCodes.Status409Conflict);
+        }
+
+        // CreatedBy = userId cua PT (nguoi thuc hien) — giong nguyen tac staff tac nghiep ho.
+        var checkIn = new CheckIn
+        {
+            MemberId = profile.Id,
+            CheckInAt = DateTime.UtcNow,
+            CreatedBy = actorUserId
+        };
+
+        _dbContext.CheckIns.Add(checkIn);
+        await _dbContext.SaveChangesAsync(cancellationToken);
+
+        await _auditService.LogAsync(
+            "CREATE_CHECKIN", "CheckIn", checkIn.Id, new { memberId = profile.Id, source = "pt" }, cancellationToken);
+
+        return AuthServiceResult<CheckInResponse>.Success(ToResponse(checkIn), StatusCodes.Status201Created);
+    }
+
+    // GET /api/v1/pt/checkins/today — check-in HOM NAY cua cac hoi vien duoc phan cong cho PT.
+    public async Task<AuthServiceResult<IReadOnlyList<CheckInResponse>>> ListTodayForTrainerAsync(
+        ClaimsPrincipal principal,
+        CancellationToken cancellationToken)
+    {
+        var actorUserId = GetActorId(principal);
+
+        if (actorUserId is null)
+        {
+            return Fail<IReadOnlyList<CheckInResponse>>(
+                "UNAUTHORIZED", "Khong xac dinh duoc danh tinh.", StatusCodes.Status401Unauthorized);
+        }
+
+        var trainerProfile = await _dbContext.TrainerProfiles
+            .AsNoTracking()
+            .FirstOrDefaultAsync(p => p.UserId == actorUserId && !p.IsDeleted, cancellationToken);
+
+        if (trainerProfile is null)
+        {
+            return Fail<IReadOnlyList<CheckInResponse>>(
+                "TRAINER_NOT_FOUND", "Khong tim thay ho so PT.", StatusCodes.Status404NotFound);
+        }
+
+        var assignedMemberIds = await _dbContext.TrainerAssignments
+            .Where(a => a.TrainerId == trainerProfile.Id && a.Status == AssignmentStatuses.Active)
+            .Select(a => a.MemberId)
+            .ToListAsync(cancellationToken);
+
+        if (assignedMemberIds.Count == 0)
+        {
+            return Ok(Array.Empty<CheckIn>());
+        }
+
+        var (start, end) = TodayUtcRangeVn();
+
+        var items = await _dbContext.CheckIns
+            .AsNoTracking()
+            .Where(checkIn => assignedMemberIds.Contains(checkIn.MemberId)
+                && checkIn.CheckInAt >= start
+                && checkIn.CheckInAt < end)
             .OrderByDescending(checkIn => checkIn.CheckInAt)
             .ToListAsync(cancellationToken);
 
@@ -200,7 +344,8 @@ public sealed class CheckInService : ICheckInService
         long memberId,
         CancellationToken cancellationToken)
     {
-        var today = DateOnly.FromDateTime(DateTime.UtcNow);
+        // Theo gio VN (AppClock) de khong lech 1 ngay han membership vao sang gio VN.
+        var today = AppClock.Today();
 
         var memberships = await _dbContext.Memberships
             .AsNoTracking()
@@ -231,10 +376,23 @@ public sealed class CheckInService : ICheckInService
             StatusCodes.Status422UnprocessableEntity);
     }
 
+    // Khung [dau, cuoi) cua "hom nay" theo gio VN (GMT+7, xem AppClock), quy ve UTC
+    // de so sanh voi CheckInAt (luu UTC). Nho do "ngay" reset luc nua dem gio VN,
+    // khong phai 7h sang (= 0h UTC).
+    private static (DateTime StartUtc, DateTime EndUtc) TodayUtcRangeVn()
+        => DayUtcRangeVn(AppClock.Today());
+
+    // Khung [dau, cuoi) UTC cua mot ngay lich VN bat ky.
+    private static (DateTime StartUtc, DateTime EndUtc) DayUtcRangeVn(DateOnly dateVn)
+    {
+        var startVn = dateVn.ToDateTime(TimeOnly.MinValue);
+        var startUtc = startVn.AddHours(-7);
+        return (startUtc, startUtc.AddDays(1));
+    }
+
     private Task<bool> HasCheckedInTodayAsync(long memberId, CancellationToken cancellationToken)
     {
-        var start = DateTime.UtcNow.Date;
-        var end = start.AddDays(1);
+        var (start, end) = TodayUtcRangeVn();
 
         return _dbContext.CheckIns.AnyAsync(
             checkIn => checkIn.MemberId == memberId && checkIn.CheckInAt >= start && checkIn.CheckInAt < end,
@@ -258,15 +416,26 @@ public sealed class CheckInService : ICheckInService
     }
 
     private static CheckInResponse ToResponse(CheckIn checkIn)
+        => ToResponse(new CheckInRow(checkIn.Id, checkIn.MemberId, checkIn.CheckInAt, checkIn.CreatedBy, null));
+
+    private static CheckInResponse ToResponse(CheckInRow row)
     {
         // FR-CHK-06: CreatedBy != null => nhan vien thuc hien ("front-desk"); null => member tu check-in.
-        var source = checkIn.CreatedBy is null ? "member" : "front-desk";
+        var source = row.CreatedBy is null ? "member" : "front-desk";
 
         // NFR-02: DATETIME2 doc tu DB co Kind=Unspecified -> ep ve UTC de serialize kem 'Z',
         // FE new Date(checkInAt) doi dung gio dia phuong.
-        var checkInAtUtc = DateTime.SpecifyKind(checkIn.CheckInAt, DateTimeKind.Utc);
-        return new CheckInResponse(checkIn.Id, checkIn.MemberId, checkInAtUtc, source);
+        var checkInAtUtc = DateTime.SpecifyKind(row.CheckInAt, DateTimeKind.Utc);
+        return new CheckInResponse(row.Id, row.MemberId, checkInAtUtc, source, row.MemberName);
     }
+
+    // Hang phang doc tu DB cho cac endpoint LIST (kem ten hoi vien de hien o FE).
+    private sealed record CheckInRow(
+        long Id,
+        long MemberId,
+        DateTime CheckInAt,
+        long? CreatedBy,
+        string? MemberName);
 
     private static long? GetActorId(ClaimsPrincipal principal)
     {

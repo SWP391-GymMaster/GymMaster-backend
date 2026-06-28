@@ -54,7 +54,7 @@ public sealed class AssignmentService : IAssignmentService
             .FirstOrDefaultAsync(a =>
                 a.MemberId == request.MemberId && a.Status == AssignmentStatuses.Active, cancellationToken);
 
-        var today = DateOnly.FromDateTime(DateTime.UtcNow);
+        var today = AppClock.Today();
 
         if (existing is not null)
         {

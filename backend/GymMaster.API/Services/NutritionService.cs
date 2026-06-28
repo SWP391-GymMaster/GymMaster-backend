@@ -32,7 +32,7 @@ public sealed class NutritionService : INutritionService
             return Fail<CalorieTargetResponse>("NOT_FOUND", "Khong tim thay hoi vien.", StatusCodes.Status404NotFound);
         }
 
-        if (!CanAccess(principal, profile))
+        if (!await CanAccessAsync(principal, profile, cancellationToken))
         {
             return Fail<CalorieTargetResponse>("FORBIDDEN", "Ban khong co quyen dat muc tieu calo.", StatusCodes.Status403Forbidden);
         }
@@ -92,7 +92,7 @@ public sealed class NutritionService : INutritionService
             return Fail<CalorieTargetResponse>("NOT_FOUND", "Khong tim thay hoi vien.", StatusCodes.Status404NotFound);
         }
 
-        if (!CanAccess(principal, profile))
+        if (!await CanAccessAsync(principal, profile, cancellationToken))
         {
             return Fail<CalorieTargetResponse>("FORBIDDEN", "Ban khong co quyen xem muc tieu calo.", StatusCodes.Status403Forbidden);
         }
@@ -123,7 +123,7 @@ public sealed class NutritionService : INutritionService
             return Fail<MealLogResponse>("NOT_FOUND", "Khong tim thay hoi vien.", StatusCodes.Status404NotFound);
         }
 
-        if (!CanAccess(principal, profile))
+        if (!await CanAccessAsync(principal, profile, cancellationToken))
         {
             return Fail<MealLogResponse>("FORBIDDEN", "Ban khong co quyen ghi bua an nay.", StatusCodes.Status403Forbidden);
         }
@@ -227,7 +227,7 @@ public sealed class NutritionService : INutritionService
             return Fail<IReadOnlyList<MealLogResponse>>("NOT_FOUND", "Khong tim thay hoi vien.", StatusCodes.Status404NotFound);
         }
 
-        if (!CanAccess(principal, profile))
+        if (!await CanAccessAsync(principal, profile, cancellationToken))
         {
             return Fail<IReadOnlyList<MealLogResponse>>("FORBIDDEN", "Ban khong co quyen xem nhat ky bua an.", StatusCodes.Status403Forbidden);
         }
@@ -258,7 +258,7 @@ public sealed class NutritionService : INutritionService
             return Fail<CalorieSummaryResponse>("NOT_FOUND", "Khong tim thay hoi vien.", StatusCodes.Status404NotFound);
         }
 
-        if (!CanAccess(principal, profile))
+        if (!await CanAccessAsync(principal, profile, cancellationToken))
         {
             return Fail<CalorieSummaryResponse>("FORBIDDEN", "Ban khong co quyen xem tong ket calo.", StatusCodes.Status403Forbidden);
         }
@@ -319,7 +319,7 @@ public sealed class NutritionService : INutritionService
                 StatusCodes.Status404NotFound);
         }
 
-        if (!CanAccess(principal, profile))
+        if (!await CanAccessAsync(principal, profile, cancellationToken))
         {
             return Fail<IReadOnlyList<CalorieSummaryResponse>>(
                 "FORBIDDEN",
@@ -392,7 +392,10 @@ public sealed class NutritionService : INutritionService
             .FirstOrDefaultAsync(item => item.Id == memberId && !item.IsDeleted && !item.User.IsDeleted, cancellationToken);
     }
 
-    private static bool CanAccess(ClaimsPrincipal principal, MemberProfile profile)
+    private async Task<bool> CanAccessAsync(
+        ClaimsPrincipal principal,
+        MemberProfile profile,
+        CancellationToken cancellationToken)
     {
         if (principal.IsInRole(RoleNames.Admin) || principal.IsInRole(RoleNames.Staff))
         {
@@ -402,6 +405,32 @@ public sealed class NutritionService : INutritionService
         if (principal.IsInRole(RoleNames.Member))
         {
             return GetActorId(principal) == profile.UserId;
+        }
+
+        // PT chi truy cap duoc hoi vien dang duoc phan cong active cho minh (giong WorkoutPlanService).
+        if (principal.IsInRole(RoleNames.Pt))
+        {
+            var actorId = GetActorId(principal);
+            if (actorId is null)
+            {
+                return false;
+            }
+
+            var trainerProfileId = await _dbContext.TrainerProfiles
+                .Where(item => item.UserId == actorId && !item.IsDeleted)
+                .Select(item => (long?)item.Id)
+                .FirstOrDefaultAsync(cancellationToken);
+
+            if (trainerProfileId is null)
+            {
+                return false;
+            }
+
+            return await _dbContext.TrainerAssignments.AnyAsync(
+                item => item.TrainerId == trainerProfileId
+                    && item.MemberId == profile.Id
+                    && item.Status == AssignmentStatuses.Active,
+                cancellationToken);
         }
 
         return false;

@@ -24,7 +24,11 @@ public sealed class DashboardService : IDashboardService
         CancellationToken cancellationToken)
     {
         var now = DateTime.UtcNow;
-        var fromUtc = from?.ToUniversalTime() ?? new DateTime(now.Year, now.Month, 1, 0, 0, 0, DateTimeKind.Utc);
+        var nowVn = AppClock.NowVn();      // gio tuong VN -> suy ra "hom nay/thang nay"
+        var todayDate = AppClock.Today();  // ngay lich VN
+
+        // Mac dinh khoang doanh thu = thang nay theo gio VN (quy ve UTC vi PaidAt luu UTC).
+        var fromUtc = from?.ToUniversalTime() ?? VnMonthStartUtc(nowVn.Year, nowVn.Month);
         var toUtc = to?.ToUniversalTime() ?? now;
 
         if (fromUtc > toUtc)
@@ -35,8 +39,8 @@ public sealed class DashboardService : IDashboardService
                 StatusCodes.Status422UnprocessableEntity);
         }
 
-        var todayDate = DateOnly.FromDateTime(now);
-        var todayUtcStart = now.Date;
+        // "Hom nay" theo gio VN -> khung [dau, cuoi) UTC de loc CheckInAt (luu UTC).
+        var todayUtcStart = todayDate.ToDateTime(TimeOnly.MinValue).AddHours(-7);
         var todayUtcEnd = todayUtcStart.AddDays(1);
 
         // --- Tong doanh thu trong khoang ngay ---
@@ -69,24 +73,29 @@ public sealed class DashboardService : IDashboardService
         var pendingPaymentCount = await _db.Payments
             .CountAsync(p => p.Status == PaymentStatus.Pending, cancellationToken);
 
-        // --- Doanh thu theo thang (6 thang gan nhat) ---
-        var sixMonthsAgoStart = new DateTime(
-            now.AddMonths(-5).Year,
-            now.AddMonths(-5).Month,
-            1, 0, 0, 0, DateTimeKind.Utc);
+        // --- Doanh thu theo thang (6 thang gan nhat, gom theo THANG VN) ---
+        var sixMonthsAgoVn = nowVn.AddMonths(-5);
+        var sixMonthsAgoStart = VnMonthStartUtc(sixMonthsAgoVn.Year, sixMonthsAgoVn.Month);
 
-        var revenueByMonthRaw = await _db.Payments
+        // Gom theo thang VN (PaidAt+7h) trong bo nho de chac chan dung mui gio.
+        var revenueByMonthRaw = (await _db.Payments
             .Where(p => p.Status == PaymentStatus.Paid
                      && p.PaidAt.HasValue
                      && p.PaidAt.Value >= sixMonthsAgoStart)
-            .GroupBy(p => new { p.PaidAt!.Value.Year, p.PaidAt!.Value.Month })
+            .Select(p => new { p.PaidAt, p.Amount })
+            .ToListAsync(cancellationToken))
+            .GroupBy(p =>
+            {
+                var vn = p.PaidAt!.Value.AddHours(7);
+                return new { vn.Year, vn.Month };
+            })
             .Select(g => new { g.Key.Year, g.Key.Month, Revenue = g.Sum(p => p.Amount) })
-            .ToListAsync(cancellationToken);
+            .ToList();
 
         var revenueByMonth = new List<RevenueByMonthItem>();
         for (int i = -5; i <= 0; i++)
         {
-            var d = now.AddMonths(i);
+            var d = nowVn.AddMonths(i);
             var found = revenueByMonthRaw.FirstOrDefault(r => r.Year == d.Year && r.Month == d.Month);
             revenueByMonth.Add(new RevenueByMonthItem($"T{d.Month}", found?.Revenue ?? 0m));
         }
@@ -123,9 +132,10 @@ public sealed class DashboardService : IDashboardService
         var ptSessionPercent = Math.Min(facilityLoadPercent, (int)Math.Round((double)ptCheckInsToday / GymCapacity * 100));
         var generalAreaPercent = Math.Max(0, facilityLoadPercent - ptSessionPercent);
 
-        // --- Doanh thu thang truoc (de tinh % tang/giam) ---
-        var thisMonthStart = new DateTime(now.Year, now.Month, 1, 0, 0, 0, DateTimeKind.Utc);
-        var prevMonthStart = thisMonthStart.AddMonths(-1);
+        // --- Doanh thu thang truoc (de tinh % tang/giam) — bien thang theo gio VN ---
+        var thisMonthStart = VnMonthStartUtc(nowVn.Year, nowVn.Month);
+        var prevMonthVn = nowVn.AddMonths(-1);
+        var prevMonthStart = VnMonthStartUtc(prevMonthVn.Year, prevMonthVn.Month);
         var previousMonthRevenue = await _db.Payments
             .Where(p => p.Status == PaymentStatus.Paid
                      && p.PaidAt.HasValue
@@ -133,8 +143,8 @@ public sealed class DashboardService : IDashboardService
                      && p.PaidAt.Value < thisMonthStart)
             .SumAsync(p => (decimal?)p.Amount, cancellationToken) ?? 0m;
 
-        // --- So membership moi trong thang nay ---
-        var thisMonthStartDate = DateOnly.FromDateTime(thisMonthStart);
+        // --- So membership moi trong thang nay (StartDate la ngay VN) ---
+        var thisMonthStartDate = new DateOnly(nowVn.Year, nowVn.Month, 1);
         var newMembershipsThisMonth = await _db.Memberships
             .CountAsync(m => m.StartDate >= thisMonthStartDate, cancellationToken);
 
@@ -239,6 +249,10 @@ public sealed class DashboardService : IDashboardService
         var result = new PagedResult<AuditLogResponse>(responses, page, pageSize, total, totalPages);
         return AuthServiceResult<PagedResult<AuditLogResponse>>.Success(result);
     }
+
+    // Moc dau thang theo lich VN, quy ve thoi diem UTC tuong ung (PaidAt luu UTC).
+    private static DateTime VnMonthStartUtc(int year, int month)
+        => DateTime.SpecifyKind(new DateTime(year, month, 1, 0, 0, 0).AddHours(-7), DateTimeKind.Utc);
 
     private static string GetInitials(string fullName)
     {

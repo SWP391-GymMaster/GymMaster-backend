@@ -5,6 +5,9 @@ File SQL tạo cơ sở dữ liệu cho backend GymMaster (SQL Server).
 ## File
 - `GymMaster_SQLServer_Final.sql` — script tạo database **`GymMasterDb`** với đầy đủ bảng (khớp với code backend: snake_case, `user_roles`, `password_reset_tokens`..., **đã gồm `membership_packages.SupportsPT`**).
 - `008_package_supports_pt.sql` — **patch** thêm cột `membership_packages.SupportsPT` cho **DB đã tạo từ trước** (idempotent — chạy lại nhiều lần không lỗi). DB tạo mới từ Final thì KHÔNG cần chạy file này.
+- `011_fix_check_ins_createdby_column.sql` — **patch** đổi tên cột `check_ins.CreatedByUserId` → `CreatedBy` cho **DB cũ bị lệch tên cột**. Lệch cột này làm EF báo `Invalid column name 'CreatedBy'` → **mọi luồng check-in (Staff/Member/PT) trả 500**. Idempotent: DB đã đúng chuẩn (`CreatedBy`) sẽ tự bỏ qua.
+
+> Các file đánh số `004`–`011` là **patch tăng dần** cho DB đang có dữ liệu (không cần tạo lại DB). Sau khi `git pull`, chạy lần lượt các patch mới trên `GymMasterDb` (mỗi file idempotent). DB tạo mới hoàn toàn từ `GymMaster_SQLServer_Final.sql` đã gồm cột chuẩn nên thường chỉ cần các patch ra đời **sau** bản Final.
 
 ## Cách dùng (clone về chạy)
 

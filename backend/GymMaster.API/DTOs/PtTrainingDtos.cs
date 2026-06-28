@@ -106,6 +106,8 @@ public sealed record WorkoutPlanResponse(
 
 public sealed record CreateTrainerNoteRequest(string Content);
 
+public sealed record UpdateTrainerNoteRequest(string Content);
+
 public sealed record TrainerNoteResponse(
     long Id,
     long MemberId,

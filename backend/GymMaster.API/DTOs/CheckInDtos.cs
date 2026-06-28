@@ -13,9 +13,12 @@ public sealed class CreateCheckInRequest
     public string? Source { get; set; }
 }
 
-// Khop MockCheckInDto cua frontend: { id, memberId, checkInAt, source }.
+// Khop MockCheckInDto cua frontend: { id, memberId, checkInAt, source, memberName? }.
+// MemberName chi duoc dien o cac endpoint LIST (de hien ten o "check-in gan day");
+// POST tra ve null (FE khong dung ten o ket qua check-in).
 public sealed record CheckInResponse(
     long Id,
     long MemberId,
     DateTime CheckInAt,
-    string Source);
+    string Source,
+    string? MemberName = null);

@@ -51,7 +51,7 @@ public sealed class WorkoutPlanService : IWorkoutPlanService
 
         var exerciseMap = await ResolveExercisesAsync(request.Exercises, cancellationToken);
 
-        var today = DateOnly.FromDateTime(DateTime.UtcNow);
+        var today = AppClock.Today();
         var now = DateTime.UtcNow;
         var plan = new WorkoutPlan
         {
@@ -298,11 +298,16 @@ public sealed class WorkoutPlanService : IWorkoutPlanService
         IReadOnlyList<WorkoutExerciseRequest> exercises,
         CancellationToken ct)
     {
-        var names = exercises.Select(e => e.Name.Trim()).Distinct().ToList();
+        var names = exercises.Select(e => e.Name.Trim())
+            .Distinct(StringComparer.OrdinalIgnoreCase).ToList();
 
+        // exercise_catalog.Name la UNIQUE + collation khong phan biet hoa/thuong.
+        // Phai dung StringComparer.OrdinalIgnoreCase de khop voi SQL, neu khong
+        // C# (ordinal) tuong la bai moi -> INSERT trung (vd "squat" vs "Squat")
+        // -> Violation of UNIQUE KEY -> SaveChanges throw -> 500.
         var existing = await _dbContext.ExerciseCatalogs
             .Where(e => names.Contains(e.Name))
-            .ToDictionaryAsync(e => e.Name, ct);
+            .ToDictionaryAsync(e => e.Name, StringComparer.OrdinalIgnoreCase, ct);
 
         var toCreate = names
             .Where(n => !existing.ContainsKey(n))
@@ -317,7 +322,8 @@ public sealed class WorkoutPlanService : IWorkoutPlanService
                 existing[e.Name] = e;
         }
 
-        return existing.ToDictionary(kvp => kvp.Key, kvp => kvp.Value.Id);
+        return existing.ToDictionary(
+            kvp => kvp.Key, kvp => kvp.Value.Id, StringComparer.OrdinalIgnoreCase);
     }
 
     private async Task<TrainerProfile?> GetTrainerProfileAsync(ClaimsPrincipal principal, CancellationToken ct)
