@@ -34,6 +34,7 @@ public sealed record MembershipResponse(
     long MemberId,
     long PackageId,
     string PackageName,
+    bool SupportsPT,
     DateOnly StartDate,
     DateOnly EndDate,
     string Status,

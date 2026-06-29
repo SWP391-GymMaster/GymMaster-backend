@@ -76,6 +76,46 @@ public class VnPayServiceTests
         return 1;
     }
 
+    private static async Task<(long activeId, long pendingId, DateOnly oldEnd)> SeedActiveAndPendingRenewalAsync(GymMasterDbContext db)
+    {
+        var today = AppClock.Today();
+        var oldEnd = today.AddDays(10);
+        db.MemberProfiles.Add(new MemberProfile { Id = 1, UserId = 10, IsDeleted = false });
+        db.MembershipPackages.Add(new MembershipPackage
+        {
+            Id = 1,
+            Name = "Goi 1 thang",
+            DurationDays = 30,
+            Price = Price,
+            IsActive = true
+        });
+        db.Memberships.AddRange(
+            new Membership
+            {
+                Id = 1,
+                MemberId = 1,
+                PackageId = 1,
+                StartDate = today.AddDays(-20),
+                EndDate = oldEnd,
+                Status = MembershipStatus.Active,
+                CreatedByUserId = 99,
+                CreatedAt = DateTime.UtcNow.AddMinutes(-5)
+            },
+            new Membership
+            {
+                Id = 2,
+                MemberId = 1,
+                PackageId = 1,
+                StartDate = today,
+                EndDate = today.AddDays(30),
+                Status = MembershipStatus.PendingPayment,
+                CreatedByUserId = 10,
+                CreatedAt = DateTime.UtcNow
+            });
+        await db.SaveChangesAsync();
+        return (1, 2, oldEnd);
+    }
+
     // Ky 1 bo tham so giong het cach VNPay ky (de gia lap callback hop le trong test).
     private static string Sign(IReadOnlyDictionary<string, string> data, string secret)
     {
@@ -156,6 +196,26 @@ public class VnPayServiceTests
         var payment = await db.Payments.SingleAsync();
         Assert.Equal(PaymentStatus.Paid, payment.Status);
         Assert.NotNull(payment.PaidAt);
+    }
+
+    [Fact] // VNPay thanh cong khi da co Active -> noi han, kich hoat don moi, huy Active cu.
+    public async Task Ipn_valid_success_with_existing_active_rolls_over_and_activates_pending()
+    {
+        using var db = NewDb();
+        var (activeId, pendingId, oldEnd) = await SeedActiveAndPendingRenewalAsync(db);
+        var service = NewService(db);
+        var paymentId = (await service.CreatePaymentUrlAsync(
+            new CreateVnPayPaymentRequest(pendingId), "127.0.0.1", Staff(), default)).Value!.PaymentId;
+
+        var response = await service.HandleIpnAsync(Signed(SuccessParams(paymentId, Price), Secret), default);
+
+        Assert.Equal("00", response.RspCode);
+        Assert.Equal(MembershipStatus.Cancelled, (await db.Memberships.SingleAsync(item => item.Id == activeId)).Status);
+        var pending = await db.Memberships.SingleAsync(item => item.Id == pendingId);
+        Assert.Equal(MembershipStatus.Active, pending.Status);
+        Assert.Equal(oldEnd.AddDays(30), pending.EndDate);
+        Assert.Equal(1, await db.Memberships.CountAsync(item => item.MemberId == 1 && item.Status == MembershipStatus.Active));
+        Assert.Equal(PaymentStatus.Paid, (await db.Payments.SingleAsync()).Status);
     }
 
     [Fact] // TxnRef moi co timestamp van map ve dung Payment.Id.

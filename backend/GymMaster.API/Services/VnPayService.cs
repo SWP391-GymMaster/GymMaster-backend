@@ -57,17 +57,6 @@ public sealed class VnPayService : IVnPayService
             return Fail<CreateVnPayPaymentResponse>("INVALID_MEMBERSHIP_STATE", "Membership nay khong o trang thai cho thanh toan.", StatusCodes.Status409Conflict);
         }
 
-        // Chan thanh toan khi member da co goi Active khac -> tranh kich hoat goi thu 2 (unique index OneActivePerMember).
-        var todayVn = AppClock.Today();
-        var hasOtherActive = await _dbContext.Memberships.AnyAsync(
-            item => item.MemberId == membership.MemberId && item.Id != membership.Id
-                && item.Status == MembershipStatus.Active && item.EndDate >= todayVn,
-            cancellationToken);
-        if (hasOtherActive)
-        {
-            return Fail<CreateVnPayPaymentResponse>("ALREADY_HAS_ACTIVE", "Hoi vien da co goi dang hieu luc.", StatusCodes.Status409Conflict);
-        }
-
         var profile = await _dbContext.MemberProfiles
             .FirstOrDefaultAsync(item => item.Id == membership.MemberId, cancellationToken);
 
@@ -148,7 +137,11 @@ public sealed class VnPayService : IVnPayService
 
         if (IsSuccess(query))
         {
-            await FinalizeSuccessfulPaymentAsync(payment, cancellationToken);
+            var finalize = await FinalizeSuccessfulPaymentAsync(payment, cancellationToken);
+            if (!finalize.Succeeded)
+            {
+                return new VnPayIpnResponse("99", finalize.ErrorCode ?? "Payment blocked");
+            }
         }
 
         // Theo chuan VNPay: van ack "00" du giao dich that bai (chi khong kich hoat membership).
@@ -184,7 +177,14 @@ public sealed class VnPayService : IVnPayService
         // return da verify chu ky + dung so tien thi van finalize duoc. Idempotent voi IPN.
         if (IsSuccess(query))
         {
-            await FinalizeSuccessfulPaymentAsync(payment, cancellationToken);
+            var finalize = await FinalizeSuccessfulPaymentAsync(payment, cancellationToken);
+            if (!finalize.Succeeded)
+            {
+                return Fail<VnPayPaymentStatusResponse>(
+                    finalize.ErrorCode ?? "PAYMENT_BLOCKED",
+                    finalize.ErrorMessage ?? "Khong the hoan tat thanh toan.",
+                    finalize.StatusCode);
+            }
         }
 
         var membership = await _dbContext.Memberships.FirstOrDefaultAsync(item => item.Id == payment.MembershipId, cancellationToken);
@@ -199,22 +199,24 @@ public sealed class VnPayService : IVnPayService
     }
 
     // Kich hoat membership khi thanh toan thanh cong — idempotent (goi nhieu lan an toan).
-    private async Task FinalizeSuccessfulPaymentAsync(Payment payment, CancellationToken cancellationToken)
+    private async Task<AuthServiceResult<bool>> FinalizeSuccessfulPaymentAsync(Payment payment, CancellationToken cancellationToken)
     {
         if (payment.Status == PaymentStatus.Paid)
         {
-            return;
+            return AuthServiceResult<bool>.Success(false);
         }
+
+        var membership = await _dbContext.Memberships
+            .Include(item => item.Package)
+            .FirstOrDefaultAsync(item => item.Id == payment.MembershipId, cancellationToken);
 
         payment.Status = PaymentStatus.Paid;
         payment.PaidAt = DateTime.UtcNow;
         payment.UpdatedAt = DateTime.UtcNow;
 
-        var membership = await _dbContext.Memberships.FirstOrDefaultAsync(item => item.Id == payment.MembershipId, cancellationToken);
         if (membership is not null && membership.Status == MembershipStatus.PendingPayment)
         {
-            // Het han goi Active qua han cua member + chi kich hoat khi khong con goi Active that su
-            // -> tranh dung unique index UX_memberships_OneActivePerMember.
+            // Het han goi Active qua han cua member, roi kich hoat don moi theo co che noi han.
             var todayVn = AppClock.Today();
             var others = await _dbContext.Memberships
                 .Where(item => item.MemberId == membership.MemberId && item.Id != membership.Id && item.Status == MembershipStatus.Active)
@@ -224,22 +226,18 @@ public sealed class VnPayService : IVnPayService
                 stale.Status = MembershipStatus.Expired;
                 stale.UpdatedAt = DateTime.UtcNow;
             }
-            if (!others.Any(item => item.EndDate >= todayVn))
-            {
-                membership.Status = MembershipStatus.Active;
-                membership.UpdatedAt = DateTime.UtcNow;
-                await CancelSiblingPendingAsync(membership.MemberId, membership.Id, cancellationToken);
-            }
+
+            var replacedActive = ApplyPaidRenewalWindow(membership, others, todayVn);
+            await CancelSiblingPendingAsync(membership.MemberId, membership.Id, cancellationToken);
+            await SaveActivationAsync(membership, replacedActive, cancellationToken);
+            await LogVnPayPaymentAsync(payment, cancellationToken);
+            return AuthServiceResult<bool>.Success(true);
         }
 
         await _dbContext.SaveChangesAsync(cancellationToken);
 
-        await _auditService.LogAsync(
-            "VNPAY_PAYMENT",
-            "Payment",
-            payment.Id,
-            new { membershipId = payment.MembershipId },
-            cancellationToken);
+        await LogVnPayPaymentAsync(payment, cancellationToken);
+        return AuthServiceResult<bool>.Success(true);
     }
 
     private async Task CancelSiblingPendingAsync(long memberId, long keepId, CancellationToken cancellationToken)
@@ -255,6 +253,68 @@ public sealed class VnPayService : IVnPayService
             sibling.Status = MembershipStatus.Cancelled;
             sibling.UpdatedAt = DateTime.UtcNow;
         }
+    }
+
+    private async Task SaveActivationAsync(
+        Membership membership,
+        Membership? replacedActive,
+        CancellationToken cancellationToken)
+    {
+        if (replacedActive is null || !_dbContext.Database.IsRelational())
+        {
+            await _dbContext.SaveChangesAsync(cancellationToken);
+            return;
+        }
+
+        var finalStatus = membership.Status;
+        membership.Status = MembershipStatus.PendingPayment;
+
+        await using var transaction = await _dbContext.Database.BeginTransactionAsync(cancellationToken);
+        await _dbContext.SaveChangesAsync(cancellationToken);
+
+        membership.Status = finalStatus;
+        membership.UpdatedAt = DateTime.UtcNow;
+        await _dbContext.SaveChangesAsync(cancellationToken);
+        await transaction.CommitAsync(cancellationToken);
+    }
+
+    private async Task LogVnPayPaymentAsync(Payment payment, CancellationToken cancellationToken)
+    {
+        await _auditService.LogAsync(
+            "VNPAY_PAYMENT",
+            "Payment",
+            payment.Id,
+            new { membershipId = payment.MembershipId },
+            cancellationToken);
+    }
+
+    private static Membership? ApplyPaidRenewalWindow(
+        Membership membership,
+        IEnumerable<Membership> otherMemberships,
+        DateOnly today)
+    {
+        var now = DateTime.UtcNow;
+        var activeMembership = otherMemberships.FirstOrDefault(item => IsActiveOn(item, today));
+
+        membership.EndDate = activeMembership is null
+            ? today.AddDays(membership.Package.DurationDays)
+            : activeMembership.EndDate.AddDays(membership.Package.DurationDays);
+
+        membership.Status = MembershipStatus.Active;
+        membership.UpdatedAt = now;
+
+        if (activeMembership is not null)
+        {
+            activeMembership.Status = MembershipStatus.Cancelled;
+            activeMembership.UpdatedAt = now;
+        }
+
+        return activeMembership;
+    }
+
+    private static bool IsActiveOn(Membership membership, DateOnly today)
+    {
+        return membership.Status == MembershipStatus.Active && membership.EndDate >= today;
     }
 
     private string BuildPayUrl(Payment payment, Membership membership, string ipAddress)
