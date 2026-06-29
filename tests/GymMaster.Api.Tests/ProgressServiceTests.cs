@@ -62,6 +62,45 @@ public class ProgressServiceTests
         Assert.Equal(18m, result.Value.BodyFatPct);
     }
 
+    [Fact] // 1 ngay = 1 ban ghi: ghi nhan lai cung ngay -> DE LEN ban cu (khong tao diem moi)
+    public async Task Record_progress_same_day_overwrites_existing_entry()
+    {
+        using var db = NewDb();
+        SeedMember(db);
+        await db.SaveChangesAsync();
+        var service = NewService(db);
+        var day = DateTime.UtcNow.Date.AddDays(-1);
+
+        var first = await service.RecordAsync(
+            1, new RecordProgressRequest(day, 32m, 2m, null, null, null, null), Staff(), default);
+        var second = await service.RecordAsync(
+            1, new RecordProgressRequest(day, 36m, 18m, null, null, null, null), Staff(), default);
+
+        Assert.True(first.Succeeded);
+        Assert.True(second.Succeeded);
+        // Cung ngay -> van 1 ban ghi duy nhat, mang gia tri MOI.
+        Assert.Equal(1, await db.ProgressLogs.CountAsync(item => item.MemberId == 1));
+        var log = await db.ProgressLogs.SingleAsync(item => item.MemberId == 1);
+        Assert.Equal(36m, log.WeightKg);
+        Assert.Equal(18m, log.BodyFatPercent);
+    }
+
+    [Fact] // Ngay khac nhau -> giu nhieu ban ghi (moi ngay 1 diem tren bieu do)
+    public async Task Record_progress_different_days_keep_separate_entries()
+    {
+        using var db = NewDb();
+        SeedMember(db);
+        await db.SaveChangesAsync();
+        var service = NewService(db);
+
+        await service.RecordAsync(
+            1, new RecordProgressRequest(DateTime.UtcNow.Date.AddDays(-2), 32m, 2m, null, null, null, null), Staff(), default);
+        await service.RecordAsync(
+            1, new RecordProgressRequest(DateTime.UtcNow.Date.AddDays(-1), 36m, 18m, null, null, null, null), Staff(), default);
+
+        Assert.Equal(2, await db.ProgressLogs.CountAsync(item => item.MemberId == 1));
+    }
+
     [Fact] // §7: ngay do o tuong lai -> INVALID_MEASUREMENT
     public async Task Record_progress_future_date_is_rejected()
     {

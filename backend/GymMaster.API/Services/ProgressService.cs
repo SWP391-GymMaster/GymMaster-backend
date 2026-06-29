@@ -77,28 +77,50 @@ public sealed class ProgressService : IProgressService
                 StatusCodes.Status422UnprocessableEntity);
         }
 
-        var log = new ProgressLog
+        // 1 ngay = 1 ban ghi: ghi nhan lai cung ngay -> DE LEN ban cu (update), khong tao
+        // them diem moi tren bieu do. So sanh theo NGAY lich cua measuredAt (FE gui ngay
+        // theo lich VN, gio 00:00) -> dung khoang [dayStart, dayEnd).
+        var dayStart = measuredAt.Date;
+        var dayEnd = dayStart.AddDays(1);
+        var existing = await _dbContext.ProgressLogs
+            .Where(item => item.MemberId == profile.Id
+                && item.MeasuredAt >= dayStart && item.MeasuredAt < dayEnd)
+            .OrderByDescending(item => item.MeasuredAt)
+            .FirstOrDefaultAsync(cancellationToken);
+
+        var isUpdate = existing is not null;
+        var log = existing ?? new ProgressLog
         {
             MemberId = profile.Id,
-            MeasuredAt = measuredAt,
-            WeightKg = request.WeightKg,
-            BodyFatPercent = request.BodyFatPct,
-            ChestCm = request.ChestCm,
-            WaistCm = request.WaistCm,
-            HipCm = request.HipCm,
-            Note = string.IsNullOrWhiteSpace(request.Note) ? null : request.Note.Trim(),
             CreatedByUserId = GetActorId(principal),
             CreatedAt = DateTime.UtcNow
         };
 
-        _dbContext.ProgressLogs.Add(log);
+        log.MeasuredAt = measuredAt;
+        log.WeightKg = request.WeightKg;
+        log.BodyFatPercent = request.BodyFatPct;
+        log.ChestCm = request.ChestCm;
+        log.WaistCm = request.WaistCm;
+        log.HipCm = request.HipCm;
+        log.Note = string.IsNullOrWhiteSpace(request.Note) ? null : request.Note.Trim();
+
+        if (!isUpdate)
+        {
+            _dbContext.ProgressLogs.Add(log);
+        }
+
         await _dbContext.SaveChangesAsync(cancellationToken);
 
-        await _auditService.LogAsync("CREATE_PROGRESS", "ProgressLog", log.Id, new { memberId }, cancellationToken);
+        await _auditService.LogAsync(
+            isUpdate ? "UPDATE_PROGRESS" : "CREATE_PROGRESS",
+            "ProgressLog",
+            log.Id,
+            new { memberId, measuredOn = dayStart },
+            cancellationToken);
 
         return AuthServiceResult<ProgressResponse>.Success(
             ToResponse(log),
-            StatusCodes.Status201Created);
+            isUpdate ? StatusCodes.Status200OK : StatusCodes.Status201Created);
     }
 
     // FR-PROG-03
