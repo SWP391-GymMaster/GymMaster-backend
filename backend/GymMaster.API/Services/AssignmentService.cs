@@ -49,12 +49,28 @@ public sealed class AssignmentService : IAssignmentService
             return Fail<TrainerAssignmentResponse>("NOT_FOUND", "Khong tim thay PT.", StatusCodes.Status404NotFound);
         }
 
+        var today = AppClock.Today();
+
+        // FR-PKG-03/04: chi cho phep phan cong PT khi member co goi tap active ho tro PT.
+        var hasPtEligibleMembership = await _dbContext.Memberships
+            .AnyAsync(m =>
+                m.MemberId == request.MemberId &&
+                m.Status == MembershipStatus.Active &&
+                m.EndDate >= today &&
+                m.Package.SupportsPT, cancellationToken);
+
+        if (!hasPtEligibleMembership)
+        {
+            return Fail<TrainerAssignmentResponse>(
+                "PACKAGE_PT_REQUIRED",
+                "Hoi vien chua dang ky goi tap ho tro PT nen khong the phan cong.",
+                StatusCodes.Status409Conflict);
+        }
+
         // FR-PT-02: dong assignment cu neu member da co PT active.
         var existing = await _dbContext.TrainerAssignments
             .FirstOrDefaultAsync(a =>
                 a.MemberId == request.MemberId && a.Status == AssignmentStatuses.Active, cancellationToken);
-
-        var today = AppClock.Today();
 
         if (existing is not null)
         {
@@ -109,6 +125,20 @@ public sealed class AssignmentService : IAssignmentService
 
         var memberList = await members.ToListAsync(cancellationToken);
 
+        // FR-PKG-03/04: quyen PT suy dong tu goi tap dang active.
+        // Chi member co membership active voi goi ho tro PT moi du dieu kien phan cong.
+        var today = AppClock.Today();
+        var ptEligibleMemberIds = await _dbContext.Memberships
+            .Where(m =>
+                m.Status == MembershipStatus.Active &&
+                m.EndDate >= today &&
+                m.Package.SupportsPT)
+            .Select(m => m.MemberId)
+            .Distinct()
+            .ToListAsync(cancellationToken);
+
+        var ptEligibleMembers = ptEligibleMemberIds.ToHashSet();
+
         var activeAssignments = await _dbContext.TrainerAssignments
             .Include(a => a.Trainer)
                 .ThenInclude(t => t.User)
@@ -118,6 +148,7 @@ public sealed class AssignmentService : IAssignmentService
         var assignmentByMember = activeAssignments.ToDictionary(a => a.MemberId);
 
         var result = memberList
+            .Where(m => ptEligibleMembers.Contains(m.Id))
             .Where(m => includeAssigned || !assignmentByMember.ContainsKey(m.Id))
             .Select(m =>
             {
