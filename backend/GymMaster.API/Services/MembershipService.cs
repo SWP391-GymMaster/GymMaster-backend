@@ -9,7 +9,8 @@ namespace GymMaster.API.Services;
 
 public sealed class MembershipService : IMembershipService
 {
-    private static readonly TimeSpan PendingTtl = TimeSpan.FromMinutes(30);
+    private static readonly TimeSpan PendingPaymentTtl = TimeSpan.FromMinutes(30);
+    private const string PackagePtMismatchMessage = "Goi gia han phai cung loai PT voi goi dang dung. Doi loai goi khi het han.";
 
     private readonly GymMasterDbContext _dbContext;
     private readonly IAuditService _auditService;
@@ -160,14 +161,7 @@ public sealed class MembershipService : IMembershipService
             .ToListAsync(cancellationToken);
 
         ExpireIfPastDue(otherMemberships, today);
-
-        if (otherMemberships.Any(item => item.Status == MembershipStatus.Active && item.EndDate >= today))
-        {
-            return Fail<ConfirmPaymentResult>(
-                "ALREADY_HAS_ACTIVE",
-                "Hoi vien da co membership dang hieu luc.",
-                StatusCodes.Status409Conflict);
-        }
+        var replacedActive = ApplyPaidRenewalWindow(membership, otherMemberships, today);
 
         // Nguon su that DUY NHAT cho tien cua don = 1 Payment.
         // Tai dung payment Pending neu da co (vd member da khoi tao VNPay) thay vi tao dong moi
@@ -194,11 +188,9 @@ public sealed class MembershipService : IMembershipService
         payment.PaidAt = DateTime.UtcNow;
         payment.UpdatedAt = DateTime.UtcNow;
 
-        membership.Status = MembershipStatus.Active;
-        membership.UpdatedAt = DateTime.UtcNow;
         await CancelSiblingPendingAsync(membership.MemberId, membership.Id, cancellationToken);
 
-        await _dbContext.SaveChangesAsync(cancellationToken);
+        await SaveActivationAsync(membership, replacedActive, cancellationToken);
 
         await _auditService.LogAsync(
             "CONFIRM_PAYMENT",
@@ -261,19 +253,21 @@ public sealed class MembershipService : IMembershipService
         }
 
         var today = Today();
-
-        // Het han cac goi Active da qua han cua member (Status=1 nhung EndDate < today) + chan tao goi Active thu 2
-        // -> tranh dung unique index UX_memberships_OneActivePerMember (moi member chi 1 Active).
         var otherMemberships = await _dbContext.Memberships
+            .Include(item => item.Package)
             .Where(item => item.MemberId == membership.MemberId && item.Id != membership.Id)
             .ToListAsync(cancellationToken);
+
         ExpireIfPastDue(otherMemberships, today);
-        if (otherMemberships.Any(item => item.Status == MembershipStatus.Active && item.EndDate >= today))
+
+        var activeMembership = IsActiveOn(membership, today)
+            ? membership
+            : otherMemberships.FirstOrDefault(item => IsActiveOn(item, today));
+        if (activeMembership is not null && activeMembership.Package.SupportsPT != package.SupportsPT)
         {
-            return Fail<MembershipResponse>("ALREADY_HAS_ACTIVE", "Hoi vien da co membership dang hieu luc.", StatusCodes.Status409Conflict);
+            return PackagePtMismatch<MembershipResponse>();
         }
 
-        // Noi tiep tai cho: keo dai EndDate tu han hien tai (con han) hoac tu hom nay (da het).
         var baseDate = membership.EndDate > today ? membership.EndDate : today;
         membership.PackageId = package.Id;
         membership.Package = package;
@@ -282,7 +276,6 @@ public sealed class MembershipService : IMembershipService
         membership.UpdatedAt = DateTime.UtcNow;
         await CancelSiblingPendingAsync(membership.MemberId, membership.Id, cancellationToken);
 
-        // Ghi nhan thanh toan voi dung phuong thuc tu request (khong hardcode Cash).
         _dbContext.Payments.Add(new Payment
         {
             MembershipId = membership.Id,
@@ -360,9 +353,10 @@ public sealed class MembershipService : IMembershipService
             await _dbContext.SaveChangesAsync(cancellationToken);
         }
 
-        if (existingMemberships.Any(item => item.Status == MembershipStatus.Active && item.EndDate >= today))
+        var activeMembership = existingMemberships.FirstOrDefault(item => IsActiveOn(item, today));
+        if (activeMembership is not null && activeMembership.Package.SupportsPT != package.SupportsPT)
         {
-            return Fail<MembershipResponse>("ALREADY_HAS_ACTIVE", "Hoi vien da co membership dang hieu luc.", StatusCodes.Status409Conflict);
+            return PackagePtMismatch<MembershipResponse>();
         }
 
         var pending = existingMemberships
@@ -575,6 +569,58 @@ public sealed class MembershipService : IMembershipService
         }
     }
 
+    private async Task SaveActivationAsync(
+        Membership membership,
+        Membership? replacedActive,
+        CancellationToken cancellationToken)
+    {
+        if (replacedActive is null || !_dbContext.Database.IsRelational())
+        {
+            await _dbContext.SaveChangesAsync(cancellationToken);
+            return;
+        }
+
+        var finalStatus = membership.Status;
+        membership.Status = MembershipStatus.PendingPayment;
+
+        await using var transaction = await _dbContext.Database.BeginTransactionAsync(cancellationToken);
+        await _dbContext.SaveChangesAsync(cancellationToken);
+
+        membership.Status = finalStatus;
+        membership.UpdatedAt = DateTime.UtcNow;
+        await _dbContext.SaveChangesAsync(cancellationToken);
+        await transaction.CommitAsync(cancellationToken);
+    }
+
+    private static Membership? ApplyPaidRenewalWindow(
+        Membership membership,
+        IEnumerable<Membership> otherMemberships,
+        DateOnly today)
+    {
+        var now = DateTime.UtcNow;
+        var activeMembership = otherMemberships.FirstOrDefault(item => IsActiveOn(item, today));
+
+        membership.EndDate = activeMembership is null
+            ? today.AddDays(membership.Package.DurationDays)
+            : activeMembership.EndDate.AddDays(membership.Package.DurationDays);
+
+        membership.Status = MembershipStatus.Active;
+        membership.UpdatedAt = now;
+
+        if (activeMembership is not null)
+        {
+            activeMembership.Status = MembershipStatus.Cancelled;
+            activeMembership.UpdatedAt = now;
+        }
+
+        return activeMembership;
+    }
+
+    private static bool IsActiveOn(Membership membership, DateOnly today)
+    {
+        return membership.Status == MembershipStatus.Active && membership.EndDate >= today;
+    }
+
     private static bool ExpireIfPastDue(IEnumerable<Membership> memberships, DateOnly today)
     {
         var changed = false;
@@ -591,7 +637,7 @@ public sealed class MembershipService : IMembershipService
     private static bool ExpireStalePending(IEnumerable<Membership> memberships)
     {
         var changed = false;
-        var cutoff = DateTime.UtcNow - PendingTtl;
+        var cutoff = DateTime.UtcNow - PendingPaymentTtl;
         foreach (var membership in memberships.Where(item => item.Status == MembershipStatus.PendingPayment && item.CreatedAt < cutoff))
         {
             membership.Status = MembershipStatus.Cancelled;
@@ -627,6 +673,7 @@ public sealed class MembershipService : IMembershipService
             membership.MemberId,
             membership.PackageId,
             membership.Package.Name,
+            membership.Package.SupportsPT,
             membership.StartDate,
             membership.EndDate,
             membership.Status.ToString(),
@@ -658,5 +705,10 @@ public sealed class MembershipService : IMembershipService
     private static AuthServiceResult<T> Fail<T>(string code, string message, int statusCode)
     {
         return AuthServiceResult<T>.Failure(code, message, statusCode);
+    }
+
+    private static AuthServiceResult<T> PackagePtMismatch<T>()
+    {
+        return Fail<T>("PACKAGE_PT_MISMATCH", PackagePtMismatchMessage, StatusCodes.Status422UnprocessableEntity);
     }
 }

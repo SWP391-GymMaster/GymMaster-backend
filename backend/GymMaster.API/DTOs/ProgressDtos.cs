@@ -51,7 +51,9 @@ public sealed record AssignedPt360(
 
 public sealed record Membership360(
     long Id,
+    long PackageId,
     string PackageName,
+    bool SupportsPT,
     DateOnly StartDate,
     DateOnly EndDate,
     string Status,

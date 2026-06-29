@@ -10,6 +10,7 @@ namespace GymMaster.API.Services;
 public sealed class ProgressService : IProgressService
 {
     private const int NoteMaxLength = 500;
+    private static readonly TimeSpan PendingPaymentTtl = TimeSpan.FromMinutes(30);
 
     private readonly GymMasterDbContext _dbContext;
     private readonly IAuditService _auditService;
@@ -160,7 +161,7 @@ public sealed class ProgressService : IProgressService
             .OrderByDescending(item => item.CreatedAt)
             .ToListAsync(cancellationToken);
 
-        if (ExpireIfPastDue(memberships, today))
+        if (ExpireIfPastDue(memberships, today) | ExpireStalePending(memberships))
         {
             await _dbContext.SaveChangesAsync(cancellationToken);
         }
@@ -256,7 +257,9 @@ public sealed class ProgressService : IProgressService
     {
         return new Membership360(
             membership.Id,
+            membership.PackageId,
             membership.Package.Name,
+            membership.Package.SupportsPT,
             membership.StartDate,
             membership.EndDate,
             membership.Status.ToString(),
@@ -336,6 +339,20 @@ public sealed class ProgressService : IProgressService
         foreach (var membership in memberships.Where(item => item.Status == MembershipStatus.Active && item.EndDate < today))
         {
             membership.Status = MembershipStatus.Expired;
+            membership.UpdatedAt = DateTime.UtcNow;
+            changed = true;
+        }
+
+        return changed;
+    }
+
+    private static bool ExpireStalePending(IEnumerable<Membership> memberships)
+    {
+        var changed = false;
+        var cutoff = DateTime.UtcNow - PendingPaymentTtl;
+        foreach (var membership in memberships.Where(item => item.Status == MembershipStatus.PendingPayment && item.CreatedAt < cutoff))
+        {
+            membership.Status = MembershipStatus.Cancelled;
             membership.UpdatedAt = DateTime.UtcNow;
             changed = true;
         }

@@ -70,6 +70,21 @@ public class MembershipServiceTests
         return (1, 1);
     }
 
+    private static async Task<long> AddPackageAsync(GymMasterDbContext db, long id, bool supportsPT)
+    {
+        db.MembershipPackages.Add(new MembershipPackage
+        {
+            Id = id,
+            Name = supportsPT ? "Goi PT" : "Goi thuong",
+            DurationDays = Days,
+            Price = Price,
+            IsActive = true,
+            SupportsPT = supportsPT,
+        });
+        await db.SaveChangesAsync();
+        return id;
+    }
+
     private sealed class NoopAudit : IAuditService
     {
         public Task LogAsync(string action, string entity, long entityId, object? metadata, CancellationToken ct)
@@ -156,7 +171,7 @@ public class MembershipServiceTests
         Assert.Equal("DUPLICATE_PAYMENT", second.ErrorCode);
     }
 
-    [Fact] // FR-MS-03 (Option 1): gia han noi tiep EndDate + ghi DUNG method, KHONG hardcode Cash
+    [Fact] // FR-MS-03: gia han noi tiep EndDate + ghi dung method.
     public async Task Renew_extends_end_date_and_records_request_method()
     {
         using var db = NewDb();
@@ -173,11 +188,11 @@ public class MembershipServiceTests
 
         Assert.True(result.Succeeded);
         Assert.Equal("Active", result.Value!.Status);
-        Assert.Equal(endBefore.AddDays(Days), result.Value.EndDate); // noi tiep, khong trung ngay
+        Assert.Equal(endBefore.AddDays(Days), result.Value.EndDate);
         Assert.Equal(PaymentMethod.Card, (await db.Payments.OrderBy(p => p.Id).LastAsync()).PaymentMethod);
     }
 
-    [Fact] // Gia han goi da Cancelled -> tu choi (MEMBERSHIP_CANCELLED)
+    [Fact] // Gia han goi da Cancelled -> tu choi.
     public async Task Renew_cancelled_membership_is_rejected()
     {
         using var db = NewDb();
@@ -351,6 +366,83 @@ public class MembershipServiceTests
         var payment = await db.Payments.SingleAsync(p => p.MembershipId == membershipId);
         Assert.Equal(PaymentStatus.Paid, payment.Status);
         Assert.Equal(PaymentMethod.Cash, payment.PaymentMethod);
+    }
+
+    [Fact] // Gia han som: thanh toan don Pending khi dang co Active -> noi han va huy Active cu.
+    public async Task ConfirmPayment_with_existing_active_rolls_over_end_date_and_cancels_old_active()
+    {
+        using var db = NewDb();
+        var (memberId, packageId) = await SeedAsync(db);
+        var service = NewService(db);
+        var today = AppClock.Today();
+        var activeId = (await service.SellAsync(
+            new SellMembershipRequest(memberId, packageId, today), Staff(), default)).Value!.Membership.Id;
+        await service.ConfirmPaymentAsync(activeId, new ConfirmPaymentRequest(Price, "cash"), Staff(), default);
+        var oldEnd = (await db.Memberships.SingleAsync(item => item.Id == activeId)).EndDate;
+
+        var renewal = await service.CreateRenewalRequestAsync(new RenewalRequestRequest(packageId), Member(10), default);
+        var result = await service.ConfirmPaymentAsync(
+            renewal.Value!.Id, new ConfirmPaymentRequest(Price, "transfer"), Staff(), default);
+
+        Assert.True(result.Succeeded);
+        Assert.Equal(oldEnd.AddDays(Days), result.Value!.Membership.EndDate);
+        Assert.Equal(MembershipStatus.Cancelled, (await db.Memberships.SingleAsync(item => item.Id == activeId)).Status);
+        Assert.Equal(MembershipStatus.Active, (await db.Memberships.SingleAsync(item => item.Id == renewal.Value.Id)).Status);
+        Assert.Equal(1, await db.Memberships.CountAsync(
+            item => item.MemberId == memberId && item.Status == MembershipStatus.Active));
+    }
+
+    [Fact] // Member duoc tao request gia han som khi goi moi cung loai PT voi goi Active.
+    public async Task RenewalRequest_allows_active_membership_when_package_pt_type_matches()
+    {
+        using var db = NewDb();
+        var (memberId, packageId) = await SeedAsync(db);
+        var service = NewService(db);
+        var activeId = (await service.SellAsync(
+            new SellMembershipRequest(memberId, packageId, AppClock.Today()), Staff(), default)).Value!.Membership.Id;
+        await service.ConfirmPaymentAsync(activeId, new ConfirmPaymentRequest(Price, "cash"), Staff(), default);
+
+        var result = await service.CreateRenewalRequestAsync(new RenewalRequestRequest(packageId), Member(10), default);
+
+        Assert.True(result.Succeeded);
+        Assert.Equal("PendingPayment", result.Value!.Status);
+        Assert.Equal(1, await db.Memberships.CountAsync(item => item.Status == MembershipStatus.Active));
+        Assert.Equal(1, await db.Memberships.CountAsync(item => item.Status == MembershipStatus.PendingPayment));
+    }
+
+    [Fact] // Member khong duoc gia han som sang goi khac loai PT.
+    public async Task RenewalRequest_blocks_active_membership_when_package_pt_type_mismatches()
+    {
+        using var db = NewDb();
+        var (memberId, packageId) = await SeedAsync(db);
+        var ptPackageId = await AddPackageAsync(db, 2, supportsPT: true);
+        var service = NewService(db);
+        var activeId = (await service.SellAsync(
+            new SellMembershipRequest(memberId, packageId, AppClock.Today()), Staff(), default)).Value!.Membership.Id;
+        await service.ConfirmPaymentAsync(activeId, new ConfirmPaymentRequest(Price, "cash"), Staff(), default);
+
+        var result = await service.CreateRenewalRequestAsync(new RenewalRequestRequest(ptPackageId), Member(10), default);
+
+        Assert.False(result.Succeeded);
+        Assert.Equal("PACKAGE_PT_MISMATCH", result.ErrorCode);
+    }
+
+    [Fact] // Staff RenewAsync goi con Active cung bi chan neu doi loai PT.
+    public async Task Renew_blocks_package_pt_type_mismatch_while_membership_is_active()
+    {
+        using var db = NewDb();
+        var (memberId, packageId) = await SeedAsync(db);
+        var ptPackageId = await AddPackageAsync(db, 2, supportsPT: true);
+        var service = NewService(db);
+        var activeId = (await service.SellAsync(
+            new SellMembershipRequest(memberId, packageId, AppClock.Today()), Staff(), default)).Value!.Membership.Id;
+        await service.ConfirmPaymentAsync(activeId, new ConfirmPaymentRequest(Price, "cash"), Staff(), default);
+
+        var result = await service.RenewAsync(
+            activeId, new RenewMembershipRequest(ptPackageId, "cash"), Staff(), default);
+
+        Assert.False(result.Succeeded);
+        Assert.Equal("PACKAGE_PT_MISMATCH", result.ErrorCode);
     }
 
     [Fact] // Renewal-request lan 2 khi dang co Pending -> tra lai don cu, khong tao them.
