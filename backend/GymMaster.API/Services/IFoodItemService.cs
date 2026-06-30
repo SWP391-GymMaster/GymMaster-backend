@@ -9,6 +9,7 @@ public interface IFoodItemService
         string? query,
         int page,
         int pageSize,
+        ClaimsPrincipal principal,
         CancellationToken cancellationToken);
 
     Task<AuthServiceResult<FoodItemResponse>> AddAsync(

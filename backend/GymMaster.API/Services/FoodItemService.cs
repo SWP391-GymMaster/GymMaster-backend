@@ -3,6 +3,7 @@ using GymMaster.API.Data;
 using GymMaster.API.DTOs;
 using GymMaster.API.Entities;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.JsonWebTokens;
 
 namespace GymMaster.API.Services;
 
@@ -10,6 +11,10 @@ public sealed class FoodItemService : IFoodItemService
 {
     private const int DefaultPageSize = 20;
     private const int MaxPageSize = 100;
+
+    // Nguoi CHUA co goi tap active (member free / khach) chi duoc xem 20 mon dau de dung thu.
+    // Co goi tap active (hoac Admin/Staff/PT) => xem toan bo kho mon.
+    private const int FreeFoodLimit = 20;
 
     private readonly GymMasterDbContext _dbContext;
     private readonly IAuditService _auditService;
@@ -25,12 +30,30 @@ public sealed class FoodItemService : IFoodItemService
         string? query,
         int page,
         int pageSize,
+        ClaimsPrincipal principal,
         CancellationToken cancellationToken)
     {
         page = page < 1 ? 1 : page;
         pageSize = pageSize is < 1 or > MaxPageSize ? DefaultPageSize : pageSize;
 
+        // Phan loai quyen: co goi tap active (hoac Admin/Staff/PT) => full kho;
+        // member chua co goi / khach => CHI tap 20 mon co dinh (mon ngoai 20 KHONG tim thay).
+        var hasFullAccess = await HasFullFoodAccessAsync(principal, cancellationToken);
+
         var foodItems = _dbContext.FoodItems.Where(item => item.IsActive);
+
+        if (!hasFullAccess)
+        {
+            // Tap FREE co dinh = 20 mon dau (theo ten A->Z). Gioi han universe TRUOC khi loc tu khoa,
+            // nen nguoi chua co goi chi xem/tim duoc trong 20 mon nay; mon thu 21+ bi khoa (can mua goi).
+            var freeFoodIds = _dbContext.FoodItems
+                .Where(item => item.IsActive)
+                .OrderBy(item => item.Name)
+                .Take(FreeFoodLimit)
+                .Select(item => item.Id);
+
+            foodItems = foodItems.Where(item => freeFoodIds.Contains(item.Id));
+        }
 
         if (!string.IsNullOrWhiteSpace(query))
         {
@@ -40,9 +63,10 @@ public sealed class FoodItemService : IFoodItemService
                 EF.Functions.Collate(item.Name, "Latin1_General_100_CI_AI").Contains(keyword));
         }
 
+        foodItems = foodItems.OrderBy(item => item.Name);
+
         var totalItems = await foodItems.CountAsync(cancellationToken);
         var items = await foodItems
-            .OrderBy(item => item.Name)
             .Skip((page - 1) * pageSize)
             .Take(pageSize)
             .ToListAsync(cancellationToken);
@@ -56,6 +80,42 @@ public sealed class FoodItemService : IFoodItemService
             totalPages);
 
         return AuthServiceResult<PagedResult<FoodItemResponse>>.Success(result);
+    }
+
+    // Toan quyen kho mon neu: KHONG phai role Member (Admin/Staff/PT), HOAC la Member co goi tap active.
+    private async Task<bool> HasFullFoodAccessAsync(ClaimsPrincipal principal, CancellationToken cancellationToken)
+    {
+        if (!principal.IsInRole(RoleNames.Member))
+        {
+            return true;
+        }
+
+        var userId = GetActorId(principal);
+        if (userId is null)
+        {
+            return false;
+        }
+
+        var memberId = await _dbContext.MemberProfiles
+            .Where(mp => mp.UserId == userId.Value)
+            .Select(mp => (long?)mp.Id)
+            .FirstOrDefaultAsync(cancellationToken);
+        if (memberId is null)
+        {
+            return false;
+        }
+
+        var today = AppClock.Today();
+        return await _dbContext.Memberships.AnyAsync(
+            m => m.MemberId == memberId.Value && m.Status == MembershipStatus.Active && m.EndDate >= today,
+            cancellationToken);
+    }
+
+    private static long? GetActorId(ClaimsPrincipal principal)
+    {
+        var value = principal.FindFirstValue(ClaimTypes.NameIdentifier)
+            ?? principal.FindFirstValue(JwtRegisteredClaimNames.Sub);
+        return long.TryParse(value, out var id) ? id : null;
     }
 
     // FR-FOOD-02
