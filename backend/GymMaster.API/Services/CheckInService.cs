@@ -68,10 +68,11 @@ public sealed class CheckInService : ICheckInService
             }
         }
 
-        // FR-CHK-03 (OQ-06): tuy chon chan check-in thu 2 trong cung ngay.
-        if (_options.OncePerDay && await HasCheckedInTodayAsync(profile.Id, cancellationToken))
+        // FR-CHK-03: gioi han so lan check-in trong ngay (mac dinh 2 lan/ngay).
+        var dailyLimitError = await ValidateDailyLimitAsync(profile.Id, cancellationToken);
+        if (dailyLimitError is not null)
         {
-            return Fail("ALREADY_CHECKED_IN_TODAY", "Hoi vien da check-in trong hom nay.", StatusCodes.Status409Conflict);
+            return dailyLimitError;
         }
 
         // FR-CHK-01/06: tao ban ghi. CreatedByUserId = null khi member tu check-in.
@@ -229,10 +230,11 @@ public sealed class CheckInService : ICheckInService
             }
         }
 
-        // FR-CHK-03 (OQ-06): tuy chon chan check-in thu 2 trong cung ngay.
-        if (_options.OncePerDay && await HasCheckedInTodayAsync(profile.Id, cancellationToken))
+        // FR-CHK-03: gioi han so lan check-in trong ngay (mac dinh 2 lan/ngay).
+        var dailyLimitError = await ValidateDailyLimitAsync(profile.Id, cancellationToken);
+        if (dailyLimitError is not null)
         {
-            return Fail("ALREADY_CHECKED_IN_TODAY", "Hoi vien da check-in trong hom nay.", StatusCodes.Status409Conflict);
+            return dailyLimitError;
         }
 
         // CreatedBy = userId cua PT (nguoi thuc hien) — giong nguyen tac staff tac nghiep ho.
@@ -390,13 +392,36 @@ public sealed class CheckInService : ICheckInService
         return (startUtc, startUtc.AddDays(1));
     }
 
-    private Task<bool> HasCheckedInTodayAsync(long memberId, CancellationToken cancellationToken)
+    private Task<int> CountCheckedInTodayAsync(long memberId, CancellationToken cancellationToken)
     {
         var (start, end) = TodayUtcRangeVn();
 
-        return _dbContext.CheckIns.AnyAsync(
+        return _dbContext.CheckIns.CountAsync(
             checkIn => checkIn.MemberId == memberId && checkIn.CheckInAt >= start && checkIn.CheckInAt < end,
             cancellationToken);
+    }
+
+    // FR-CHK-03: tra ve loi neu da dat gioi han check-in trong ngay; null neu con luot.
+    private async Task<AuthServiceResult<CheckInResponse>?> ValidateDailyLimitAsync(
+        long memberId,
+        CancellationToken cancellationToken)
+    {
+        var limit = _options.EffectiveMaxPerDay;
+        if (limit <= 0)
+        {
+            return null; // khong gioi han
+        }
+
+        var count = await CountCheckedInTodayAsync(memberId, cancellationToken);
+        if (count >= limit)
+        {
+            return Fail(
+                "DAILY_LIMIT_REACHED",
+                $"Hoi vien da check-in du {limit} lan trong hom nay.",
+                StatusCodes.Status409Conflict);
+        }
+
+        return null;
     }
 
     private static bool IsAccountLocked(User user)
