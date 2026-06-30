@@ -35,7 +35,9 @@ public sealed class FoodItemService : IFoodItemService
         if (!string.IsNullOrWhiteSpace(query))
         {
             var keyword = query.Trim();
-            foodItems = foodItems.Where(item => item.Name.Contains(keyword));
+            // Tim khong phan biet DAU + hoa/thuong: go "com"/"thit" van ra "Cơm"/"Thịt".
+            foodItems = foodItems.Where(item =>
+                EF.Functions.Collate(item.Name, "Latin1_General_100_CI_AI").Contains(keyword));
         }
 
         var totalItems = await foodItems.CountAsync(cancellationToken);
