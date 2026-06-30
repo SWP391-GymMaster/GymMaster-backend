@@ -18,7 +18,8 @@ public sealed record DetectedFood(
     decimal Calories,
     decimal ProteinG,
     decimal CarbsG,
-    decimal FatG);
+    decimal FatG,
+    decimal EstimatedGrams);
 
 public sealed record FoodImageAnalysisResult<T>(
     bool Succeeded,

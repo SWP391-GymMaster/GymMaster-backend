@@ -85,14 +85,15 @@ public sealed class FoodScanService : IFoodScanService
             var dbFood = await FindDatabaseMatchAsync(name, cancellationToken);
             if (dbFood is not null)
             {
-                items.Add(new FoodScanItem(name, detected.Confidence, "Database", false, ToScannedFood(dbFood), null));
+                items.Add(new FoodScanItem(name, detected.Confidence, "Database", false, ToScannedFood(dbFood), null, detected.EstimatedGrams));
             }
             else
             {
                 items.Add(new FoodScanItem(
                     name, detected.Confidence, "AI", true, null,
                     new FoodNutritionDraft(name, "g", 100, detected.Calories,
-                        detected.ProteinG, detected.CarbsG, detected.FatG, "AI")));
+                        detected.ProteinG, detected.CarbsG, detected.FatG, "AI"),
+                    detected.EstimatedGrams));
             }
         }
 
