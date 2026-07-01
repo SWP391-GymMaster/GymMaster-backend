@@ -42,22 +42,25 @@ public sealed class GeminiService : IFoodImageAnalyzer
                 {
                     foodName = new { type = "STRING" },
                     confidence = new { type = "NUMBER" },
+                    estimatedGrams = new { type = "NUMBER" },
                     calories = new { type = "NUMBER" },
                     proteinG = new { type = "NUMBER" },
                     carbsG = new { type = "NUMBER" },
                     fatG = new { type = "NUMBER" }
                 },
-                required = new[] { "foodName", "confidence", "calories", "proteinG", "carbsG", "fatG" }
+                required = new[] { "foodName", "confidence", "estimatedGrams", "calories", "proteinG", "carbsG", "fatG" }
             }
         };
 
         var json = await CallGeminiAsync(
             imageBytes,
             contentType,
-            "Nhan dien TAT CA cac mon an/thuc pham nhin thay trong anh (co the nhieu mon). " +
-            "Voi MOI mon, tra ve: foodName (ten ngan gon bang tieng Viet), confidence (0..1), " +
-            "va uoc luong cho 100 gram gom calories, proteinG, carbsG, fatG. " +
-            "Tra ve mot mang JSON. Neu khong thay mon an nao, tra ve mang rong.",
+            "Phan tich anh va liet ke TUNG THANH PHAN / NGUYEN LIEU thuc pham nhin thay rieng le " +
+            "(vi du mon phuc hop thi tach ra: banh mi, thit, rau, pho mai... moi thu 1 dong). " +
+            "Voi MOI thanh phan, tra ve: foodName (ten ngan gon tieng Viet), confidence (0..1), " +
+            "estimatedGrams (uoc luong KHOI LUONG cua thanh phan do nhin thay trong anh, tinh bang gram), " +
+            "va dinh duong cho 100 gram gom calories, proteinG, carbsG, fatG. " +
+            "Tra ve mot mang JSON. Neu khong thay thuc pham nao, tra ve mang rong.",
             schema,
             cancellationToken);
 
@@ -92,7 +95,8 @@ public sealed class GeminiService : IFoodImageAnalyzer
                     ReadDecimal(element, "calories"),
                     ReadDecimal(element, "proteinG"),
                     ReadDecimal(element, "carbsG"),
-                    ReadDecimal(element, "fatG")));
+                    ReadDecimal(element, "fatG"),
+                    ReadDecimal(element, "estimatedGrams")));
             }
 
             if (foods.Count == 0)

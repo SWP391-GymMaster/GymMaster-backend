@@ -26,7 +26,7 @@ public sealed class FoodItemsController : ApiControllerBase
         [FromQuery] int pageSize = 20,
         CancellationToken cancellationToken = default)
     {
-        var result = await _foodItemService.SearchAsync(query, page, pageSize, cancellationToken);
+        var result = await _foodItemService.SearchAsync(query, page, pageSize, User, cancellationToken);
         return ToActionResult(result);
     }
 

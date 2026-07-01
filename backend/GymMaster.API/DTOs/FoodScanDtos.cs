@@ -32,7 +32,8 @@ public sealed record FoodScanItem(
     string ResultSource,          // "Database" | "AI"
     bool RequiresConfirmation,
     ScannedFood? Food,
-    FoodNutritionDraft? Draft);
+    FoodNutritionDraft? Draft,
+    decimal EstimatedGrams = 0);  // AI uoc luong khoi luong thanh phan trong anh (gram)
 
 /// <summary>Quet 1 anh co the ra NHIEU mon.</summary>
 public sealed record FoodScanResponse(IReadOnlyList<FoodScanItem> Items);
