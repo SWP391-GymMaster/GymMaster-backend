@@ -14,11 +14,18 @@ public sealed class MembershipService : IMembershipService
 
     private readonly GymMasterDbContext _dbContext;
     private readonly IAuditService _auditService;
+    private readonly IMemberService _memberService;
 
     public MembershipService(GymMasterDbContext dbContext, IAuditService auditService)
+        : this(dbContext, auditService, new MemberService(dbContext, auditService))
+    {
+    }
+
+    public MembershipService(GymMasterDbContext dbContext, IAuditService auditService, IMemberService memberService)
     {
         _dbContext = dbContext;
         _auditService = auditService;
+        _memberService = memberService;
     }
 
     // FR-MS-01
@@ -311,22 +318,16 @@ public sealed class MembershipService : IMembershipService
             return Fail<MembershipResponse>("FORBIDDEN", "Khong xac dinh duoc nguoi thao tac.", StatusCodes.Status403Forbidden);
         }
 
-        var profile = await _dbContext.MemberProfiles.FirstOrDefaultAsync(
-            item => item.UserId == actorId.Value && !item.IsDeleted, cancellationToken);
-
-        if (profile is null)
+        var profileIdResult = await _memberService.GetOrCreateCurrentProfileAsync(principal, cancellationToken);
+        if (!profileIdResult.Succeeded)
         {
-            // Tu phuc vu: user role member chua co ho so -> tao ho so khi mua/yeu cau goi dau tien.
-            // (Mua goi == tro thanh hoi vien; khong con phu thuoc admin "Them hoi vien".)
-            profile = new MemberProfile
-            {
-                UserId = actorId.Value,
-                JoinedAt = DateTime.UtcNow
-            };
-            _dbContext.MemberProfiles.Add(profile);
-            await _dbContext.SaveChangesAsync(cancellationToken);
-            await _auditService.LogAsync("CREATE_MEMBER", "MemberProfile", profile.Id, new { selfService = true }, cancellationToken);
+            return Fail<MembershipResponse>(
+                profileIdResult.ErrorCode ?? "ERROR",
+                profileIdResult.ErrorMessage ?? "Yeu cau khong hop le.",
+                profileIdResult.StatusCode);
         }
+
+        var profileId = profileIdResult.Value;
 
         var package = await _dbContext.MembershipPackages.FirstOrDefaultAsync(
             item => item.Id == request.PackageId, cancellationToken);
@@ -344,7 +345,7 @@ public sealed class MembershipService : IMembershipService
         var today = Today();
         var existingMemberships = await _dbContext.Memberships
             .Include(item => item.Package)
-            .Where(item => item.MemberId == profile.Id)
+            .Where(item => item.MemberId == profileId)
             .ToListAsync(cancellationToken);
 
         var changed = ExpireIfPastDue(existingMemberships, today) | ExpireStalePending(existingMemberships);
@@ -370,7 +371,7 @@ public sealed class MembershipService : IMembershipService
 
         var membership = new Membership
         {
-            MemberId = profile.Id,
+            MemberId = profileId,
             PackageId = package.Id,
             Package = package,
             StartDate = today,

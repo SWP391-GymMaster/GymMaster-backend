@@ -57,6 +57,14 @@ public class MembershipServiceTests
 
     private static async Task<(long memberId, long packageId)> SeedAsync(GymMasterDbContext db)
     {
+        db.Users.Add(new User
+        {
+            Id = 10,
+            Email = "member@gymmaster.local",
+            FullName = "GymMaster Member",
+            PasswordHash = "hash",
+            Status = UserStatuses.Active,
+        });
         db.MemberProfiles.Add(new MemberProfile { Id = 1, UserId = 10, IsDeleted = false });
         db.MembershipPackages.Add(new MembershipPackage
         {

@@ -53,6 +53,36 @@ public sealed class MembersController : ApiControllerBase
         return ToActionResult(result);
     }
 
+    [HttpGet("me")]
+    [Authorize(Roles = RoleNames.Member)]
+    public async Task<IActionResult> GetMe(CancellationToken cancellationToken)
+    {
+        var memberIdResult = await _memberService.GetOrCreateCurrentProfileAsync(User, cancellationToken);
+        if (!memberIdResult.Succeeded)
+        {
+            return ToActionResult(memberIdResult);
+        }
+
+        var result = await _memberService.GetByIdAsync(memberIdResult.Value, User, cancellationToken);
+        return ToActionResult(result);
+    }
+
+    [HttpPut("me")]
+    [Authorize(Roles = RoleNames.Member)]
+    public async Task<IActionResult> UpdateMe(
+        [FromBody] UpdateMemberRequest request,
+        CancellationToken cancellationToken)
+    {
+        var memberIdResult = await _memberService.GetOrCreateCurrentProfileAsync(User, cancellationToken);
+        if (!memberIdResult.Succeeded)
+        {
+            return ToActionResult(memberIdResult);
+        }
+
+        var result = await _memberService.UpdateAsync(memberIdResult.Value, request, User, cancellationToken);
+        return ToActionResult(result);
+    }
+
     [HttpGet("me/profile-360")]
     [Authorize(Roles = RoleNames.Member)]
     public async Task<IActionResult> GetMyProfile360(CancellationToken cancellationToken)
