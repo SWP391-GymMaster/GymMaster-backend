@@ -26,6 +26,7 @@ public sealed record MemberResponse(
     string MemberCode,
     string Email,
     string FullName,
+    string? AvatarUrl,
     string? Phone,
     DateTime? DateOfBirth,
     string? Gender,

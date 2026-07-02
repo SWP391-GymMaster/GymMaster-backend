@@ -414,6 +414,7 @@ public sealed class MemberService : IMemberService
             $"MEM-{profile.Id:D6}",
             profile.User.Email,
             profile.User.FullName,
+            profile.User.AvatarUrl,
             profile.User.Phone,
             profile.DateOfBirth,
             profile.Gender,

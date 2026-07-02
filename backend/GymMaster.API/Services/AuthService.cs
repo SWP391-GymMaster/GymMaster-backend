@@ -25,6 +25,7 @@ public sealed class AuthService : IAuthService
     private readonly GymMasterDbContext _dbContext;
     private readonly JwtOptions _jwtOptions;
     private readonly GoogleAuthOptions _googleOptions;
+    private readonly IGoogleTokenValidator _googleTokenValidator;
     private readonly IWebHostEnvironment _environment;
     private readonly IEmailSender _emailSender;
     private readonly EmailOptions _emailOptions;
@@ -33,6 +34,7 @@ public sealed class AuthService : IAuthService
         GymMasterDbContext dbContext,
         IOptions<JwtOptions> jwtOptions,
         IOptions<GoogleAuthOptions> googleOptions,
+        IGoogleTokenValidator googleTokenValidator,
         IWebHostEnvironment environment,
         IEmailSender emailSender,
         IOptions<EmailOptions> emailOptions)
@@ -40,6 +42,7 @@ public sealed class AuthService : IAuthService
         _dbContext = dbContext;
         _jwtOptions = jwtOptions.Value;
         _googleOptions = googleOptions.Value;
+        _googleTokenValidator = googleTokenValidator;
         _environment = environment;
         _emailSender = emailSender;
         _emailOptions = emailOptions.Value;
@@ -438,19 +441,14 @@ public sealed class AuthService : IAuthService
                 StatusCodes.Status400BadRequest);
         }
 
-        GoogleJsonWebSignature.Payload payload;
+        GoogleTokenPayload payload;
 
         try
         {
-            payload = await GoogleJsonWebSignature.ValidateAsync(
+            payload = await _googleTokenValidator.ValidateAsync(
                 request.IdToken,
-                new GoogleJsonWebSignature.ValidationSettings
-                {
-                    Audience = [_googleOptions.ClientId],
-                    // Dung sai 5 phut chong lech dong ho may (tranh loi "JWT is not yet valid").
-                    IssuedAtClockTolerance = TimeSpan.FromMinutes(5),
-                    ExpirationTimeClockTolerance = TimeSpan.FromMinutes(5)
-                });
+                _googleOptions.ClientId,
+                cancellationToken);
         }
         catch (InvalidJwtException)
         {
@@ -488,6 +486,7 @@ public sealed class AuthService : IAuthService
             {
                 Email = email,
                 FullName = string.IsNullOrWhiteSpace(payload.Name) ? email : payload.Name,
+                AvatarUrl = string.IsNullOrWhiteSpace(payload.Picture) ? null : payload.Picture,
                 PasswordHash = BCrypt.Net.BCrypt.HashPassword(CreateSecureToken(), 12),
                 Status = UserStatuses.Active
             };
@@ -759,6 +758,7 @@ public sealed class AuthService : IAuthService
             user.Id,
             user.Email,
             user.FullName,
+            user.AvatarUrl,
             GetPrimaryRole(user),
             user.Status,
             memberProfileId);

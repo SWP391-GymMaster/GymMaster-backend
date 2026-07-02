@@ -56,6 +56,7 @@ public sealed record AuthUserResponse(
     long UserId,
     string Email,
     string FullName,
+    string? AvatarUrl,
     string Role,
     string Status,
     long? MemberProfileId);

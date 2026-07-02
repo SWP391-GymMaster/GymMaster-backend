@@ -64,6 +64,7 @@ public sealed class GymMasterDbContext : DbContext
             entity.Property(user => user.Phone).HasMaxLength(30);
             entity.Property(user => user.PasswordHash).HasMaxLength(255).IsRequired();
             entity.Property(user => user.FullName).HasMaxLength(150).IsRequired();
+            entity.Property(user => user.AvatarUrl).HasMaxLength(500);
             entity.Property(user => user.Status).HasMaxLength(20).IsRequired();
             entity.HasIndex(user => user.Email).IsUnique();
             entity.HasIndex(user => user.Phone).IsUnique().HasFilter("[Phone] IS NOT NULL");
