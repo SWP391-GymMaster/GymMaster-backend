@@ -1,3 +1,5 @@
+using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
 using GymMaster.API.Data;
 using GymMaster.API.DTOs;
 using GymMaster.API.Entities;
@@ -118,6 +120,28 @@ public sealed class TrainerService : ITrainerService
             : AuthServiceResult<TrainerResponse>.Success(ToResponse(profile));
     }
 
+    public async Task<AuthServiceResult<TrainerResponse>> GetCurrentAsync(
+        ClaimsPrincipal principal,
+        CancellationToken cancellationToken)
+    {
+        var userId = GetActorId(principal);
+
+        if (userId is null)
+        {
+            return Fail<TrainerResponse>("UNAUTHORIZED", "Khong xac dinh duoc danh tinh.", StatusCodes.Status401Unauthorized);
+        }
+
+        var profile = await _dbContext.TrainerProfiles
+            .Include(item => item.User)
+            .FirstOrDefaultAsync(
+                item => item.UserId == userId.Value && !item.IsDeleted && !item.User.IsDeleted,
+                cancellationToken);
+
+        return profile is null
+            ? Fail<TrainerResponse>("NOT_FOUND", "Khong tim thay ho so huan luyen vien.", StatusCodes.Status404NotFound)
+            : AuthServiceResult<TrainerResponse>.Success(ToResponse(profile));
+    }
+
     public async Task<AuthServiceResult<TrainerResponse>> UpdateAsync(
         long id,
         UpdateTrainerRequest request,
@@ -190,6 +214,14 @@ public sealed class TrainerService : ITrainerService
             profile.DateOfBirth,
             profile.YearsOfExperience,
             profile.CreatedAt);
+    }
+
+    private static long? GetActorId(ClaimsPrincipal principal)
+    {
+        var value = principal.FindFirstValue(ClaimTypes.NameIdentifier) ??
+            principal.FindFirstValue(JwtRegisteredClaimNames.Sub);
+
+        return long.TryParse(value, out var userId) ? userId : null;
     }
 
     private static AuthServiceResult<T> Fail<T>(string code, string message, int statusCode)
