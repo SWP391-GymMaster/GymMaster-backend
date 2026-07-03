@@ -1,5 +1,6 @@
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
+using System.Security.Cryptography;
 using GymMaster.API.Data;
 using GymMaster.API.DTOs;
 using GymMaster.API.Entities;
@@ -22,23 +23,28 @@ public sealed class TrainerService : ITrainerService
     }
 
     // FR-PT-PROF-01: tao TrainerProfile gan voi User role PT.
-    public async Task<AuthServiceResult<TrainerResponse>> CreateAsync(
+    public async Task<AuthServiceResult<CreateTrainerResponse>> CreateAsync(
         CreateTrainerRequest request,
         CancellationToken cancellationToken)
     {
+        if (request.UserId is null)
+        {
+            return await CreateWithAccountAsync(request, cancellationToken);
+        }
+
         var user = await _dbContext.Users
             .Include(item => item.UserRoles)
             .ThenInclude(item => item.Role)
-            .FirstOrDefaultAsync(item => item.Id == request.UserId && !item.IsDeleted, cancellationToken);
+            .FirstOrDefaultAsync(item => item.Id == request.UserId.Value && !item.IsDeleted, cancellationToken);
 
         if (user is null)
         {
-            return Fail<TrainerResponse>("NOT_FOUND", "Khong tim thay nguoi dung.", StatusCodes.Status404NotFound);
+            return Fail<CreateTrainerResponse>("NOT_FOUND", "Khong tim thay nguoi dung.", StatusCodes.Status404NotFound);
         }
 
         if (!user.UserRoles.Any(userRole => userRole.Role.Name == RoleNames.Pt))
         {
-            return Fail<TrainerResponse>(
+            return Fail<CreateTrainerResponse>(
                 "INVALID_ROLE",
                 "Nguoi dung nay khong phai role PT.",
                 StatusCodes.Status422UnprocessableEntity);
@@ -47,32 +53,105 @@ public sealed class TrainerService : ITrainerService
         if (await _dbContext.TrainerProfiles.AnyAsync(
                 profile => profile.UserId == user.Id && !profile.IsDeleted, cancellationToken))
         {
-            return Fail<TrainerResponse>("DUPLICATE", "Nguoi dung nay da co ho so PT.", StatusCodes.Status409Conflict);
+            return Fail<CreateTrainerResponse>("DUPLICATE", "Nguoi dung nay da co ho so PT.", StatusCodes.Status409Conflict);
         }
 
         if (request.YearsOfExperience is < 0)
         {
-            return Fail<TrainerResponse>(
+            return Fail<CreateTrainerResponse>(
                 "VALIDATION_ERROR", "So nam kinh nghiem khong hop le.", StatusCodes.Status400BadRequest);
         }
 
-        var profile = new TrainerProfile
-        {
-            UserId = user.Id,
-            User = user,
-            Specialty = string.IsNullOrWhiteSpace(request.Specialty) ? null : request.Specialty.Trim(),
-            Bio = string.IsNullOrWhiteSpace(request.Bio) ? null : request.Bio.Trim(),
-            Gender = string.IsNullOrWhiteSpace(request.Gender) ? null : request.Gender.Trim(),
-            DateOfBirth = request.DateOfBirth,
-            YearsOfExperience = request.YearsOfExperience
-        };
+        var profile = BuildProfile(request);
+        profile.UserId = user.Id;
+        profile.User = user;
 
         _dbContext.TrainerProfiles.Add(profile);
         await _dbContext.SaveChangesAsync(cancellationToken);
 
         await _auditService.LogAsync("CREATE_TRAINER", "TrainerProfile", profile.Id, null, cancellationToken);
 
-        return AuthServiceResult<TrainerResponse>.Success(ToResponse(profile), StatusCodes.Status201Created);
+        return AuthServiceResult<CreateTrainerResponse>.Success(
+            new CreateTrainerResponse(ToResponse(profile), null, false, true),
+            StatusCodes.Status201Created);
+    }
+
+    private async Task<AuthServiceResult<CreateTrainerResponse>> CreateWithAccountAsync(
+        CreateTrainerRequest request,
+        CancellationToken cancellationToken)
+    {
+        var email = NormalizeEmail(request.Email);
+        var phone = NormalizePhone(request.Phone);
+
+        if (string.IsNullOrWhiteSpace(request.FullName) || string.IsNullOrWhiteSpace(email))
+        {
+            return Fail<CreateTrainerResponse>(
+                "VALIDATION_ERROR", "Vui long nhap ho ten va email.", StatusCodes.Status400BadRequest);
+        }
+
+        if (!IsValidEmail(email))
+        {
+            return Fail<CreateTrainerResponse>(
+                "VALIDATION_ERROR", "Email khong hop le.", StatusCodes.Status400BadRequest);
+        }
+
+        if (!string.IsNullOrEmpty(request.Password) && request.Password.Length < 6)
+        {
+            return Fail<CreateTrainerResponse>(
+                "VALIDATION_ERROR", "Mat khau phai co it nhat 6 ky tu.", StatusCodes.Status400BadRequest);
+        }
+
+        if (request.YearsOfExperience is < 0)
+        {
+            return Fail<CreateTrainerResponse>(
+                "VALIDATION_ERROR", "So nam kinh nghiem khong hop le.", StatusCodes.Status400BadRequest);
+        }
+
+        if (await _dbContext.Users.AnyAsync(user => user.Email == email && !user.IsDeleted, cancellationToken))
+        {
+            return Fail<CreateTrainerResponse>(
+                "DUPLICATE",
+                "Email nay da duoc su dung. Neu muon gan ho so PT cho tai khoan co san, dung truong UserId.",
+                StatusCodes.Status409Conflict);
+        }
+
+        if (phone is not null &&
+            await _dbContext.Users.AnyAsync(user => user.Phone == phone && !user.IsDeleted, cancellationToken))
+        {
+            return Fail<CreateTrainerResponse>("DUPLICATE", "So dien thoai nay da duoc su dung.", StatusCodes.Status409Conflict);
+        }
+
+        var ptRole = await GetRoleAsync(RoleNames.Pt, cancellationToken);
+        var autoGenerated = string.IsNullOrWhiteSpace(request.Password);
+        var password = autoGenerated ? GenerateTemporaryPassword() : request.Password!;
+
+        var user = new User
+        {
+            Email = email,
+            Phone = phone,
+            FullName = request.FullName.Trim(),
+            PasswordHash = BCrypt.Net.BCrypt.HashPassword(password, 12),
+            Status = UserStatuses.Active
+        };
+        user.UserRoles.Add(new UserRole { User = user, Role = ptRole });
+
+        var profile = BuildProfile(request);
+        profile.User = user;
+
+        _dbContext.Users.Add(user);
+        _dbContext.TrainerProfiles.Add(profile);
+        await _dbContext.SaveChangesAsync(cancellationToken);
+
+        await _auditService.LogAsync(
+            "CREATE_TRAINER",
+            "TrainerProfile",
+            profile.Id,
+            new { accountCreated = true },
+            cancellationToken);
+
+        return AuthServiceResult<CreateTrainerResponse>.Success(
+            new CreateTrainerResponse(ToResponse(profile), password, autoGenerated, false),
+            StatusCodes.Status201Created);
     }
 
     public async Task<AuthServiceResult<PagedResult<TrainerResponse>>> ListAsync(
@@ -200,6 +279,33 @@ public sealed class TrainerService : ITrainerService
             .FirstOrDefaultAsync(profile => profile.Id == id && !profile.IsDeleted && !profile.User.IsDeleted, cancellationToken);
     }
 
+    private async Task<Role> GetRoleAsync(string roleName, CancellationToken cancellationToken)
+    {
+        var role = await _dbContext.Roles.FirstOrDefaultAsync(item => item.Name == roleName, cancellationToken);
+
+        if (role is not null)
+        {
+            return role;
+        }
+
+        role = new Role { Name = roleName, Description = $"{roleName} role" };
+        _dbContext.Roles.Add(role);
+        await _dbContext.SaveChangesAsync(cancellationToken);
+        return role;
+    }
+
+    private static TrainerProfile BuildProfile(CreateTrainerRequest request)
+    {
+        return new TrainerProfile
+        {
+            Specialty = string.IsNullOrWhiteSpace(request.Specialty) ? null : request.Specialty.Trim(),
+            Bio = string.IsNullOrWhiteSpace(request.Bio) ? null : request.Bio.Trim(),
+            Gender = string.IsNullOrWhiteSpace(request.Gender) ? null : request.Gender.Trim(),
+            DateOfBirth = request.DateOfBirth,
+            YearsOfExperience = request.YearsOfExperience
+        };
+    }
+
     private static TrainerResponse ToResponse(TrainerProfile profile)
     {
         return new TrainerResponse(
@@ -222,6 +328,27 @@ public sealed class TrainerService : ITrainerService
             principal.FindFirstValue(JwtRegisteredClaimNames.Sub);
 
         return long.TryParse(value, out var userId) ? userId : null;
+    }
+
+    private static string GenerateTemporaryPassword()
+    {
+        return Convert.ToBase64String(RandomNumberGenerator.GetBytes(9));
+    }
+
+    private static bool IsValidEmail(string email)
+    {
+        var at = email.IndexOf('@');
+        return at > 0 && at < email.Length - 1;
+    }
+
+    private static string NormalizeEmail(string? email)
+    {
+        return email?.Trim().ToLowerInvariant() ?? string.Empty;
+    }
+
+    private static string? NormalizePhone(string? phone)
+    {
+        return string.IsNullOrWhiteSpace(phone) ? null : phone.Trim();
     }
 
     private static AuthServiceResult<T> Fail<T>(string code, string message, int statusCode)

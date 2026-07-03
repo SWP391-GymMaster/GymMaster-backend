@@ -5,7 +5,7 @@ namespace GymMaster.API.Services;
 
 public interface ITrainerService
 {
-    Task<AuthServiceResult<TrainerResponse>> CreateAsync(
+    Task<AuthServiceResult<CreateTrainerResponse>> CreateAsync(
         CreateTrainerRequest request, CancellationToken cancellationToken);
 
     Task<AuthServiceResult<PagedResult<TrainerResponse>>> ListAsync(

@@ -225,9 +225,21 @@ public sealed class UserService : IUserService
                     StatusCodes.Status400BadRequest);
             }
 
-            var roleEntity = await GetRoleAsync(role, cancellationToken);
-            user.UserRoles.Clear();
-            user.UserRoles.Add(new UserRole { User = user, Role = roleEntity });
+            var currentRole = user.UserRoles.Select(userRole => userRole.Role.Name).FirstOrDefault() ?? RoleNames.Member;
+            if (role != currentRole)
+            {
+                if (!IsOperationalRole(currentRole) || !IsOperationalRole(role))
+                {
+                    return Fail<AdminUserResponse>(
+                        "ROLE_TRANSITION_NOT_ALLOWED",
+                        "Khong the chuyen doi role giua nhan su van hanh (staff/admin) va hoi vien/PT. Tao ho so o man Hoi vien hoac Huan luyen vien.",
+                        StatusCodes.Status422UnprocessableEntity);
+                }
+
+                var roleEntity = await GetRoleAsync(role, cancellationToken);
+                user.UserRoles.Clear();
+                user.UserRoles.Add(new UserRole { User = user, Role = roleEntity });
+            }
         }
 
         user.UpdatedAt = DateTime.UtcNow;
@@ -393,6 +405,11 @@ public sealed class UserService : IUserService
 
         var normalized = role.Trim().ToLowerInvariant();
         return RoleNames.All.Contains(normalized) ? normalized : null;
+    }
+
+    private static bool IsOperationalRole(string role)
+    {
+        return role is RoleNames.Admin or RoleNames.Staff;
     }
 
     private static AuthServiceResult<T> Fail<T>(string code, string message, int statusCode)

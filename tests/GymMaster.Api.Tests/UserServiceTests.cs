@@ -1,0 +1,123 @@
+using GymMaster.API.Data;
+using GymMaster.API.DTOs;
+using GymMaster.API.Entities;
+using GymMaster.API.Services;
+using Microsoft.AspNetCore.Http;
+using Microsoft.EntityFrameworkCore;
+
+namespace GymMaster.Api.Tests;
+
+public class UserServiceTests
+{
+    private static GymMasterDbContext NewDb()
+    {
+        var options = new DbContextOptionsBuilder<GymMasterDbContext>()
+            .UseInMemoryDatabase($"gym-users-{Guid.NewGuid()}")
+            .Options;
+        return new GymMasterDbContext(options);
+    }
+
+    private static UserService NewService(GymMasterDbContext db) => new(db, new NoopAudit());
+
+    private static async Task<User> SeedUserAsync(GymMasterDbContext db, string roleName)
+    {
+        var role = new Role { Name = roleName, Description = $"{roleName} role" };
+        var user = new User
+        {
+            Email = $"{roleName}.{Guid.NewGuid():N}@gymmaster.local",
+            FullName = $"{roleName} user",
+            PasswordHash = "hash",
+            Status = UserStatuses.Active
+        };
+        user.UserRoles.Add(new UserRole { User = user, Role = role });
+        db.Roles.Add(role);
+        db.Users.Add(user);
+        await db.SaveChangesAsync();
+        return user;
+    }
+
+    [Fact]
+    public async Task Update_allows_staff_to_admin()
+    {
+        using var db = NewDb();
+        var user = await SeedUserAsync(db, RoleNames.Staff);
+
+        var result = await NewService(db).UpdateAsync(
+            user.Id,
+            new UpdateUserRequest(null, null, null, RoleNames.Admin),
+            default);
+
+        Assert.True(result.Succeeded);
+        Assert.Equal(RoleNames.Admin, result.Value!.Role);
+        Assert.Equal(RoleNames.Admin, await CurrentRoleAsync(db, user.Id));
+    }
+
+    [Fact]
+    public async Task Update_allows_admin_to_staff()
+    {
+        using var db = NewDb();
+        var user = await SeedUserAsync(db, RoleNames.Admin);
+
+        var result = await NewService(db).UpdateAsync(
+            user.Id,
+            new UpdateUserRequest(null, null, null, RoleNames.Staff),
+            default);
+
+        Assert.True(result.Succeeded);
+        Assert.Equal(RoleNames.Staff, result.Value!.Role);
+        Assert.Equal(RoleNames.Staff, await CurrentRoleAsync(db, user.Id));
+    }
+
+    [Fact]
+    public async Task Update_same_role_is_noop_success()
+    {
+        using var db = NewDb();
+        var user = await SeedUserAsync(db, RoleNames.Member);
+
+        var result = await NewService(db).UpdateAsync(
+            user.Id,
+            new UpdateUserRequest("Member Updated", null, null, RoleNames.Member),
+            default);
+
+        Assert.True(result.Succeeded);
+        Assert.Equal(RoleNames.Member, result.Value!.Role);
+        Assert.Equal("Member Updated", result.Value.FullName);
+        Assert.Equal(RoleNames.Member, await CurrentRoleAsync(db, user.Id));
+    }
+
+    [Theory]
+    [InlineData(RoleNames.Member, RoleNames.Staff)]
+    [InlineData(RoleNames.Staff, RoleNames.Pt)]
+    [InlineData(RoleNames.Pt, RoleNames.Member)]
+    public async Task Update_rejects_persona_role_transitions(string currentRole, string requestedRole)
+    {
+        using var db = NewDb();
+        var user = await SeedUserAsync(db, currentRole);
+
+        var result = await NewService(db).UpdateAsync(
+            user.Id,
+            new UpdateUserRequest(null, null, null, requestedRole),
+            default);
+
+        Assert.False(result.Succeeded);
+        Assert.Equal("ROLE_TRANSITION_NOT_ALLOWED", result.ErrorCode);
+        Assert.Equal(StatusCodes.Status422UnprocessableEntity, result.StatusCode);
+        Assert.Equal(currentRole, await CurrentRoleAsync(db, user.Id));
+    }
+
+    private static async Task<string> CurrentRoleAsync(GymMasterDbContext db, long userId)
+    {
+        var user = await db.Users
+            .Include(item => item.UserRoles)
+            .ThenInclude(item => item.Role)
+            .SingleAsync(item => item.Id == userId);
+
+        return user.UserRoles.Select(item => item.Role.Name).Single();
+    }
+
+    private sealed class NoopAudit : IAuditService
+    {
+        public Task LogAsync(string action, string entity, long entityId, object? metadata, CancellationToken ct)
+            => Task.CompletedTask;
+    }
+}
