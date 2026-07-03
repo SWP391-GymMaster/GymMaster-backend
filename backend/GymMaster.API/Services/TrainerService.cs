@@ -253,6 +253,16 @@ public sealed class TrainerService : ITrainerService
             profile.DateOfBirth = request.DateOfBirth;
         }
 
+        if (request.Address is not null)
+        {
+            profile.Address = string.IsNullOrWhiteSpace(request.Address) ? null : request.Address.Trim();
+        }
+
+        if (request.EmergencyContact is not null)
+        {
+            profile.EmergencyContact = string.IsNullOrWhiteSpace(request.EmergencyContact) ? null : request.EmergencyContact.Trim();
+        }
+
         if (request.YearsOfExperience is not null)
         {
             if (request.YearsOfExperience < 0)
@@ -302,6 +312,8 @@ public sealed class TrainerService : ITrainerService
             Bio = string.IsNullOrWhiteSpace(request.Bio) ? null : request.Bio.Trim(),
             Gender = string.IsNullOrWhiteSpace(request.Gender) ? null : request.Gender.Trim(),
             DateOfBirth = request.DateOfBirth,
+            Address = string.IsNullOrWhiteSpace(request.Address) ? null : request.Address.Trim(),
+            EmergencyContact = string.IsNullOrWhiteSpace(request.EmergencyContact) ? null : request.EmergencyContact.Trim(),
             YearsOfExperience = request.YearsOfExperience
         };
     }
@@ -318,6 +330,8 @@ public sealed class TrainerService : ITrainerService
             profile.Bio,
             profile.Gender,
             profile.DateOfBirth,
+            profile.Address,
+            profile.EmergencyContact,
             profile.YearsOfExperience,
             profile.CreatedAt);
     }

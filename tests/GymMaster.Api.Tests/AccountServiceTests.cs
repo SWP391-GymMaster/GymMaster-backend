@@ -66,6 +66,26 @@ public class AccountServiceTests
         await db.SaveChangesAsync();
     }
 
+    private static async Task<User> SeedUserAsync(GymMasterDbContext db, long id, string roleName)
+    {
+        var role = new Role { Name = roleName, Description = $"{roleName} role" };
+        var user = new User
+        {
+            Id = id,
+            Email = $"{roleName}.{id}@gymmaster.local",
+            FullName = $"{roleName} user",
+            Phone = $"090000{id:D4}",
+            PasswordHash = "hash",
+            Status = UserStatuses.Active,
+        };
+
+        user.UserRoles.Add(new UserRole { User = user, Role = role });
+        db.Roles.Add(role);
+        db.Users.Add(user);
+        await db.SaveChangesAsync();
+        return user;
+    }
+
     private static IFormFile FormFile(string contentType, long length)
     {
         var content = new MemoryStream(new byte[length]);
@@ -125,6 +145,100 @@ public class AccountServiceTests
         Assert.False(result.Succeeded);
         Assert.Equal("VALIDATION_ERROR", result.ErrorCode);
         Assert.Equal(0, storage.UploadCount);
+    }
+
+    [Fact]
+    public async Task GetProfile_staff_lazy_creates_once_and_reuses_profile()
+    {
+        using var db = NewDb();
+        var user = await SeedUserAsync(db, 20, RoleNames.Staff);
+        var service = NewService(db);
+
+        var first = await service.GetProfileAsync(Principal(user.Id, RoleNames.Staff), default);
+        var second = await service.GetProfileAsync(Principal(user.Id, RoleNames.Staff), default);
+
+        Assert.True(first.Succeeded);
+        Assert.True(second.Succeeded);
+        Assert.Single(await db.StaffProfiles.Where(item => item.UserId == user.Id).ToListAsync());
+    }
+
+    [Fact]
+    public async Task UpdateProfile_staff_updates_personal_profile()
+    {
+        using var db = NewDb();
+        var user = await SeedUserAsync(db, 21, RoleNames.Staff);
+        var dateOfBirth = new DateTime(1995, 3, 5);
+
+        var result = await NewService(db).UpdateProfileAsync(
+            Principal(user.Id, RoleNames.Staff),
+            new UpdatePersonalProfileRequest(dateOfBirth, " male ", " 1 Nguyen Trai ", " 0909123456 "),
+            default);
+
+        Assert.True(result.Succeeded);
+        Assert.Equal(dateOfBirth, result.Value!.DateOfBirth);
+        Assert.Equal("male", result.Value.Gender);
+        Assert.Equal("1 Nguyen Trai", result.Value.Address);
+        Assert.Equal("0909123456", result.Value.EmergencyContact);
+    }
+
+    [Fact]
+    public async Task UpdateProfile_pt_updates_personal_fields_without_touching_specialty()
+    {
+        using var db = NewDb();
+        var user = await SeedUserAsync(db, 22, RoleNames.Pt);
+        db.TrainerProfiles.Add(new TrainerProfile
+        {
+            UserId = user.Id,
+            User = user,
+            Specialty = "Strength",
+            Bio = "Coach bio"
+        });
+        await db.SaveChangesAsync();
+
+        var result = await NewService(db).UpdateProfileAsync(
+            Principal(user.Id, RoleNames.Pt),
+            new UpdatePersonalProfileRequest(null, " female ", " PT address ", " 0909888777 "),
+            default);
+
+        Assert.True(result.Succeeded);
+        Assert.Equal("female", result.Value!.Gender);
+        Assert.Equal("PT address", result.Value.Address);
+
+        var profile = await db.TrainerProfiles.SingleAsync(item => item.UserId == user.Id);
+        Assert.Equal("Strength", profile.Specialty);
+        Assert.Equal("Coach bio", profile.Bio);
+    }
+
+    [Fact]
+    public async Task UpdateProfile_pt_without_profile_returns_not_found()
+    {
+        using var db = NewDb();
+        var user = await SeedUserAsync(db, 23, RoleNames.Pt);
+
+        var result = await NewService(db).UpdateProfileAsync(
+            Principal(user.Id, RoleNames.Pt),
+            new UpdatePersonalProfileRequest(null, null, "PT address", null),
+            default);
+
+        Assert.False(result.Succeeded);
+        Assert.Equal("NOT_FOUND", result.ErrorCode);
+        Assert.Equal(StatusCodes.Status404NotFound, result.StatusCode);
+    }
+
+    [Fact]
+    public async Task UpdateProfile_member_returns_not_supported()
+    {
+        using var db = NewDb();
+        var user = await SeedUserAsync(db, 24, RoleNames.Member);
+
+        var result = await NewService(db).UpdateProfileAsync(
+            Principal(user.Id, RoleNames.Member),
+            new UpdatePersonalProfileRequest(null, null, "Member address", null),
+            default);
+
+        Assert.False(result.Succeeded);
+        Assert.Equal("NOT_SUPPORTED", result.ErrorCode);
+        Assert.Equal(StatusCodes.Status400BadRequest, result.StatusCode);
     }
 
     private sealed class NoopAudit : IAuditService

@@ -143,8 +143,9 @@ public sealed class UserService : IUserService
             .ToListAsync(cancellationToken);
 
         var totalPages = (int)Math.Ceiling(total / (double)pageSize);
+        var profileByUserId = await GetStaffProfileMapAsync(items, cancellationToken);
         var result = new PagedResult<AdminUserResponse>(
-            items.Select(ToResponse).ToList(),
+            items.Select(user => ToResponse(user, profileByUserId)).ToList(),
             page,
             pageSize,
             total,
@@ -161,7 +162,8 @@ public sealed class UserService : IUserService
 
         return user is null
             ? Fail<AdminUserResponse>("NOT_FOUND", "Khong tim thay nguoi dung.", StatusCodes.Status404NotFound)
-            : AuthServiceResult<AdminUserResponse>.Success(ToResponse(user));
+            : AuthServiceResult<AdminUserResponse>.Success(
+                ToResponse(user, await GetStaffProfileAsync(user.Id, cancellationToken)));
     }
 
     // FR-MEM-03: validate va luu, cap nhat UpdatedAt.
@@ -228,18 +230,27 @@ public sealed class UserService : IUserService
             var currentRole = user.UserRoles.Select(userRole => userRole.Role.Name).FirstOrDefault() ?? RoleNames.Member;
             if (role != currentRole)
             {
-                if (!IsOperationalRole(currentRole) || !IsOperationalRole(role))
-                {
-                    return Fail<AdminUserResponse>(
-                        "ROLE_TRANSITION_NOT_ALLOWED",
-                        "Khong the chuyen doi role giua nhan su van hanh (staff/admin) va hoi vien/PT. Tao ho so o man Hoi vien hoac Huan luyen vien.",
-                        StatusCodes.Status422UnprocessableEntity);
-                }
-
-                var roleEntity = await GetRoleAsync(role, cancellationToken);
-                user.UserRoles.Clear();
-                user.UserRoles.Add(new UserRole { User = user, Role = roleEntity });
+                return Fail<AdminUserResponse>(
+                    "ROLE_TRANSITION_NOT_ALLOWED",
+                    "Role duoc gan khi tao tai khoan va khong the thay doi. Muon doi vai tro: tao tai khoan moi o man tuong ung va khoa/xoa tai khoan cu.",
+                    StatusCodes.Status422UnprocessableEntity);
             }
+        }
+
+        StaffProfile? staffProfile = null;
+        if (HasPersonalProfileFields(request))
+        {
+            var currentRole = user.UserRoles.Select(userRole => userRole.Role.Name).FirstOrDefault() ?? RoleNames.Member;
+            if (currentRole is not (RoleNames.Admin or RoleNames.Staff))
+            {
+                return Fail<AdminUserResponse>(
+                    "VALIDATION_ERROR",
+                    "Ho so ca nhan cua hoi vien/PT duoc quan ly o man tuong ung.",
+                    StatusCodes.Status422UnprocessableEntity);
+            }
+
+            staffProfile = await GetOrCreateStaffProfileAsync(user, cancellationToken);
+            ApplyPersonalProfile(staffProfile, request);
         }
 
         user.UpdatedAt = DateTime.UtcNow;
@@ -247,7 +258,8 @@ public sealed class UserService : IUserService
 
         await _auditService.LogAsync("UPDATE_USER", "User", user.Id, null, cancellationToken);
 
-        return AuthServiceResult<AdminUserResponse>.Success(ToResponse(user));
+        return AuthServiceResult<AdminUserResponse>.Success(
+            ToResponse(user, staffProfile ?? await GetStaffProfileAsync(user.Id, cancellationToken)));
     }
 
     // Cap nhat status Active/Locked cho user (PATCH /users/{id}/status).
@@ -279,7 +291,8 @@ public sealed class UserService : IUserService
 
         await _auditService.LogAsync("UPDATE_USER_STATUS", "User", user.Id, new { status = normalizedStatus }, cancellationToken);
 
-        return AuthServiceResult<AdminUserResponse>.Success(ToResponse(user));
+        return AuthServiceResult<AdminUserResponse>.Success(
+            ToResponse(user, await GetStaffProfileAsync(user.Id, cancellationToken)));
     }
 
     // Reset mat khau tam cho user (POST /users/{id}/reset-password).
@@ -349,17 +362,105 @@ public sealed class UserService : IUserService
         return role;
     }
 
-    private static AdminUserResponse ToResponse(User user)
+    private async Task<Dictionary<long, StaffProfile>> GetStaffProfileMapAsync(
+        IReadOnlyCollection<User> users,
+        CancellationToken cancellationToken)
     {
+        var userIds = users
+            .Where(user => (user.UserRoles.Select(userRole => userRole.Role.Name).FirstOrDefault() ?? RoleNames.Member)
+                is RoleNames.Admin or RoleNames.Staff)
+            .Select(user => user.Id)
+            .ToArray();
+
+        return userIds.Length == 0
+            ? new Dictionary<long, StaffProfile>()
+            : await _dbContext.StaffProfiles
+                .Where(profile => userIds.Contains(profile.UserId) && !profile.IsDeleted)
+                .ToDictionaryAsync(profile => profile.UserId, cancellationToken);
+    }
+
+    private async Task<StaffProfile?> GetStaffProfileAsync(long userId, CancellationToken cancellationToken)
+    {
+        return await _dbContext.StaffProfiles
+            .FirstOrDefaultAsync(profile => profile.UserId == userId && !profile.IsDeleted, cancellationToken);
+    }
+
+    private async Task<StaffProfile> GetOrCreateStaffProfileAsync(User user, CancellationToken cancellationToken)
+    {
+        var profile = await GetStaffProfileAsync(user.Id, cancellationToken);
+        if (profile is not null)
+        {
+            return profile;
+        }
+
+        profile = new StaffProfile
+        {
+            UserId = user.Id,
+            User = user
+        };
+
+        _dbContext.StaffProfiles.Add(profile);
+        await _dbContext.SaveChangesAsync(cancellationToken);
+        return profile;
+    }
+
+    private static bool HasPersonalProfileFields(UpdateUserRequest request)
+    {
+        return request.DateOfBirth is not null ||
+            request.Gender is not null ||
+            request.Address is not null ||
+            request.EmergencyContact is not null;
+    }
+
+    private static void ApplyPersonalProfile(StaffProfile profile, UpdateUserRequest request)
+    {
+        if (request.DateOfBirth is not null)
+        {
+            profile.DateOfBirth = request.DateOfBirth;
+        }
+
+        if (request.Gender is not null)
+        {
+            profile.Gender = string.IsNullOrWhiteSpace(request.Gender) ? null : request.Gender.Trim();
+        }
+
+        if (request.Address is not null)
+        {
+            profile.Address = string.IsNullOrWhiteSpace(request.Address) ? null : request.Address.Trim();
+        }
+
+        if (request.EmergencyContact is not null)
+        {
+            profile.EmergencyContact = string.IsNullOrWhiteSpace(request.EmergencyContact) ? null : request.EmergencyContact.Trim();
+        }
+
+        profile.UpdatedAt = DateTime.UtcNow;
+    }
+
+    private static AdminUserResponse ToResponse(User user, IReadOnlyDictionary<long, StaffProfile> profileByUserId)
+    {
+        profileByUserId.TryGetValue(user.Id, out var profile);
+        return ToResponse(user, profile);
+    }
+
+    private static AdminUserResponse ToResponse(User user, StaffProfile? profile = null)
+    {
+        var role = user.UserRoles.Select(userRole => userRole.Role.Name).FirstOrDefault() ?? RoleNames.Member;
+        var visibleProfile = role is RoleNames.Admin or RoleNames.Staff ? profile : null;
+
         return new AdminUserResponse(
             user.Id,
             user.Email,
             user.FullName,
             user.Phone,
-            user.UserRoles.Select(userRole => userRole.Role.Name).FirstOrDefault() ?? RoleNames.Member,
+            role,
             user.Status,
             user.LastLoginAt,
-            user.CreatedAt);
+            user.CreatedAt,
+            visibleProfile?.DateOfBirth,
+            visibleProfile?.Gender,
+            visibleProfile?.Address,
+            visibleProfile?.EmergencyContact);
     }
 
     private static CreateUserResponse ToCreateResponse(User user, string password, bool autoGenerated)
@@ -405,11 +506,6 @@ public sealed class UserService : IUserService
 
         var normalized = role.Trim().ToLowerInvariant();
         return RoleNames.All.Contains(normalized) ? normalized : null;
-    }
-
-    private static bool IsOperationalRole(string role)
-    {
-        return role is RoleNames.Admin or RoleNames.Staff;
     }
 
     private static AuthServiceResult<T> Fail<T>(string code, string message, int statusCode)

@@ -3,6 +3,7 @@ using GymMaster.API.Data;
 using GymMaster.API.DTOs;
 using GymMaster.API.Entities;
 using Microsoft.AspNetCore.Http;
+using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.JsonWebTokens;
 
@@ -133,6 +134,88 @@ public sealed class AccountService : IAccountService
             ToUserResponse(user, await GetMemberProfileIdAsync(user.Id, cancellationToken)));
     }
 
+    public async Task<AuthServiceResult<PersonalProfileResponse>> GetProfileAsync(
+        ClaimsPrincipal principal,
+        CancellationToken cancellationToken)
+    {
+        var user = await GetUserFromPrincipalAsync(principal, cancellationToken);
+
+        if (user is null)
+        {
+            return Fail<PersonalProfileResponse>(
+                "UNAUTHORIZED",
+                "Token khong hop le.",
+                StatusCodes.Status401Unauthorized);
+        }
+
+        return GetPrimaryRole(user) switch
+        {
+            RoleNames.Admin or RoleNames.Staff => AuthServiceResult<PersonalProfileResponse>.Success(
+                ToPersonalProfileResponse(await GetOrCreateStaffProfileAsync(user, cancellationToken))),
+            RoleNames.Pt => await GetTrainerPersonalProfileAsync(user.Id, cancellationToken),
+            RoleNames.Member => Fail<PersonalProfileResponse>(
+                "NOT_SUPPORTED",
+                "Hoi vien cap nhat ho so tai /api/v1/members/me.",
+                StatusCodes.Status400BadRequest),
+            _ => Fail<PersonalProfileResponse>(
+                "NOT_SUPPORTED",
+                "Vai tro khong duoc ho tro.",
+                StatusCodes.Status400BadRequest)
+        };
+    }
+
+    public async Task<AuthServiceResult<PersonalProfileResponse>> UpdateProfileAsync(
+        ClaimsPrincipal principal,
+        UpdatePersonalProfileRequest request,
+        CancellationToken cancellationToken)
+    {
+        var user = await GetUserFromPrincipalAsync(principal, cancellationToken);
+
+        if (user is null)
+        {
+            return Fail<PersonalProfileResponse>(
+                "UNAUTHORIZED",
+                "Token khong hop le.",
+                StatusCodes.Status401Unauthorized);
+        }
+
+        var role = GetPrimaryRole(user);
+        if (role is RoleNames.Admin or RoleNames.Staff)
+        {
+            var profile = await GetOrCreateStaffProfileAsync(user, cancellationToken);
+            ApplyPersonalProfile(profile, request);
+            await _dbContext.SaveChangesAsync(cancellationToken);
+            await _auditService.LogAsync("UPDATE_PERSONAL_PROFILE", "StaffProfile", profile.Id, null, cancellationToken);
+
+            return AuthServiceResult<PersonalProfileResponse>.Success(ToPersonalProfileResponse(profile));
+        }
+
+        if (role == RoleNames.Pt)
+        {
+            var profile = await _dbContext.TrainerProfiles
+                .FirstOrDefaultAsync(item => item.UserId == user.Id && !item.IsDeleted, cancellationToken);
+
+            if (profile is null)
+            {
+                return Fail<PersonalProfileResponse>(
+                    "NOT_FOUND",
+                    "Chua co ho so huan luyen vien - lien he quan tri vien.",
+                    StatusCodes.Status404NotFound);
+            }
+
+            ApplyPersonalProfile(profile, request);
+            await _dbContext.SaveChangesAsync(cancellationToken);
+            await _auditService.LogAsync("UPDATE_PERSONAL_PROFILE", "TrainerProfile", profile.Id, null, cancellationToken);
+
+            return AuthServiceResult<PersonalProfileResponse>.Success(ToPersonalProfileResponse(profile));
+        }
+
+        return Fail<PersonalProfileResponse>(
+            "NOT_SUPPORTED",
+            "Hoi vien cap nhat ho so tai /api/v1/members/me.",
+            StatusCodes.Status400BadRequest);
+    }
+
     private async Task<User?> GetUserFromPrincipalAsync(
         ClaimsPrincipal principal,
         CancellationToken cancellationToken)
@@ -153,6 +236,140 @@ public sealed class AccountService : IAccountService
             .Where(profile => profile.UserId == userId && !profile.IsDeleted)
             .Select(profile => (long?)profile.Id)
             .FirstOrDefaultAsync(cancellationToken);
+    }
+
+    private async Task<StaffProfile> GetOrCreateStaffProfileAsync(
+        User user,
+        CancellationToken cancellationToken)
+    {
+        var profile = await FindStaffProfileAsync(user.Id, cancellationToken);
+        if (profile is not null)
+        {
+            return profile;
+        }
+
+        profile = new StaffProfile
+        {
+            UserId = user.Id,
+            User = user
+        };
+
+        _dbContext.StaffProfiles.Add(profile);
+
+        try
+        {
+            await _dbContext.SaveChangesAsync(cancellationToken);
+        }
+        catch (DbUpdateException exception) when (IsStaffProfileUserUniqueViolation(exception))
+        {
+            _dbContext.Entry(profile).State = EntityState.Detached;
+
+            profile = await FindStaffProfileAsync(user.Id, cancellationToken);
+            if (profile is not null)
+            {
+                return profile;
+            }
+
+            throw;
+        }
+
+        await _auditService.LogAsync(
+            "CREATE_STAFF_PROFILE",
+            "StaffProfile",
+            profile.Id,
+            new { selfService = true },
+            cancellationToken);
+
+        return profile;
+    }
+
+    private Task<StaffProfile?> FindStaffProfileAsync(long userId, CancellationToken cancellationToken)
+    {
+        return _dbContext.StaffProfiles
+            .FirstOrDefaultAsync(profile => profile.UserId == userId && !profile.IsDeleted, cancellationToken);
+    }
+
+    private async Task<AuthServiceResult<PersonalProfileResponse>> GetTrainerPersonalProfileAsync(
+        long userId,
+        CancellationToken cancellationToken)
+    {
+        var profile = await _dbContext.TrainerProfiles
+            .FirstOrDefaultAsync(item => item.UserId == userId && !item.IsDeleted, cancellationToken);
+
+        return profile is null
+            ? Fail<PersonalProfileResponse>(
+                "NOT_FOUND",
+                "Chua co ho so huan luyen vien - lien he quan tri vien.",
+                StatusCodes.Status404NotFound)
+            : AuthServiceResult<PersonalProfileResponse>.Success(ToPersonalProfileResponse(profile));
+    }
+
+    private static void ApplyPersonalProfile(StaffProfile profile, UpdatePersonalProfileRequest request)
+    {
+        if (request.DateOfBirth is not null)
+        {
+            profile.DateOfBirth = request.DateOfBirth;
+        }
+
+        if (request.Gender is not null)
+        {
+            profile.Gender = string.IsNullOrWhiteSpace(request.Gender) ? null : request.Gender.Trim();
+        }
+
+        if (request.Address is not null)
+        {
+            profile.Address = string.IsNullOrWhiteSpace(request.Address) ? null : request.Address.Trim();
+        }
+
+        if (request.EmergencyContact is not null)
+        {
+            profile.EmergencyContact = string.IsNullOrWhiteSpace(request.EmergencyContact) ? null : request.EmergencyContact.Trim();
+        }
+
+        profile.UpdatedAt = DateTime.UtcNow;
+    }
+
+    private static void ApplyPersonalProfile(TrainerProfile profile, UpdatePersonalProfileRequest request)
+    {
+        if (request.DateOfBirth is not null)
+        {
+            profile.DateOfBirth = request.DateOfBirth;
+        }
+
+        if (request.Gender is not null)
+        {
+            profile.Gender = string.IsNullOrWhiteSpace(request.Gender) ? null : request.Gender.Trim();
+        }
+
+        if (request.Address is not null)
+        {
+            profile.Address = string.IsNullOrWhiteSpace(request.Address) ? null : request.Address.Trim();
+        }
+
+        if (request.EmergencyContact is not null)
+        {
+            profile.EmergencyContact = string.IsNullOrWhiteSpace(request.EmergencyContact) ? null : request.EmergencyContact.Trim();
+        }
+
+        profile.UpdatedAt = DateTime.UtcNow;
+    }
+
+    private static PersonalProfileResponse ToPersonalProfileResponse(StaffProfile profile)
+    {
+        return new PersonalProfileResponse(
+            profile.DateOfBirth,
+            profile.Gender,
+            profile.Address,
+            profile.EmergencyContact);
+    }
+
+    private static PersonalProfileResponse ToPersonalProfileResponse(TrainerProfile profile)
+    {
+        return new PersonalProfileResponse(
+            profile.DateOfBirth,
+            profile.Gender,
+            profile.Address,
+            profile.EmergencyContact);
     }
 
     private static AuthUserResponse ToUserResponse(User user, long? memberProfileId)
@@ -178,6 +395,12 @@ public sealed class AccountService : IAccountService
             principal.FindFirstValue(JwtRegisteredClaimNames.Sub);
 
         return long.TryParse(value, out var userId) ? userId : null;
+    }
+
+    private static bool IsStaffProfileUserUniqueViolation(DbUpdateException exception)
+    {
+        return exception.InnerException is SqlException { Number: 2601 or 2627 } sqlException &&
+            sqlException.Message.Contains("IX_staff_profiles_UserId", StringComparison.OrdinalIgnoreCase);
     }
 
     private static string? NormalizePhone(string? phone)

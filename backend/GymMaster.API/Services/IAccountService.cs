@@ -11,6 +11,15 @@ public interface IAccountService
         UpdateMyAccountRequest request,
         CancellationToken cancellationToken);
 
+    Task<AuthServiceResult<PersonalProfileResponse>> GetProfileAsync(
+        ClaimsPrincipal principal,
+        CancellationToken cancellationToken);
+
+    Task<AuthServiceResult<PersonalProfileResponse>> UpdateProfileAsync(
+        ClaimsPrincipal principal,
+        UpdatePersonalProfileRequest request,
+        CancellationToken cancellationToken);
+
     Task<AuthServiceResult<AuthUserResponse>> UploadAvatarAsync(
         ClaimsPrincipal principal,
         IFormFile? file,

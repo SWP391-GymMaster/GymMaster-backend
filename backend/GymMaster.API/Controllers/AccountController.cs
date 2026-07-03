@@ -26,6 +26,22 @@ public sealed class AccountController : ApiControllerBase
         return ToActionResult(result);
     }
 
+    [HttpGet("profile")]
+    public async Task<IActionResult> GetProfile(CancellationToken cancellationToken)
+    {
+        var result = await _accountService.GetProfileAsync(User, cancellationToken);
+        return ToActionResult(result);
+    }
+
+    [HttpPut("profile")]
+    public async Task<IActionResult> UpdateProfile(
+        [FromBody] UpdatePersonalProfileRequest request,
+        CancellationToken cancellationToken)
+    {
+        var result = await _accountService.UpdateProfileAsync(User, request, cancellationToken);
+        return ToActionResult(result);
+    }
+
     [HttpPost("avatar")]
     [RequestSizeLimit(5 * 1024 * 1024)]
     public async Task<IActionResult> UploadAvatar(

@@ -12,7 +12,9 @@ public sealed record CreateTrainerRequest(
     string? Bio,
     string? Gender,
     DateTime? DateOfBirth,
-    int? YearsOfExperience);
+    int? YearsOfExperience,
+    string? Address = null,
+    string? EmergencyContact = null);
 
 public sealed record CreateTrainerResponse(
     TrainerResponse Trainer,
@@ -25,7 +27,9 @@ public sealed record UpdateTrainerRequest(
     string? Bio,
     string? Gender,
     DateTime? DateOfBirth,
-    int? YearsOfExperience);
+    int? YearsOfExperience,
+    string? Address = null,
+    string? EmergencyContact = null);
 
 public sealed record TrainerResponse(
     long Id,
@@ -37,5 +41,7 @@ public sealed record TrainerResponse(
     string? Bio,
     string? Gender,
     DateTime? DateOfBirth,
+    string? Address,
+    string? EmergencyContact,
     int? YearsOfExperience,
     DateTime CreatedAt);

@@ -247,6 +247,75 @@ public class TrainerServiceTests
         Assert.Equal(StatusCodes.Status422UnprocessableEntity, result.StatusCode);
     }
 
+    [Fact]
+    public async Task Contact_fields_roundtrip_through_create_link_and_update()
+    {
+        using var db = NewDb();
+        var service = NewService(db);
+
+        var created = await service.CreateAsync(
+            new CreateTrainerRequest(
+                null,
+                "Contact Coach",
+                "contact.coach@gymmaster.local",
+                null,
+                null,
+                "Mobility",
+                null,
+                null,
+                null,
+                null,
+                " 123 Coach Street ",
+                " 0900111222 "),
+            default);
+
+        Assert.True(created.Succeeded);
+        Assert.Equal("123 Coach Street", created.Value!.Trainer.Address);
+        Assert.Equal("0900111222", created.Value.Trainer.EmergencyContact);
+
+        var updated = await service.UpdateAsync(
+            created.Value.Trainer.Id,
+            new UpdateTrainerRequest(null, null, null, null, null, " ", " 0900333444 "),
+            default);
+
+        Assert.True(updated.Succeeded);
+        Assert.Null(updated.Value!.Address);
+        Assert.Equal("0900333444", updated.Value.EmergencyContact);
+
+        var role = await SeedRoleAsync(db, RoleNames.Pt);
+        var user = new User
+        {
+            Id = 50,
+            Email = "linked.contact@gymmaster.local",
+            FullName = "Linked Contact",
+            PasswordHash = "hash",
+            Status = UserStatuses.Active
+        };
+        user.UserRoles.Add(new UserRole { User = user, Role = role });
+        db.Users.Add(user);
+        await db.SaveChangesAsync();
+
+        var linked = await service.CreateAsync(
+            new CreateTrainerRequest(
+                user.Id,
+                null,
+                null,
+                null,
+                null,
+                "Strength",
+                null,
+                null,
+                null,
+                null,
+                "Linked address",
+                "0900555666"),
+            default);
+
+        Assert.True(linked.Succeeded);
+        Assert.Equal("Linked address", linked.Value!.Trainer.Address);
+        Assert.Equal("0900555666", linked.Value.Trainer.EmergencyContact);
+    }
+
     private sealed class NoopAudit : IAuditService
     {
         public Task LogAsync(string action, string entity, long entityId, object? metadata, CancellationToken ct)

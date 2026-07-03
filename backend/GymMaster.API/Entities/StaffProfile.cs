@@ -1,6 +1,6 @@
 namespace GymMaster.API.Entities;
 
-public sealed class TrainerProfile
+public sealed class StaffProfile
 {
     public long Id { get; set; }
 
@@ -8,19 +8,13 @@ public sealed class TrainerProfile
 
     public User User { get; set; } = null!;
 
-    public string? Specialty { get; set; }
-
-    public string? Bio { get; set; }
+    public DateTime? DateOfBirth { get; set; }
 
     public string? Gender { get; set; }
-
-    public DateTime? DateOfBirth { get; set; }
 
     public string? Address { get; set; }
 
     public string? EmergencyContact { get; set; }
-
-    public int? YearsOfExperience { get; set; }
 
     public bool IsDeleted { get; set; }
 

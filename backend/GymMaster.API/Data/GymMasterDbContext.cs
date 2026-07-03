@@ -22,6 +22,8 @@ public sealed class GymMasterDbContext : DbContext
 
     public DbSet<MemberProfile> MemberProfiles => Set<MemberProfile>();
 
+    public DbSet<StaffProfile> StaffProfiles => Set<StaffProfile>();
+
     public DbSet<TrainerProfile> TrainerProfiles => Set<TrainerProfile>();
 
     public DbSet<AuditLog> AuditLogs => Set<AuditLog>();
@@ -66,8 +68,8 @@ public sealed class GymMasterDbContext : DbContext
             entity.Property(user => user.FullName).HasMaxLength(150).IsRequired();
             entity.Property(user => user.AvatarUrl).HasMaxLength(500);
             entity.Property(user => user.Status).HasMaxLength(20).IsRequired();
-            entity.HasIndex(user => user.Email).IsUnique();
-            entity.HasIndex(user => user.Phone).IsUnique().HasFilter("[Phone] IS NOT NULL");
+            entity.HasIndex(user => user.Email).IsUnique().HasFilter("[IsDeleted] = 0");
+            entity.HasIndex(user => user.Phone).IsUnique().HasFilter("[Phone] IS NOT NULL AND [IsDeleted] = 0");
         });
 
         modelBuilder.Entity<Role>(entity =>
@@ -134,6 +136,21 @@ public sealed class GymMasterDbContext : DbContext
                 .HasForeignKey(profile => profile.UserId);
         });
 
+        modelBuilder.Entity<StaffProfile>(entity =>
+        {
+            entity.ToTable("staff_profiles");
+            entity.HasKey(profile => profile.Id);
+            entity.Property(profile => profile.Gender).HasMaxLength(20);
+            entity.Property(profile => profile.Address).HasMaxLength(255);
+            entity.Property(profile => profile.EmergencyContact).HasMaxLength(100);
+            entity.HasIndex(profile => profile.UserId).IsUnique();
+
+            entity
+                .HasOne(profile => profile.User)
+                .WithMany()
+                .HasForeignKey(profile => profile.UserId);
+        });
+
         modelBuilder.Entity<TrainerProfile>(entity =>
         {
             entity.ToTable("trainer_profiles");
@@ -141,6 +158,8 @@ public sealed class GymMasterDbContext : DbContext
             entity.Property(profile => profile.Specialty).HasMaxLength(150);
             entity.Property(profile => profile.Bio).HasMaxLength(1000);
             entity.Property(profile => profile.Gender).HasMaxLength(20);
+            entity.Property(profile => profile.Address).HasMaxLength(255);
+            entity.Property(profile => profile.EmergencyContact).HasMaxLength(100);
             entity.HasIndex(profile => profile.UserId).IsUnique();
 
             entity
