@@ -49,6 +49,14 @@ public sealed class AccountService : IAccountService
                 StatusCodes.Status401Unauthorized);
         }
 
+        var personError = PersonValidation.Validate(
+            fullName: request.FullName,
+            phone: request.Phone);
+        if (personError is not null)
+        {
+            return Fail<AuthUserResponse>("VALIDATION_ERROR", personError, StatusCodes.Status400BadRequest);
+        }
+
         if (!string.IsNullOrWhiteSpace(request.FullName))
         {
             user.FullName = request.FullName.Trim();
@@ -177,6 +185,16 @@ public sealed class AccountService : IAccountService
                 "UNAUTHORIZED",
                 "Token khong hop le.",
                 StatusCodes.Status401Unauthorized);
+        }
+
+        var personError = PersonValidation.Validate(
+            dateOfBirth: request.DateOfBirth,
+            gender: request.Gender,
+            address: request.Address,
+            emergencyContact: request.EmergencyContact);
+        if (personError is not null)
+        {
+            return Fail<PersonalProfileResponse>("VALIDATION_ERROR", personError, StatusCodes.Status400BadRequest);
         }
 
         var role = GetPrimaryRole(user);

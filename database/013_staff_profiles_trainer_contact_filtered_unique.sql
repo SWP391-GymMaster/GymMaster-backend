@@ -1,3 +1,8 @@
+-- Filtered index (WHERE ...) yeu cau QUOTED_IDENTIFIER ON + ANSI_NULLS ON.
+SET QUOTED_IDENTIFIER ON;
+SET ANSI_NULLS ON;
+GO
+
 IF OBJECT_ID('dbo.staff_profiles', 'U') IS NULL
 BEGIN
     CREATE TABLE dbo.staff_profiles (

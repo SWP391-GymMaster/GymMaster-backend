@@ -7,7 +7,12 @@ public sealed record CreateUserRequest(
     string Email,
     string? Phone,
     string Role,
-    string? Password);
+    string? Password,
+    // Thong tin ca nhan nhap ngay luc tao (ghi vao staff_profiles cho staff/admin).
+    DateTime? DateOfBirth = null,
+    string? Gender = null,
+    string? Address = null,
+    string? EmergencyContact = null);
 
 public sealed record UpdateUserRequest(
     string? FullName,

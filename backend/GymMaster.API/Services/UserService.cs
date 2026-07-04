@@ -62,6 +62,18 @@ public sealed class UserService : IUserService
                 StatusCodes.Status400BadRequest);
         }
 
+        var personError = PersonValidation.Validate(
+            fullName: request.FullName,
+            phone: request.Phone,
+            dateOfBirth: request.DateOfBirth,
+            gender: request.Gender,
+            address: request.Address,
+            emergencyContact: request.EmergencyContact);
+        if (personError is not null)
+        {
+            return Fail<CreateUserResponse>("VALIDATION_ERROR", personError, StatusCodes.Status400BadRequest);
+        }
+
         // FR-USR-02: email/phone da ton tai -> 409.
         if (await _dbContext.Users.AnyAsync(user => user.Email == email && !user.IsDeleted, cancellationToken))
         {
@@ -95,6 +107,26 @@ public sealed class UserService : IUserService
 
         user.UserRoles.Add(new UserRole { User = user, Role = roleEntity });
         _dbContext.Users.Add(user);
+
+        // Staff/admin: ghi luon thong tin ca nhan vao staff_profiles neu admin da nhap.
+        var hasPersonalFields = request.DateOfBirth is not null ||
+            request.Gender is not null ||
+            request.Address is not null ||
+            request.EmergencyContact is not null;
+        if (hasPersonalFields && role is RoleNames.Admin or RoleNames.Staff)
+        {
+            _dbContext.StaffProfiles.Add(new StaffProfile
+            {
+                User = user,
+                DateOfBirth = request.DateOfBirth,
+                Gender = string.IsNullOrWhiteSpace(request.Gender) ? null : request.Gender.Trim(),
+                Address = string.IsNullOrWhiteSpace(request.Address) ? null : request.Address.Trim(),
+                EmergencyContact = string.IsNullOrWhiteSpace(request.EmergencyContact)
+                    ? null
+                    : request.EmergencyContact.Trim()
+            });
+        }
+
         await _dbContext.SaveChangesAsync(cancellationToken);
 
         await _auditService.LogAsync("CREATE_USER", "User", user.Id, new { role }, cancellationToken);
@@ -177,6 +209,18 @@ public sealed class UserService : IUserService
         if (user is null)
         {
             return Fail<AdminUserResponse>("NOT_FOUND", "Khong tim thay nguoi dung.", StatusCodes.Status404NotFound);
+        }
+
+        var personError = PersonValidation.Validate(
+            fullName: request.FullName,
+            phone: request.Phone,
+            dateOfBirth: request.DateOfBirth,
+            gender: request.Gender,
+            address: request.Address,
+            emergencyContact: request.EmergencyContact);
+        if (personError is not null)
+        {
+            return Fail<AdminUserResponse>("VALIDATION_ERROR", personError, StatusCodes.Status400BadRequest);
         }
 
         if (!string.IsNullOrWhiteSpace(request.FullName))

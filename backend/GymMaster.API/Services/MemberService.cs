@@ -49,6 +49,18 @@ public sealed class MemberService : IMemberService
                 "VALIDATION_ERROR", "Mat khau phai co it nhat 6 ky tu.", StatusCodes.Status400BadRequest);
         }
 
+        var personError = PersonValidation.Validate(
+            fullName: request.FullName,
+            phone: request.Phone,
+            dateOfBirth: request.DateOfBirth,
+            gender: request.Gender,
+            address: request.Address,
+            emergencyContact: request.EmergencyContact);
+        if (personError is not null)
+        {
+            return Fail<CreateMemberResponse>("VALIDATION_ERROR", personError, StatusCodes.Status400BadRequest);
+        }
+
         // Neu email da ton tai: chi gan ho so vao tai khoan member da co, KHONG dung toi mat khau (bao mat).
         var existing = await _dbContext.Users
             .Include(item => item.UserRoles)
@@ -279,6 +291,18 @@ public sealed class MemberService : IMemberService
         if (!CanAccess(principal, profile))
         {
             return Fail<MemberResponse>("FORBIDDEN", "Ban khong co quyen sua ho so nay.", StatusCodes.Status403Forbidden);
+        }
+
+        var personError = PersonValidation.Validate(
+            fullName: request.FullName,
+            phone: request.Phone,
+            dateOfBirth: request.DateOfBirth,
+            gender: request.Gender,
+            address: request.Address,
+            emergencyContact: request.EmergencyContact);
+        if (personError is not null)
+        {
+            return Fail<MemberResponse>("VALIDATION_ERROR", personError, StatusCodes.Status400BadRequest);
         }
 
         if (!string.IsNullOrWhiteSpace(request.FullName))
