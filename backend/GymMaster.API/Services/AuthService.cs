@@ -25,7 +25,6 @@ public sealed class AuthService : IAuthService
     private readonly GymMasterDbContext _dbContext;
     private readonly JwtOptions _jwtOptions;
     private readonly GoogleAuthOptions _googleOptions;
-    private readonly IGoogleTokenValidator _googleTokenValidator;
     private readonly IWebHostEnvironment _environment;
     private readonly IEmailSender _emailSender;
     private readonly EmailOptions _emailOptions;
@@ -34,7 +33,6 @@ public sealed class AuthService : IAuthService
         GymMasterDbContext dbContext,
         IOptions<JwtOptions> jwtOptions,
         IOptions<GoogleAuthOptions> googleOptions,
-        IGoogleTokenValidator googleTokenValidator,
         IWebHostEnvironment environment,
         IEmailSender emailSender,
         IOptions<EmailOptions> emailOptions)
@@ -42,7 +40,6 @@ public sealed class AuthService : IAuthService
         _dbContext = dbContext;
         _jwtOptions = jwtOptions.Value;
         _googleOptions = googleOptions.Value;
-        _googleTokenValidator = googleTokenValidator;
         _environment = environment;
         _emailSender = emailSender;
         _emailOptions = emailOptions.Value;
@@ -441,14 +438,16 @@ public sealed class AuthService : IAuthService
                 StatusCodes.Status400BadRequest);
         }
 
-        GoogleTokenPayload payload;
+        GoogleJsonWebSignature.Payload payload;
 
         try
         {
-            payload = await _googleTokenValidator.ValidateAsync(
+            payload = await GoogleJsonWebSignature.ValidateAsync(
                 request.IdToken,
-                _googleOptions.ClientId,
-                cancellationToken);
+                new GoogleJsonWebSignature.ValidationSettings
+                {
+                    Audience = [_googleOptions.ClientId]
+                });
         }
         catch (InvalidJwtException)
         {
@@ -468,15 +467,6 @@ public sealed class AuthService : IAuthService
                 StatusCodes.Status400BadRequest);
         }
 
-        // Chi nhan email da duoc Google xac minh (chong dung email gia/chua verify).
-        if (payload.EmailVerified != true)
-        {
-            return Failure<AuthLoginResponse>(
-                "GOOGLE_EMAIL_NOT_VERIFIED",
-                "Email Google chua duoc xac minh.",
-                StatusCodes.Status400BadRequest);
-        }
-
         var user = await FindUserWithRolesAsync(email, cancellationToken);
 
         if (user is null)
@@ -486,6 +476,8 @@ public sealed class AuthService : IAuthService
             {
                 Email = email,
                 FullName = string.IsNullOrWhiteSpace(payload.Name) ? email : payload.Name,
+                // Part Y (avatar): lay san anh Google lam avatar mac dinh (chi luu URL,
+                // khong dong toi logic dang nhap/bao mat cua Google).
                 AvatarUrl = string.IsNullOrWhiteSpace(payload.Picture) ? null : payload.Picture,
                 PasswordHash = BCrypt.Net.BCrypt.HashPassword(CreateSecureToken(), 12),
                 Status = UserStatuses.Active
