@@ -253,6 +253,7 @@ public sealed class ProgressService : IProgressService
                 $"MEM-{profile.Id:D6}",
                 profile.User.FullName,
                 profile.User.Email,
+                profile.User.AvatarUrl,
                 profile.User.Phone,
                 profile.User.Status,
                 profile.DateOfBirth,

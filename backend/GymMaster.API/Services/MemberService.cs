@@ -3,6 +3,7 @@ using System.Security.Cryptography;
 using GymMaster.API.Data;
 using GymMaster.API.DTOs;
 using GymMaster.API.Entities;
+using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.JsonWebTokens;
 
@@ -46,6 +47,18 @@ public sealed class MemberService : IMemberService
         {
             return Fail<CreateMemberResponse>(
                 "VALIDATION_ERROR", "Mat khau phai co it nhat 6 ky tu.", StatusCodes.Status400BadRequest);
+        }
+
+        var personError = PersonValidation.Validate(
+            fullName: request.FullName,
+            phone: request.Phone,
+            dateOfBirth: request.DateOfBirth,
+            gender: request.Gender,
+            address: request.Address,
+            emergencyContact: request.EmergencyContact);
+        if (personError is not null)
+        {
+            return Fail<CreateMemberResponse>("VALIDATION_ERROR", personError, StatusCodes.Status400BadRequest);
         }
 
         // Neu email da ton tai: chi gan ho so vao tai khoan member da co, KHONG dung toi mat khau (bao mat).
@@ -199,6 +212,68 @@ public sealed class MemberService : IMemberService
         return AuthServiceResult<long>.Success(memberId);
     }
 
+    public async Task<AuthServiceResult<long>> GetOrCreateCurrentProfileAsync(
+        ClaimsPrincipal principal,
+        CancellationToken cancellationToken)
+    {
+        var userId = GetActorId(principal);
+
+        if (userId is null)
+        {
+            return Fail<long>("UNAUTHORIZED", "Khong xac dinh duoc danh tinh.", StatusCodes.Status401Unauthorized);
+        }
+
+        var memberId = await FindCurrentProfileIdAsync(userId.Value, cancellationToken);
+        if (memberId != 0)
+        {
+            return AuthServiceResult<long>.Success(memberId);
+        }
+
+        if (!principal.IsInRole(RoleNames.Member))
+        {
+            return Fail<long>("NOT_FOUND", "Khong tim thay hoi vien.", StatusCodes.Status404NotFound);
+        }
+
+        var user = await _dbContext.Users.FirstOrDefaultAsync(
+            item => item.Id == userId.Value && !item.IsDeleted, cancellationToken);
+
+        if (user is null)
+        {
+            return Fail<long>("NOT_FOUND", "Khong tim thay tai khoan.", StatusCodes.Status404NotFound);
+        }
+
+        // Tu phuc vu: user role member chua co ho so -> tao ho so khi can quyen co ban.
+        var profile = new MemberProfile
+        {
+            UserId = user.Id,
+            User = user,
+            JoinedAt = DateTime.UtcNow
+        };
+
+        _dbContext.MemberProfiles.Add(profile);
+
+        try
+        {
+            await _dbContext.SaveChangesAsync(cancellationToken);
+        }
+        catch (DbUpdateException exception) when (IsMemberProfileUserUniqueViolation(exception))
+        {
+            _dbContext.Entry(profile).State = EntityState.Detached;
+
+            memberId = await FindCurrentProfileIdAsync(userId.Value, cancellationToken);
+            if (memberId != 0)
+            {
+                return AuthServiceResult<long>.Success(memberId);
+            }
+
+            throw;
+        }
+
+        await _auditService.LogAsync("CREATE_MEMBER", "MemberProfile", profile.Id, new { selfService = true }, cancellationToken);
+
+        return AuthServiceResult<long>.Success(profile.Id);
+    }
+
     // FR-MEM-03: cap nhat ho so.
     public async Task<AuthServiceResult<MemberResponse>> UpdateAsync(
         long id,
@@ -216,6 +291,18 @@ public sealed class MemberService : IMemberService
         if (!CanAccess(principal, profile))
         {
             return Fail<MemberResponse>("FORBIDDEN", "Ban khong co quyen sua ho so nay.", StatusCodes.Status403Forbidden);
+        }
+
+        var personError = PersonValidation.Validate(
+            fullName: request.FullName,
+            phone: request.Phone,
+            dateOfBirth: request.DateOfBirth,
+            gender: request.Gender,
+            address: request.Address,
+            emergencyContact: request.EmergencyContact);
+        if (personError is not null)
+        {
+            return Fail<MemberResponse>("VALIDATION_ERROR", personError, StatusCodes.Status400BadRequest);
         }
 
         if (!string.IsNullOrWhiteSpace(request.FullName))
@@ -292,6 +379,14 @@ public sealed class MemberService : IMemberService
             .FirstOrDefaultAsync(profile => profile.Id == id && !profile.IsDeleted && !profile.User.IsDeleted, cancellationToken);
     }
 
+    private Task<long> FindCurrentProfileIdAsync(long userId, CancellationToken cancellationToken)
+    {
+        return _dbContext.MemberProfiles
+            .Where(profile => profile.UserId == userId && !profile.IsDeleted && !profile.User.IsDeleted)
+            .Select(profile => profile.Id)
+            .FirstOrDefaultAsync(cancellationToken);
+    }
+
     // Admin/Staff: moi ho so. Member: chi cua minh (ownership). PT: can spec 005 (assignment) -> tam 403.
     private static bool CanAccess(ClaimsPrincipal principal, MemberProfile profile)
     {
@@ -343,6 +438,7 @@ public sealed class MemberService : IMemberService
             $"MEM-{profile.Id:D6}",
             profile.User.Email,
             profile.User.FullName,
+            profile.User.AvatarUrl,
             profile.User.Phone,
             profile.DateOfBirth,
             profile.Gender,
@@ -359,6 +455,12 @@ public sealed class MemberService : IMemberService
             principal.FindFirstValue(JwtRegisteredClaimNames.Sub);
 
         return long.TryParse(value, out var userId) ? userId : null;
+    }
+
+    private static bool IsMemberProfileUserUniqueViolation(DbUpdateException exception)
+    {
+        return exception.InnerException is SqlException { Number: 2601 or 2627 } sqlException &&
+            sqlException.Message.Contains("IX_member_profiles_UserId", StringComparison.OrdinalIgnoreCase);
     }
 
     private static string GenerateTemporaryPassword()

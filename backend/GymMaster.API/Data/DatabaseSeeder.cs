@@ -35,6 +35,34 @@ public static class DatabaseSeeder
         // Tao san ho so hoi vien cho tai khoan member demo -> dashboard hoi vien chay duoc ngay
         // (cac man dinh duong/360 can member_profile; khong co se bao loi).
         await EnsureMemberProfileAsync(dbContext, "member@gymmaster.local");
+
+        // Tao san ho so nghe cho PT demo -> khong con tai khoan pt "mo coi" khong co ho so.
+        await EnsureTrainerProfileAsync(dbContext, "pt@gymmaster.local");
+    }
+
+    private static async Task EnsureTrainerProfileAsync(GymMasterDbContext dbContext, string email)
+    {
+        var user = await dbContext.Users.FirstOrDefaultAsync(item => item.Email == email);
+        if (user is null)
+        {
+            return;
+        }
+
+        if (await dbContext.TrainerProfiles.AnyAsync(item => item.UserId == user.Id))
+        {
+            return;
+        }
+
+        dbContext.TrainerProfiles.Add(new TrainerProfile
+        {
+            UserId = user.Id,
+            Specialty = "Huan luyen ca nhan",
+            Gender = "male",
+            YearsOfExperience = 3,
+            Bio = "Huan luyen vien demo cua GymMaster."
+        });
+
+        await dbContext.SaveChangesAsync();
     }
 
     private static async Task EnsureMemberProfileAsync(GymMasterDbContext dbContext, string email)

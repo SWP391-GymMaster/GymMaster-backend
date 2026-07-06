@@ -20,6 +20,8 @@ builder.Services.Configure<JwtOptions>(
     builder.Configuration.GetSection(JwtOptions.SectionName));
 builder.Services.Configure<GoogleAuthOptions>(
     builder.Configuration.GetSection(GoogleAuthOptions.SectionName));
+builder.Services.Configure<CloudinaryOptions>(
+    builder.Configuration.GetSection(CloudinaryOptions.SectionName));
 builder.Services.Configure<CheckInOptions>(
     builder.Configuration.GetSection(CheckInOptions.SectionName));
 builder.Services.Configure<VnPayOptions>(
@@ -54,7 +56,9 @@ builder.Services.AddAuthorization();
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddScoped<IAuditService, AuditService>();
 builder.Services.AddScoped<IEmailSender, EmailSender>();
+builder.Services.AddScoped<IAvatarStorage, CloudinaryAvatarStorage>();
 builder.Services.AddScoped<IAuthService, AuthService>();
+builder.Services.AddScoped<IAccountService, AccountService>();
 builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<IMemberService, MemberService>();
 builder.Services.AddScoped<ITrainerService, TrainerService>();

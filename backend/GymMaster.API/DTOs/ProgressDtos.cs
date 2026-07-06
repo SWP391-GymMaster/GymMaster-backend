@@ -37,6 +37,7 @@ public sealed record Member360Info(
     string MemberCode,
     string FullName,
     string Email,
+    string? AvatarUrl,
     string? Phone,
     string Status,
     DateTime? DateOfBirth,

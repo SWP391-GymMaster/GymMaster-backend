@@ -8,7 +8,7 @@ namespace GymMaster.API.Controllers;
 
 [ApiController]
 [Route("api/v1/trainers")]
-[Authorize(Roles = RoleNames.Admin)] // FR-PT-PROF-01: chi Admin quan ly ho so PT
+[Authorize] // Dang nhap bat buoc; tung action gioi han role rieng.
 public sealed class TrainersController : ApiControllerBase
 {
     private readonly ITrainerService _trainerService;
@@ -19,6 +19,7 @@ public sealed class TrainersController : ApiControllerBase
     }
 
     [HttpPost]
+    [Authorize(Roles = RoleNames.Admin)] // FR-PT-PROF-01: chi Admin quan ly ho so PT
     public async Task<IActionResult> Create(
         [FromBody] CreateTrainerRequest request,
         CancellationToken cancellationToken)
@@ -28,6 +29,7 @@ public sealed class TrainersController : ApiControllerBase
     }
 
     [HttpGet]
+    [Authorize(Roles = RoleNames.Admin)]
     public async Task<IActionResult> List(
         [FromQuery] string? query,
         [FromQuery] int page = 1,
@@ -38,7 +40,16 @@ public sealed class TrainersController : ApiControllerBase
         return ToActionResult(result);
     }
 
+    [HttpGet("me")]
+    [Authorize(Roles = RoleNames.Pt)]
+    public async Task<IActionResult> GetMe(CancellationToken cancellationToken)
+    {
+        var result = await _trainerService.GetCurrentAsync(User, cancellationToken);
+        return ToActionResult(result);
+    }
+
     [HttpGet("{id:long}")]
+    [Authorize(Roles = RoleNames.Admin)]
     public async Task<IActionResult> GetById(long id, CancellationToken cancellationToken)
     {
         var result = await _trainerService.GetByIdAsync(id, cancellationToken);
@@ -46,6 +57,7 @@ public sealed class TrainersController : ApiControllerBase
     }
 
     [HttpPut("{id:long}")]
+    [Authorize(Roles = RoleNames.Admin)]
     public async Task<IActionResult> Update(
         long id,
         [FromBody] UpdateTrainerRequest request,

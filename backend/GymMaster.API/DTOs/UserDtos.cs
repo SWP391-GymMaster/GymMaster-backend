@@ -7,13 +7,22 @@ public sealed record CreateUserRequest(
     string Email,
     string? Phone,
     string Role,
-    string? Password);
+    string? Password,
+    // Thong tin ca nhan nhap ngay luc tao (ghi vao staff_profiles cho staff/admin).
+    DateTime? DateOfBirth = null,
+    string? Gender = null,
+    string? Address = null,
+    string? EmergencyContact = null);
 
 public sealed record UpdateUserRequest(
     string? FullName,
     string? Phone,
     string? Status,
-    string? Role);
+    string? Role,
+    DateTime? DateOfBirth = null,
+    string? Gender = null,
+    string? Address = null,
+    string? EmergencyContact = null);
 
 public sealed record AdminUserResponse(
     long UserId,
@@ -23,7 +32,11 @@ public sealed record AdminUserResponse(
     string Role,
     string Status,
     DateTime? LastLoginAt,
-    DateTime CreatedAt);
+    DateTime CreatedAt,
+    DateTime? DateOfBirth = null,
+    string? Gender = null,
+    string? Address = null,
+    string? EmergencyContact = null);
 
 // Flat response matching FE ManagedUser shape (includes password fields for POST /users)
 public sealed record CreateUserResponse(

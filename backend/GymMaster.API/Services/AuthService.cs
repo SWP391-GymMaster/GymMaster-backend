@@ -446,10 +446,7 @@ public sealed class AuthService : IAuthService
                 request.IdToken,
                 new GoogleJsonWebSignature.ValidationSettings
                 {
-                    Audience = [_googleOptions.ClientId],
-                    // Dung sai 5 phut chong lech dong ho may (tranh loi "JWT is not yet valid").
-                    IssuedAtClockTolerance = TimeSpan.FromMinutes(5),
-                    ExpirationTimeClockTolerance = TimeSpan.FromMinutes(5)
+                    Audience = [_googleOptions.ClientId]
                 });
         }
         catch (InvalidJwtException)
@@ -470,15 +467,6 @@ public sealed class AuthService : IAuthService
                 StatusCodes.Status400BadRequest);
         }
 
-        // Chi nhan email da duoc Google xac minh (chong dung email gia/chua verify).
-        if (payload.EmailVerified != true)
-        {
-            return Failure<AuthLoginResponse>(
-                "GOOGLE_EMAIL_NOT_VERIFIED",
-                "Email Google chua duoc xac minh.",
-                StatusCodes.Status400BadRequest);
-        }
-
         var user = await FindUserWithRolesAsync(email, cancellationToken);
 
         if (user is null)
@@ -488,6 +476,9 @@ public sealed class AuthService : IAuthService
             {
                 Email = email,
                 FullName = string.IsNullOrWhiteSpace(payload.Name) ? email : payload.Name,
+                // Part Y (avatar): lay san anh Google lam avatar mac dinh (chi luu URL,
+                // khong dong toi logic dang nhap/bao mat cua Google).
+                AvatarUrl = string.IsNullOrWhiteSpace(payload.Picture) ? null : payload.Picture,
                 PasswordHash = BCrypt.Net.BCrypt.HashPassword(CreateSecureToken(), 12),
                 Status = UserStatuses.Active
             };
@@ -759,6 +750,7 @@ public sealed class AuthService : IAuthService
             user.Id,
             user.Email,
             user.FullName,
+            user.AvatarUrl,
             GetPrimaryRole(user),
             user.Status,
             memberProfileId);
