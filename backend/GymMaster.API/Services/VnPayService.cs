@@ -294,7 +294,7 @@ public sealed class VnPayService : IVnPayService
         DateOnly today)
     {
         var now = DateTime.UtcNow;
-        var activeMembership = otherMemberships.FirstOrDefault(item => IsActiveOn(item, today));
+        var activeMembership = otherMemberships.FirstOrDefault(item => MembershipLifecycle.IsActiveOn(item, today));
 
         membership.EndDate = activeMembership is null
             ? today.AddDays(membership.Package.DurationDays)
@@ -310,11 +310,6 @@ public sealed class VnPayService : IVnPayService
         }
 
         return activeMembership;
-    }
-
-    private static bool IsActiveOn(Membership membership, DateOnly today)
-    {
-        return membership.Status == MembershipStatus.Active && membership.EndDate >= today;
     }
 
     private string BuildPayUrl(Payment payment, Membership membership, string ipAddress)
