@@ -9,7 +9,6 @@ namespace GymMaster.API.Services;
 
 public sealed class MembershipService : IMembershipService
 {
-    private static readonly TimeSpan PendingPaymentTtl = TimeSpan.FromMinutes(30);
     private const string PackagePtMismatchMessage = "Goi gia han phai cung loai PT voi goi dang dung. Doi loai goi khi het han.";
 
     private readonly GymMasterDbContext _dbContext;
@@ -73,7 +72,7 @@ public sealed class MembershipService : IMembershipService
             .Where(item => item.MemberId == request.MemberId)
             .ToListAsync(cancellationToken);
 
-        var changed = ExpireIfPastDue(existingMemberships, today) | ExpireStalePending(existingMemberships);
+        var changed = MembershipLifecycle.ExpireIfPastDue(existingMemberships, today) | MembershipLifecycle.ExpireStalePending(existingMemberships);
         if (changed)
         {
             await _dbContext.SaveChangesAsync(cancellationToken);
@@ -167,7 +166,7 @@ public sealed class MembershipService : IMembershipService
             .Where(item => item.MemberId == membership.MemberId && item.Id != membership.Id)
             .ToListAsync(cancellationToken);
 
-        ExpireIfPastDue(otherMemberships, today);
+        MembershipLifecycle.ExpireIfPastDue(otherMemberships, today);
         var replacedActive = ApplyPaidRenewalWindow(membership, otherMemberships, today);
 
         // Nguon su that DUY NHAT cho tien cua don = 1 Payment.
@@ -265,11 +264,11 @@ public sealed class MembershipService : IMembershipService
             .Where(item => item.MemberId == membership.MemberId && item.Id != membership.Id)
             .ToListAsync(cancellationToken);
 
-        ExpireIfPastDue(otherMemberships, today);
+        MembershipLifecycle.ExpireIfPastDue(otherMemberships, today);
 
-        var activeMembership = IsActiveOn(membership, today)
+        var activeMembership = MembershipLifecycle.IsActiveOn(membership, today)
             ? membership
-            : otherMemberships.FirstOrDefault(item => IsActiveOn(item, today));
+            : otherMemberships.FirstOrDefault(item => MembershipLifecycle.IsActiveOn(item, today));
         if (activeMembership is not null && activeMembership.Package.SupportsPT != package.SupportsPT)
         {
             return PackagePtMismatch<MembershipResponse>();
@@ -348,13 +347,13 @@ public sealed class MembershipService : IMembershipService
             .Where(item => item.MemberId == profileId)
             .ToListAsync(cancellationToken);
 
-        var changed = ExpireIfPastDue(existingMemberships, today) | ExpireStalePending(existingMemberships);
+        var changed = MembershipLifecycle.ExpireIfPastDue(existingMemberships, today) | MembershipLifecycle.ExpireStalePending(existingMemberships);
         if (changed)
         {
             await _dbContext.SaveChangesAsync(cancellationToken);
         }
 
-        var activeMembership = existingMemberships.FirstOrDefault(item => IsActiveOn(item, today));
+        var activeMembership = existingMemberships.FirstOrDefault(item => MembershipLifecycle.IsActiveOn(item, today));
         if (activeMembership is not null && activeMembership.Package.SupportsPT != package.SupportsPT)
         {
             return PackagePtMismatch<MembershipResponse>();
@@ -475,7 +474,7 @@ public sealed class MembershipService : IMembershipService
             .OrderByDescending(item => item.CreatedAt)
             .ToListAsync(cancellationToken);
 
-        var changed = ExpireIfPastDue(memberships, Today()) | ExpireStalePending(memberships);
+        var changed = MembershipLifecycle.ExpireIfPastDue(memberships, Today()) | MembershipLifecycle.ExpireStalePending(memberships);
         if (changed)
         {
             await _dbContext.SaveChangesAsync(cancellationToken);
@@ -519,7 +518,7 @@ public sealed class MembershipService : IMembershipService
 
         if (pastDue.Count > 0)
         {
-            var changed = ExpireIfPastDue(pastDue, today) | ExpireStalePending(pastDue);
+            var changed = MembershipLifecycle.ExpireIfPastDue(pastDue, today) | MembershipLifecycle.ExpireStalePending(pastDue);
             if (changed)
             {
                 await _dbContext.SaveChangesAsync(cancellationToken);
@@ -599,7 +598,7 @@ public sealed class MembershipService : IMembershipService
         DateOnly today)
     {
         var now = DateTime.UtcNow;
-        var activeMembership = otherMemberships.FirstOrDefault(item => IsActiveOn(item, today));
+        var activeMembership = otherMemberships.FirstOrDefault(item => MembershipLifecycle.IsActiveOn(item, today));
 
         membership.EndDate = activeMembership is null
             ? today.AddDays(membership.Package.DurationDays)
@@ -615,38 +614,6 @@ public sealed class MembershipService : IMembershipService
         }
 
         return activeMembership;
-    }
-
-    private static bool IsActiveOn(Membership membership, DateOnly today)
-    {
-        return membership.Status == MembershipStatus.Active && membership.EndDate >= today;
-    }
-
-    private static bool ExpireIfPastDue(IEnumerable<Membership> memberships, DateOnly today)
-    {
-        var changed = false;
-        foreach (var membership in memberships.Where(item => item.Status == MembershipStatus.Active && item.EndDate < today))
-        {
-            membership.Status = MembershipStatus.Expired;
-            membership.UpdatedAt = DateTime.UtcNow;
-            changed = true;
-        }
-
-        return changed;
-    }
-
-    private static bool ExpireStalePending(IEnumerable<Membership> memberships)
-    {
-        var changed = false;
-        var cutoff = DateTime.UtcNow - PendingPaymentTtl;
-        foreach (var membership in memberships.Where(item => item.Status == MembershipStatus.PendingPayment && item.CreatedAt < cutoff))
-        {
-            membership.Status = MembershipStatus.Cancelled;
-            membership.UpdatedAt = DateTime.UtcNow;
-            changed = true;
-        }
-
-        return changed;
     }
 
     private static bool CanAccess(ClaimsPrincipal principal, MemberProfile profile)

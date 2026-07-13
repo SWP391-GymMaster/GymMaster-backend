@@ -10,7 +10,6 @@ namespace GymMaster.API.Services;
 public sealed class ProgressService : IProgressService
 {
     private const int NoteMaxLength = 500;
-    private static readonly TimeSpan PendingPaymentTtl = TimeSpan.FromMinutes(30);
 
     private readonly GymMasterDbContext _dbContext;
     private readonly IAuditService _auditService;
@@ -183,7 +182,7 @@ public sealed class ProgressService : IProgressService
             .OrderByDescending(item => item.CreatedAt)
             .ToListAsync(cancellationToken);
 
-        if (ExpireIfPastDue(memberships, today) | ExpireStalePending(memberships))
+        if (MembershipLifecycle.ExpireIfPastDue(memberships, today) | MembershipLifecycle.ExpireStalePending(memberships))
         {
             await _dbContext.SaveChangesAsync(cancellationToken);
         }
@@ -199,9 +198,10 @@ public sealed class ProgressService : IProgressService
 
         var membershipDtos = memberships.Select(item => ToMembership360(item, paidSet)).ToList();
 
-        // "Goi hien tai" = nguon su that DUY NHAT: uu tien goi Active con han (EndDate lon nhat),
-        // roi den don PendingPayment moi nhat, cuoi cung moi fallback dong moi tao nhat.
-        // Tranh bốc nham dong Cancelled/cu lam "goi hien tai" (mau thuan voi lich su).
+        // "Goi hien tai" = uu tien goi Active con han (EndDate lon nhat),
+        // roi den don PendingPayment moi nhat. KHONG fallback dong bat ky:
+        // member chi con don Cancelled/Expired thi currentMembership = null
+        // (FE da co san nhanh "Chua co goi") — tranh boc dong Cancelled lam "goi hien tai".
         var currentEntity = memberships
                 .Where(item => item.Status == MembershipStatus.Active && item.EndDate >= today)
                 .OrderByDescending(item => item.EndDate)
@@ -209,8 +209,7 @@ public sealed class ProgressService : IProgressService
             ?? memberships
                 .Where(item => item.Status == MembershipStatus.PendingPayment)
                 .OrderByDescending(item => item.CreatedAt)
-                .FirstOrDefault()
-            ?? memberships.FirstOrDefault();
+                .FirstOrDefault();
         var currentMembershipDto = currentEntity is null
             ? null
             : membershipDtos.FirstOrDefault(item => item.Id == currentEntity.Id);
@@ -352,35 +351,6 @@ public sealed class ProgressService : IProgressService
     private static bool IsInRange(decimal? value, decimal min, decimal max)
     {
         return value is null || (value >= min && value <= max);
-    }
-
-    // Lazy-expire: chuyen membership da qua EndDate tu Active -> Expired (FR-MS-07).
-    // Tra ve true neu co thay doi de caller quyet dinh co SaveChanges hay khong.
-    private static bool ExpireIfPastDue(IEnumerable<Membership> memberships, DateOnly today)
-    {
-        var changed = false;
-        foreach (var membership in memberships.Where(item => item.Status == MembershipStatus.Active && item.EndDate < today))
-        {
-            membership.Status = MembershipStatus.Expired;
-            membership.UpdatedAt = DateTime.UtcNow;
-            changed = true;
-        }
-
-        return changed;
-    }
-
-    private static bool ExpireStalePending(IEnumerable<Membership> memberships)
-    {
-        var changed = false;
-        var cutoff = DateTime.UtcNow - PendingPaymentTtl;
-        foreach (var membership in memberships.Where(item => item.Status == MembershipStatus.PendingPayment && item.CreatedAt < cutoff))
-        {
-            membership.Status = MembershipStatus.Cancelled;
-            membership.UpdatedAt = DateTime.UtcNow;
-            changed = true;
-        }
-
-        return changed;
     }
 
     private static ProgressResponse ToResponse(ProgressLog log)
