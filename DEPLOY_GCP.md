@@ -1,6 +1,6 @@
 # Deploy GymMaster Backend → Google Cloud (Cloud Run + Cloud SQL for SQL Server)
 
-> Frontend đã ở Vercel. Tài liệu này chỉ deploy **backend** (.NET 10 API).
+> **Cả frontend lẫn backend đều deploy trên Google Cloud Run** (FE service `gymmaster-os`, BE service `gymmaster-api`). Tài liệu này tập trung deploy **backend** (.NET 10 API); FE cũng dùng Cloud Run (Dockerfile node:22-alpine, xem repo frontend).
 > Phương án: **Cloud Run** (container serverless) + **Cloud SQL for SQL Server Express**.
 > Vùng dùng `asia-southeast1` (Singapore) — gần VN nhất.
 
@@ -129,12 +129,12 @@ gcloud run services describe "$SERVICE" --region "$REGION" --format="value(statu
 
 ---
 
-## 4. Nối frontend (Vercel) ↔ backend
+## 4. Nối frontend (Cloud Run) ↔ backend
 
-1. Trên Vercel, đặt biến môi trường API base URL = URL Cloud Run ở trên
-   (tên biến tùy frontend, vd `NEXT_PUBLIC_API_URL`), rồi redeploy.
+1. FE (Cloud Run `gymmaster-os`) đặt `NEXT_PUBLIC_API_BASE_URL` = URL Cloud Run backend ở trên
+   (bake ở build-time qua Dockerfile ARG), rồi redeploy.
 2. CORS: hiện backend mở `AllowAnyOrigin` nên FE gọi được ngay. Muốn siết chặt,
-   sửa policy `"Frontend"` trong `Program.cs` thành `.WithOrigins("https://<app>.vercel.app")`.
+   sửa policy `"Frontend"` trong `Program.cs` thành `.WithOrigins("https://<app>.run.app")`.
 
 ---
 

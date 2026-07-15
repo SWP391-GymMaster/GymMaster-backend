@@ -20,7 +20,7 @@ DATA-01: soft-delete (IsDeleted) cho dữ liệu nghiệp vụ, không xóa cứ
 Coverage ≥ 80% business logic; mỗi endpoint có happy path + ≥1 error case. Trước merge phải qua Validation Gate 4 lớp (Automated → Spec compliance → Constitution → Acceptance) — xem `09_TEST_PLAN.md` §6. Không tin "AI đã xong"; tin khi test xanh + checklist tick.
 
 ## Technology Standards
-Stack canonical (Layer 3): Frontend Next.js + TypeScript; Backend C#/ASP.NET Core 10 Web API (.NET 10); Database **SQL Server**; ORM EF Core 10 Code-First; Auth JWT Bearer + BCrypt; File storage Azure Blob; AI Vision Google Cloud Vision (chỉ enhancement). Một nguồn sự thật duy nhất về stack — đổi stack phải qua Decision Log (D-17 = SQL Server; D-18 = .NET 10).
+Stack canonical (Layer 3): Frontend Next.js + TypeScript; Backend C#/ASP.NET Core 10 Web API (.NET 10); Database **SQL Server** (Cloud SQL); ORM EF Core 10 Code-First; Auth JWT Bearer + BCrypt + Google ID token; File storage **Cloudinary** (avatar); AI Vision **Google Gemini Vision** (enhancement); Online payment **VNPay**; Deploy **Google Cloud Run** (FE + BE). Một nguồn sự thật duy nhất về stack — đổi stack phải qua Decision Log (D-17 SQL Server; D-18 .NET 10; D-19 Cloud Run; D-20 Cloudinary; D-21 Gemini; D-22 VNPay).
 
 ## Development Workflow
 Luồng Spec Kit: `/speckit-constitution` → `/speckit-specify` → (`/speckit-clarify`) → `/speckit-plan` → (`/speckit-checklist`/`/speckit-analyze`) → `/speckit-tasks` → `/speckit-implement`. Mỗi feature 1 nhánh `NNN-*`. PR cần ≥1 approval + CI xanh + cập nhật spec/Decision Log trong cùng PR khi đổi business rule. Out of Scope = không làm.

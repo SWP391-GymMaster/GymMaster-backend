@@ -1,8 +1,10 @@
 # 04 — REQUIREMENTS (EARS Notation)
 
-**Status:** Approved
+**Status:** Implemented (đồng bộ code 2026-07-15)
 **Quy ước:** Dùng EARS — `WHEN/WHILE/WHERE … THE system SHALL …`. `SHALL` = bắt buộc.
 5 mẫu: Ubiquitous · Event-driven · State-driven · Optional · Unwanted (xử lý lỗi).
+
+> **Nguồn chuẩn (canonical):** các FR chi tiết + mã lỗi + API nằm ở `specs/001-010/spec.md` (đã đồng bộ ngược từ code). Tài liệu này là bản tóm tắt yêu cầu ở mức cao. Vài điểm cần lưu ý: brute-force ghi vào `audit_logs` (không có bảng SecurityEvents riêng); "hôm nay" tính theo giờ VN (GMT+7).
 
 ---
 
@@ -34,7 +36,7 @@
 
 ### A5. PT Assignment & Workout
 - **FR-PT-01 (Event):** WHEN Admin phân công PT cho Member, THE system SHALL tạo TrainerAssignment active.
-- **FR-PT-02 (Unwanted):** WHERE Member đã có PT active, THE system SHALL từ chối tạo assignment mới (422) cho đến khi assignment cũ kết thúc.
+- **FR-PT-02 (Event):** WHERE Member đã có PT active, THE system SHALL **tự đóng assignment cũ** (Ended) trước khi tạo mới — tối đa 1 active (không trả lỗi). IF Member không có gói hỗ trợ PT còn hạn (`Package.SupportsPT=true`), THEN THE system SHALL từ chối phân công với 409 `PACKAGE_PT_REQUIRED`.
 - **FR-WP-01 (Event):** WHEN PT tạo WorkoutPlan cho Member được phân công, THE system SHALL lưu plan + danh sách WorkoutExercise.
 - **FR-WP-02 (Unwanted):** WHERE PT thao tác trên Member KHÔNG được phân công, THE system SHALL trả 403.
 - **FR-NOTE-01 (Event):** WHEN PT ghi TrainerNote cho ngày, THE system SHALL lưu note gắn Member + ngày.
@@ -51,7 +53,17 @@
 
 ### A8. Authorization (cross-cutting)
 - **FR-RBAC-01 (State):** WHILE người dùng là Member, THE system SHALL chỉ cho truy cập dữ liệu của chính họ.
-- **FR-RBAC-02 (State):** WHILE người dùng là PT, THE system SHALL chỉ cho truy cập Member được phân công.
+- **FR-RBAC-02 (State):** WHILE người dùng là PT, THE system SHALL chỉ cho truy cập Member được phân công active.
+
+### A9. Bổ sung đã implement (ngoài MVP gốc — chi tiết ở specs/)
+- **FR-AUTH-RESET (Event):** Quên mật khẩu dùng **OTP 6 số** gửi email, hạn 30', tối đa 3 lần nhập sai, cooldown gửi lại 60s (spec 001).
+- **FR-AUTH-GOOGLE (Event):** Đăng nhập Google bằng ID token; tạo tài khoản Member nếu chưa có (spec 001).
+- **FR-ACC (Event):** Self-service hồ sơ cá nhân `/users/me` + đổi ảnh đại diện qua Cloudinary; Member tự tạo hồ sơ ở `/members/me` (spec 002). Role gán khi tạo là **bất biền** (`ROLE_TRANSITION_NOT_ALLOWED`).
+- **FR-PKG-PT (Ubiquitous):** Gói có cờ **SupportsPT**; quyền PT suy động từ gói active (spec 003/005).
+- **FR-MS-CANCEL (Event):** Huỷ membership Pending/Active (`/cancel`); đơn Pending quá 30' tự huỷ; kích hoạt gói mới nối hạn + huỷ gói active cũ (spec 003).
+- **FR-VNPAY (Event):** Thanh toán online VNPay sandbox — verify HMAC-SHA512 + IPN auto-activate + idempotent (spec 010).
+- **FR-CHK-LIMIT (Optional):** Giới hạn check-in mặc định 2 lần/ngày; PT check-in cho hội viên được phân công (spec 004).
+- **FR-IMG-AI (Event):** Quét ảnh món ăn bằng **Gemini Vision** (nhiều món + ước lượng dinh dưỡng/gram), chỉ cho hội viên có gói active (spec 009).
 
 ---
 

@@ -73,9 +73,10 @@ Dự án theo **GitHub Spec Kit / SDD**. THE team SHALL:
 | Database | **SQL Server** |
 | ORM | Entity Framework Core 10 — Code First Migrations |
 | Auth | JWT Bearer + BCrypt |
-| File Storage | Azure Blob Storage |
-| AI Vision (enhancement) | Google Cloud Vision API |
-| Deploy | Vercel (FE) + Azure App Service (BE) |
+| File Storage (avatar) | **Cloudinary** (đã đổi từ Azure Blob) |
+| AI Vision (enhancement) | **Google Gemini Vision** `gemini-2.5-flash` (đã đổi từ Google Cloud Vision) |
+| Online Payment | **VNPay** sandbox |
+| Deploy | **Google Cloud Run** (FE + BE) + Cloud SQL (đã đổi từ Vercel/Azure) |
 | VCS | GitHub Monorepo |
 | API Testing | Postman / Thunder Client |
 

@@ -48,6 +48,6 @@
 | Rủi ro | Mức | Giảm thiểu |
 |---|---|---|
 | Scope creep (nutrition AI) | Cao | Giữ ENH-01 ngoài MVP; chỉ làm sau v1.0 |
-| Tích hợp Azure/Vercel trễ | TB | Demo localhost backup; deploy sớm từ tuần 13 |
+| Tích hợp hạ tầng deploy trễ | TB | Demo localhost backup; deploy sớm. **Thực tế đã deploy Google Cloud Run (FE `gymmaster-os` + BE `gymmaster-api`) + Cloud SQL** (đổi từ Azure/Vercel) |
 | Lệch spec↔code | Cao | Validation Gate mỗi PR; cập nhật spec trước khi đổi code |
 | Thành viên chưa quen ASP.NET | TB | Pair + prompt library + skill docs |

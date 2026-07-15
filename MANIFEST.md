@@ -24,5 +24,5 @@
 | 14 | 14_PROMPT_LIBRARY.md | Approved |
 | 15 | 15_DATABASE_SCHEMA.md | Approved |
 
-**Canonical tech stack:** Next.js · ASP.NET Core 10 (.NET 10) · SQL Server · EF Core 10 · JWT+BCrypt · Azure/Vercel.
+**Canonical tech stack:** Next.js · ASP.NET Core 10 (.NET 10) · SQL Server · EF Core 10 · JWT+BCrypt · **Google Cloud Run + Cloud SQL** · Gemini Vision · Cloudinary · VNPay (đã đổi từ Azure/Vercel — đồng bộ code 2026-07-15).
 **Source of truth cho stack:** `CONSTITUTION.md` Layer 3.

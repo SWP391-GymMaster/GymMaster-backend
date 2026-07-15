@@ -2,7 +2,7 @@
 
 **Feature Branch**: `010-online-payment-vnpay`
 **Created**: 2026-06-15
-**Status**: Draft
+**Status**: Implemented (spec đồng bộ theo code 2026-07-15)
 **Spec style**: SDD + Spec Kit — 9 components, EARS notation
 **Source**: Yêu cầu giảng viên (bắt buộc có luồng thanh toán online); mở rộng spec 003 §10 (đã tiên liệu); **override ADR-03** (MVP thủ công → bổ sung cổng online chạy **sandbox**)
 
@@ -47,7 +47,8 @@ Sai = sai doanh thu, kích hoạt nhầm gói, hoặc lỗ hổng giả mạo ca
 Tái dùng bảng của spec 003 — **không đổi schema** (bản tối giản cho demo):
 - **Payments**(Id, MembershipId, Amount, Method, Status{Pending,Paid,Refunded}, PaidAt, CreatedBy, CreatedAt, UpdatedAt)
   - Thanh toán online: `Method = Transfer`, vòng đời `Pending → Paid`.
-  - **`vnp_TxnRef` = `Payment.Id`** (mã định danh giao dịch gửi sang VNPay).
+  - **`vnp_TxnRef` = `GM{Payment.Id}T{yyyyMMddHHmmssfff}`** (ghép Payment.Id + timestamp giờ VN cho duy nhất mỗi lần tạo URL). Khi verify callback, hệ thống parse ra `Payment.Id` (chấp nhận cả dạng số thuần lẫn `GM…T…`).
+  - `vnp_CreateDate`/`vnp_ExpireDate` theo **giờ VN (GMT+7)**, link hết hạn sau **15 phút**.
 - **Memberships**: `PendingPayment → Active` khi IPN thành công.
 - **Cấu hình** `VnPayOptions` (section `VnPay`): TmnCode, HashSecret *(User Secrets)*, BaseUrl, ReturnUrl, Version, Command, CurrCode, Locale.
 - **Tương lai (khi làm live, ngoài demo):** thêm cột `provider_ref`/`bank_txn_no` nullable (cần DB team) để lưu mã giao dịch VNPay; thêm `PaymentMethod.Online`. **Không** làm ở demo.

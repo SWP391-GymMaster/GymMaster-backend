@@ -45,8 +45,8 @@ Bộ tài liệu này dùng làm bộ SPEC chính cho dự án GymMaster. Phiên
 | Roles | Approved: 4 roles — Admin, Staff, PT, Member |
 | Frontend | Next.js |
 | Backend | C# / ASP.NET Core 10 Web API (.NET 10) |
-| Database | SQL Server |
-| Deployment | Vercel + Azure App Service |
+| Database | SQL Server (Cloud SQL) |
+| Deployment | **Google Cloud Run (FE + BE) + Cloud SQL** (đã đổi từ Vercel/Azure — 2026-07-15) |
 
 ---
 
@@ -60,11 +60,12 @@ Bộ tài liệu này dùng làm bộ SPEC chính cho dự án GymMaster. Phiên
 | ORM | Entity Framework Core 10 - Code First Migrations |
 | Authentication | JWT Bearer Token + BCrypt |
 | Token Policy | Access Token 15 phút, Refresh Token 7 ngày |
-| AI Vision | Google Cloud Vision API |
-| Push Notification | Firebase Cloud Messaging |
-| File Storage | Azure Blob Storage |
-| Frontend Deploy | Vercel |
-| Backend Deploy | Azure App Service |
+| AI Vision | **Google Gemini Vision** (`gemini-2.5-flash`) — đã đổi từ Google Cloud Vision |
+| Online Payment | **VNPay** sandbox |
+| File Storage (avatar) | **Cloudinary** — đã đổi từ Azure Blob |
+| Email | SMTP (Gmail App Password) |
+| Frontend Deploy | **Google Cloud Run** — đã đổi từ Vercel |
+| Backend Deploy | **Google Cloud Run + Cloud SQL** — đã đổi từ Azure App Service |
 | Version Control | GitHub Monorepo |
 | API Testing | Postman / Thunder Client |
 

@@ -36,7 +36,7 @@ GymMaster tập trung vào **vận hành cốt lõi của phòng gym + theo dõi
 ## 4. Enhancement (sau secondary)
 | ID | Feature | Ghi chú |
 |---|---|---|
-| ENH-01 | Image Food Recognition Assist | Dùng Google Cloud Vision đọc ảnh → **gợi ý tên món/nguyên liệu**, KHÔNG tự định lượng calo. User phải xác nhận món + khẩu phần trước khi lưu. |
+| ENH-01 | Image Food Recognition Assist | **Đã làm** — dùng **Google Gemini Vision** đọc ảnh → nhận **nhiều món** + ước lượng dinh dưỡng/gram. Món chưa có DB trả nháp AI; user phải xác nhận trước khi lưu. Chỉ cho hội viên có gói active (spec 009). |
 
 ## 5. Out of Scope (CHỐT — KHÔNG làm trong MVP)
 - Multi-branch / chuỗi phòng gym.

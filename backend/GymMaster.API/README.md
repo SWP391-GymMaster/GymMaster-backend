@@ -30,6 +30,6 @@ API: http://localhost:5042 — Swagger/OpenAPI o moi truong Development.
 Admin seed mac dinh: `admin@gymmaster.local` / `Admin123!`.
 
 ## Ghi chu
-- O **Production**: dat secret qua bien moi truong / Azure App Service Configuration,
-  vd `ConnectionStrings__DefaultConnection`, `Jwt__SecretKey`.
+- O **Production** (Google Cloud Run): dat secret qua bien moi truong Cloud Run (env-vars-file),
+  vd `ConnectionStrings__DefaultConnection`, `Jwt__SecretKey`, `Google__ClientId`.
 - User Secrets nam ngoai repo (`%APPDATA%\Microsoft\UserSecrets\<id>`), khong bi commit.

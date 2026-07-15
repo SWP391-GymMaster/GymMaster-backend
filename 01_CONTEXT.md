@@ -161,10 +161,11 @@ Admin tạo tài khoản/hồ sơ Member
 | ORM | Entity Framework Core 10 - Code First Migrations |
 | Authentication | JWT Bearer Token + BCrypt |
 | Token Policy | Access Token 15 phút, Refresh Token 7 ngày |
-| AI Vision | Google Cloud Vision API |
-| Push Notification | Firebase Cloud Messaging |
-| File Storage | Azure Blob Storage |
-| Frontend Deploy | Vercel |
-| Backend Deploy | Azure App Service |
+| AI Vision | **Google Gemini Vision** (`gemini-2.5-flash`) — đã đổi từ Google Cloud Vision |
+| Online Payment | **VNPay** sandbox (HMAC-SHA512 + IPN) |
+| File Storage (avatar) | **Cloudinary** — đã đổi từ Azure Blob |
+| Email | SMTP (Gmail App Password) cho OTP reset |
+| Frontend Deploy | **Google Cloud Run** — đã đổi từ Vercel |
+| Backend Deploy | **Google Cloud Run + Cloud SQL** — đã đổi từ Azure App Service |
 | Version Control | GitHub Monorepo |
 | API Testing | Postman / Thunder Client |

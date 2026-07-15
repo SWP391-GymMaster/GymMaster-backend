@@ -21,5 +21,5 @@ Các feature secondary (Barcode, In-app Notification, PT Booking, Group Classes,
 ## Quy ước
 - ID yêu cầu (FR-*) là **nguồn truy vết**: code phải gắn tag `// FR-...`, test map theo (xem `09_TEST_PLAN.md`).
 - Stack canonical: ASP.NET Core 10 (.NET 10) + **SQL Server** + EF Core 10 + Next.js (xem `CONSTITUTION.md` Layer 3).
-- Luồng Spec Kit tiếp theo cho mỗi feature: `/speckit-plan` → `/speckit-tasks` → `/speckit-implement` (chưa thực hiện — giai đoạn này chỉ tạo spec).
-- Status hiện tại: tất cả **Approved** ở mức spec; chưa scaffold code.
+- Luồng Spec Kit: `/speckit-plan` → `/speckit-tasks` → `/speckit-implement`.
+- **Status hiện tại (2026-07-15): tất cả 001–010 đã `Implemented`** — spec kit đã được **đồng bộ ngược từ code thật** (backend .NET 10 + FE Next.js đang chạy trên Cloud Run). Mọi path là `/api/v1/...`; "hôm nay" tính theo giờ VN (GMT+7, `AppClock`). Đây là bản spec phản ánh đúng hành vi code hiện tại, không phải bản thiết kế ban đầu.

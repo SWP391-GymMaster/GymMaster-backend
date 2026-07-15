@@ -1,7 +1,9 @@
 # 06 — FEATURE SPECS
 
-**Status:** Approved
+**Status:** Implemented (đồng bộ code 2026-07-15)
 Mỗi feature theo cấu trúc **8 thành phần** (Ch.5 sách): Context · Actors · Functional (EARS) · Non-functional · Data · Error Handling · Acceptance Criteria · Out of Scope.
+
+> Đây là bản phác thảo feature ở mức cao (F1–F5). **Spec đầy đủ + API + mã lỗi đã đồng bộ code ở `specs/001-010/spec.md`** (canonical). Lưu ý khác biệt so với bản phác thảo: (a) phân công PT khi đã có PT active → **tự đóng cái cũ** (không 422), và yêu cầu gói `SupportsPT`; (b) check-in mặc định giới hạn **2 lần/ngày**; (c) có thêm thanh toán online **VNPay** (spec 010) và quét ảnh món ăn bằng **Gemini AI** (spec 009); (d) mọi path `/api/v1`.
 
 ---
 

@@ -1,6 +1,8 @@
 # 05 — DATABASE SPEC
 
-**Status:** Approved | **DBMS:** SQL Server | **ORM:** EF Core 10 (Code First)
+**Status:** Implemented (đồng bộ code 2026-07-15) | **DBMS:** SQL Server | **ORM:** EF Core 10 (Code First)
+
+> **Lưu ý tên bảng thật:** code dùng **snake_case chữ thường** (`users`, `member_profiles`, `membership_packages`, `check_ins`…), KHÔNG phải PascalCase như bảng tổng quan bên dưới. Ngoài các bảng liệt kê, code còn có `staff_profiles` (hồ sơ admin/staff) và `exercise_catalog` (danh mục bài tập). **Toàn bộ 24 bảng đã implement.** Schema cột chuẩn (kiểu, enum TINYINT, index, FK) ở `15_DATABASE_SCHEMA.md` — đó là nguồn canonical.
 
 ## 1. Nguyên tắc
 - Quan hệ rõ, có PK/FK, map 1-1 với use cases (SG-03).

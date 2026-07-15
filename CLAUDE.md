@@ -49,11 +49,11 @@ Layered: **Controller → Service → Repository → DbContext** (xem `CONSTITUT
 - **Repo:** đã tách 2 — `GymMaster-backend` (C#, private) + `GymMaster-frontend` (Next.js, public, repo riêng). File SQL tạo DB ở `database/`.
 - **4 tài khoản test:** `admin@gymmaster.local`/`Admin123!` · `staff@`/`Staff123!` · `pt@`/`Pt123!` · `member@gymmaster.local`/`Member123!`.
 
-## CÒN DANG DỞ / CHÚ Ý (cho session sau)
-- ⬜ **Unit test** (DoD ≥80%) chưa viết.
-- ⬜ **Spec 003–008** chưa làm. Frontend đã có UI nutrition/progress/dashboard → gọi backend chưa có → lỗi/mock = **BÌNH THƯỜNG**.
-- ⚠️ **Lệch path** với frontend: FE gọi `/api/members`, `/api/trainers` (không `v1`) còn backend dùng `/api/v1/...` → cần đồng bộ với bạn frontend (auth + users đã khớp `/api/v1/`).
-- ⚠️ Seeder thêm 4 tài khoản demo (`EnsureUserAsync`) — thay đổi này **CHƯA commit**.
+## TRẠNG THÁI (cập nhật 2026-07-15)
+- ✅ **Spec 001–010 đã implement hết** và deploy Cloud Run + Cloud SQL. Spec kit (`specs/` + doc 00–15) đã **đồng bộ ngược từ code** ngày 2026-07-15.
+- ✅ Path FE ↔ BE đã **khớp `/api/v1/...`** (FE gọi qua `apiRequest()` base `NEXT_PUBLIC_API_BASE_URL`). Ghi chú lệch path `/api/members` trước đây đã hết hiệu lực.
+- ⬜ **Unit test** coverage chưa đạt DoD ≥80% (một số service đã có test ở `tests/`).
+- ⚠️ Seeder thêm 4 tài khoản demo (`EnsureUserAsync`) + hồ sơ member/PT demo.
 - 📄 Chi tiết thay đổi: `CHANGELOG_vs_old_spec.md` · So sánh DB cũ/mới: `DB_DIFF_FOR_DBTEAM.md` · Schema chuẩn: `15_DATABASE_SCHEMA.md`.
 - ▶️ Chạy: backend `dotnet run` ở `backend/GymMaster.API` (cổng 5042) TRƯỚC → frontend `npm run dev` (cổng 3000). Login: `localhost:3000/login`.
 

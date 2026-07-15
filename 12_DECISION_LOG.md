@@ -22,5 +22,10 @@
 | D-16 | 2026-05 | Áp dụng **CONSTITUTION + AGENTS + CLAUDE** | Theo playbook SDD+ADD | Thêm 3 file nền tảng |
 | D-17 | 2026-05-30 | Database **SQL Server** (CANONICAL) — thay MySQL | Team chốt dùng SQL Server (quen toolset MS, LocalDB/SSMS, tích hợp Azure SQL) | EF Core `Microsoft.EntityFrameworkCore.SqlServer`; kiểu dữ liệu IDENTITY/NVARCHAR/DATETIME2/BIT; không có ENUM → bảng lookup/CHECK |
 | D-18 | 2026-06-01 | Runtime **.NET 10** (ASP.NET Core 10 + EF Core 10) — thay .NET 8 | Code thực tế đã build trên `net10.0`; chốt đồng bộ tài liệu theo code thay vì hạ cấp | `TargetFramework=net10.0`; package `Microsoft.*` 10.0.x; cập nhật toàn bộ docs + CONSTITUTION v1.2.0; superseded version trong D-02/D-04 |
+| D-19 | 2026-06-25→28 | **Deploy Google Cloud Run + Cloud SQL** (cả FE + BE) — thay Vercel + Azure App Service (superseded D-06 phần deploy) | Gom full-stack về một nền GCP để demo; $300 credit dùng thử; Cloud SQL for SQL Server | FE `gymmaster-os`, BE `gymmaster-api`, region `asia-southeast1`; Cloud SQL `gymmaster-sql-sg`; env qua Cloud Run env vars |
+| D-20 | 2026-06 | **Avatar → Cloudinary** (thay Azure Blob, superseded D-07) | Không cần Azure; Cloudinary free tier đủ demo | `IAvatarStorage`/`CloudinaryAvatarStorage`; URL lưu `users.AvatarUrl` |
+| D-21 | 2026-06-26 | **AI quét ảnh món ăn → Google Gemini Vision** (`gemini-2.5-flash`, thay Google Cloud Vision — OQ-09) | Gemini nhận nhiều món + ước lượng dinh dưỡng/gram trong 1 call, phù hợp hơn Vision (chỉ nhãn) | `GeminiService`/`IFoodImageAnalyzer`; spec 009 |
+| D-22 | 2026-06-26 | **Thanh toán online VNPay sandbox** (override ADR-03 thủ công) | Yêu cầu giảng viên phải có luồng online thực | HMAC-SHA512 + IPN auto-activate; spec 010 |
+| D-23 | 2026-06 | **Reset mật khẩu bằng OTP 6 số qua email** (SMTP Gmail) — thay token link dài | UX quen thuộc + gửi email thật | `password_reset_tokens.AttemptCount`; spec 001 |
 
-> Khi đổi một quyết định: thêm dòng mới với ID mới, đánh dấu dòng cũ "Superseded by D-xx", KHÔNG xóa lịch sử.
+> Khi đổi một quyết định: thêm dòng mới với ID mới, đánh dấu dòng cũ "Superseded by D-xx", KHÔNG xóa lịch sử. (D-06 phần deploy Vercel & D-07 Azure Blob → superseded bởi D-19/D-20.)

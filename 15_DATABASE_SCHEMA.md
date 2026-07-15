@@ -1,201 +1,163 @@
 # 15 — Database Schema (SQL Server, EF Core 10 Code-First)
 
-> Schema mức cột. Canonical DB = **SQL Server** (provider `Microsoft.EntityFrameworkCore.SqlServer`), EF Core 10 Code-First.
->
-> ## ⚠️ QUAN TRỌNG cho team DB
-> Backend **đã implement** theo **spec 001 (Auth) + spec 002 (User/Member/PT)**. Các bảng đánh dấu **✅ ĐÃ CODE** dưới đây là **nguồn chuẩn** — DB phải khớp **ĐÚNG** (tên bảng, tên cột, kiểu) thì backend mới chạy được. Các bảng **⬜ THIẾT KẾ** thuộc spec 003–008 (chưa code) — sẽ chuẩn hoá khi làm tới.
+> Schema mức cột. Canonical DB = **SQL Server** (provider `Microsoft.EntityFrameworkCore.SqlServer`), EF Core 10 Code-First. **Toàn bộ 24 bảng dưới đây ĐÃ CODE** (spec 001–010). Đồng bộ theo `GymMasterDbContext.OnModelCreating` ngày 2026-07-15.
 >
 > ## Quy ước backend ĐANG dùng (BẮT BUỘC khớp khi tạo DB)
-> - Tên bảng: **snake_case, chữ thường** → `users`, `roles`, `user_roles`, `member_profiles`… (KHÔNG dùng `Users`, `MemberProfiles`).
+> - Tên bảng: **snake_case, chữ thường** → `users`, `member_profiles`, `membership_packages`…
 > - `Id`: **BIGINT IDENTITY(1,1)**.
-> - User ↔ Role: qua **bảng phụ `user_roles` (nhiều-nhiều)** — KHÔNG để `RoleId` trực tiếp trên `users`.
-> - `users.Status`: lưu **chuỗi** `'active'` / `'locked'` (NVARCHAR) — KHÔNG phải TINYINT.
-> - Thời gian: **DATETIME2** (UTC). Boolean: **BIT**. Chuỗi: **NVARCHAR** (Unicode).
-> - Soft-delete: cột `IsDeleted BIT DEFAULT 0`.
+> - User ↔ Role: qua bảng phụ `user_roles` (nhiều-nhiều) — KHÔNG để `RoleId` trực tiếp trên `users`.
+> - `users.Status`: lưu **chuỗi** `'active'` / `'locked'` (NVARCHAR). Enum nghiệp vụ khác: **TINYINT**.
+> - Thời gian: **DATETIME2** (lưu UTC; "hôm nay" nghiệp vụ tính theo giờ VN GMT+7 ở tầng code `AppClock`). Boolean: **BIT**. Chuỗi: **NVARCHAR**. Ngày thuần: **DATE**. Tiền/đo lường: **DECIMAL**.
+> - Soft-delete: cột `IsDeleted BIT DEFAULT 0` (users, *_profiles).
+> - **Backend KHÔNG tự tạo/sửa schema** (không EnsureCreated/Migrate lúc chạy) — schema do team DB nạp từ `database/GymMaster_SQLServer_Final.sql`. Seeder chỉ nạp roles + 4 tài khoản demo + hồ sơ member/PT demo.
 
 ---
 
-# 1. Tổng quan bảng
-| # | Bảng (tên thật) | Nhóm | Trạng thái | Mô tả |
+# 1. Tổng quan bảng (24 bảng — tất cả ĐÃ CODE)
+| # | Bảng | Nhóm | Spec | Mô tả |
 |---|---|---|---|---|
-| 1 | `users` | Auth | ✅ ĐÃ CODE | Tài khoản đăng nhập mọi role |
-| 2 | `roles` | Auth | ✅ ĐÃ CODE | admin/staff/pt/member |
-| 3 | `user_roles` | Auth | ✅ ĐÃ CODE | Liên kết User–Role (nhiều-nhiều) |
-| 4 | `refresh_tokens` | Auth | ✅ ĐÃ CODE | Refresh token JWT |
-| 5 | `password_reset_tokens` | Auth | ✅ ĐÃ CODE | Token quên/đặt lại mật khẩu |
-| 6 | `member_profiles` | Member | ✅ ĐÃ CODE | Hồ sơ hội viên |
-| 7 | `trainer_profiles` | PT | ✅ ĐÃ CODE | Hồ sơ PT |
-| 8 | `audit_logs` | System | ✅ ĐÃ CODE | Nhật ký hành động mutating |
-| 9 | `membership_packages` | Membership | ⬜ THIẾT KẾ | Gói tập (spec 003) |
-| 10 | `memberships` | Membership | ⬜ THIẾT KẾ | Gói đã mua của member (spec 003) |
-| 11 | `payments` | Payment | ⬜ THIẾT KẾ | Thanh toán (spec 003) |
-| 12 | `check_ins` | Operation | ⬜ THIẾT KẾ | Lượt check-in (spec 004) |
-| 13 | `trainer_assignments` | Training | ⬜ THIẾT KẾ | Phân công PT–Member (spec 005) |
-| 14 | `workout_plans` | Training | ⬜ THIẾT KẾ | Giáo án (spec 005) |
-| 15 | `workout_exercises` | Training | ⬜ THIẾT KẾ | Bài tập trong giáo án (spec 005) |
-| 16 | `trainer_notes` | Training | ⬜ THIẾT KẾ | Ghi chú PT (spec 005) |
-| 17 | `progress_logs` | Progress | ⬜ THIẾT KẾ | Tiến độ cơ thể (spec 006) |
-| 18 | `food_items` | Nutrition | ⬜ THIẾT KẾ | CSDL món ăn (spec 007) |
-| 19 | `meal_logs` / `meal_log_items` | Nutrition | ⬜ THIẾT KẾ | Bữa ăn + món (spec 007) |
-| 20 | `calorie_targets` | Nutrition | ⬜ THIẾT KẾ | Mục tiêu calo (spec 007) |
+| 1 | `users` | Auth | 001 | Tài khoản đăng nhập mọi role |
+| 2 | `roles` | Auth | 001 | admin/staff/pt/member |
+| 3 | `user_roles` | Auth | 001 | Liên kết User–Role (nhiều-nhiều) |
+| 4 | `refresh_tokens` | Auth | 001 | Refresh token JWT |
+| 5 | `password_reset_tokens` | Auth | 001 | OTP quên/đặt lại mật khẩu |
+| 6 | `member_profiles` | Member | 002 | Hồ sơ hội viên |
+| 7 | `staff_profiles` | Staff | 002 | Hồ sơ cá nhân admin/staff |
+| 8 | `trainer_profiles` | PT | 002 | Hồ sơ PT |
+| 9 | `audit_logs` | System | 008 | Nhật ký hành động mutating |
+| 10 | `membership_packages` | Membership | 003 | Gói tập (kèm SupportsPT) |
+| 11 | `memberships` | Membership | 003 | Gói đã mua của member |
+| 12 | `payments` | Payment | 003/010 | Thanh toán (thủ công + VNPay) |
+| 13 | `check_ins` | Operation | 004 | Lượt check-in |
+| 14 | `trainer_assignments` | Training | 005 | Phân công PT–Member |
+| 15 | `workout_plans` | Training | 005 | Giáo án |
+| 16 | `workout_exercises` | Training | 005 | Bài tập trong giáo án |
+| 17 | `exercise_catalog` | Training | 005 | Danh mục bài tập (unique theo tên) |
+| 18 | `trainer_notes` | Training | 005 | Ghi chú PT |
+| 19 | `progress_logs` | Progress | 006 | Tiến độ cơ thể |
+| 20 | `food_items` | Nutrition | 007/009 | CSDL món ăn (kèm nguồn AI) |
+| 21 | `meal_logs` | Nutrition | 007 | Bữa ăn theo ngày |
+| 22 | `meal_log_items` | Nutrition | 007 | Món trong bữa (snapshot calo) |
+| 23 | `calorie_targets` | Nutrition | 007 | Mục tiêu calo/macro |
 
 ---
 
-# 2. Chi tiết cột — ✅ BẢNG ĐÃ CODE (DB phải khớp đúng)
+# 2. Chi tiết cột
 
 ## 2.1 `users`
 | Cột | Kiểu | Ràng buộc | Ghi chú |
 |---|---|---|---|
-| Id | BIGINT | PK, IDENTITY(1,1) | |
-| Email | NVARCHAR(255) | UNIQUE, NOT NULL | định danh đăng nhập |
-| Phone | NVARCHAR(30) | NULL, UNIQUE (filtered: WHERE Phone IS NOT NULL) | |
-| PasswordHash | NVARCHAR(255) | NOT NULL | **BCrypt cost ≥12** |
+| Id | BIGINT | PK, IDENTITY | |
+| Email | NVARCHAR(255) | UNIQUE (filtered IsDeleted=0), NOT NULL | định danh đăng nhập |
+| Phone | NVARCHAR(30) | NULL, UNIQUE (filtered Phone IS NOT NULL AND IsDeleted=0) | |
+| PasswordHash | NVARCHAR(255) | NOT NULL | **BCrypt cost 12** |
 | FullName | NVARCHAR(150) | NOT NULL | |
+| AvatarUrl | NVARCHAR(500) | NULL | URL Cloudinary / ảnh Google |
 | Status | NVARCHAR(20) | NOT NULL | **chuỗi** `'active'` / `'locked'` |
-| FailedLoginCount | INT | NOT NULL, DEFAULT 0 | đếm sai mật khẩu |
-| LoginWindowStartedAt | DATETIME2 | NULL | mốc cửa sổ 15' đếm brute-force |
-| LockedUntil | DATETIME2 | NULL | khóa tạm tới thời điểm này |
+| FailedLoginCount | INT | NOT NULL DEFAULT 0 | đếm sai mật khẩu |
+| LoginWindowStartedAt | DATETIME2 | NULL | mốc cửa sổ 15' brute-force |
+| LockedUntil | DATETIME2 | NULL | khoá tạm tới thời điểm này |
 | LastLoginAt | DATETIME2 | NULL | |
-| IsDeleted | BIT | NOT NULL, DEFAULT 0 | soft delete |
-| CreatedAt | DATETIME2 | NOT NULL | |
-| UpdatedAt | DATETIME2 | NOT NULL | |
+| IsDeleted | BIT | NOT NULL DEFAULT 0 | |
+| CreatedAt / UpdatedAt | DATETIME2 | NOT NULL | |
 
-> ❗ KHÔNG có cột `RoleId` — role lấy qua bảng `user_roles`.
+> ❗ KHÔNG có cột `RoleId` — role lấy qua `user_roles`.
 
 ## 2.2 `roles`
-| Cột | Kiểu | Ràng buộc |
-|---|---|---|
-| Id | BIGINT | PK, IDENTITY |
-| Name | NVARCHAR(30) | UNIQUE, NOT NULL — `admin`/`staff`/`pt`/`member` (chữ thường) |
-| Description | NVARCHAR(255) | NULL |
+Id BIGINT PK · Name NVARCHAR(30) UNIQUE (`admin`/`staff`/`pt`/`member`) · Description NVARCHAR(255) NULL.
 
-## 2.3 `user_roles` (nhiều-nhiều)
-| Cột | Kiểu | Ràng buộc |
-|---|---|---|
-| UserId | BIGINT | PK (cùng RoleId), FK → users.Id |
-| RoleId | BIGINT | PK (cùng UserId), FK → roles.Id |
-
-> PK kép `(UserId, RoleId)`. Mỗi user hiện tại gắn 1 role, nhưng mô hình hỗ trợ nhiều.
+## 2.3 `user_roles`
+UserId BIGINT (FK→users) · RoleId BIGINT (FK→roles) · **PK kép (UserId, RoleId)**.
 
 ## 2.4 `refresh_tokens`
-| Cột | Kiểu | Ràng buộc | Ghi chú |
-|---|---|---|---|
-| Id | BIGINT | PK, IDENTITY | |
-| UserId | BIGINT | FK → users.Id, NOT NULL | |
-| TokenHash | NVARCHAR(255) | NOT NULL | lưu bản băm, không plaintext |
-| ExpiresAt | DATETIME2 | NOT NULL | 7 ngày |
-| RevokedAt | DATETIME2 | NULL | rotate/logout |
-| CreatedAt | DATETIME2 | NOT NULL | |
+Id PK · UserId FK→users · TokenHash NVARCHAR(255) (BCrypt) · ExpiresAt DATETIME2 (7 ngày) · RevokedAt DATETIME2 NULL (rotate/logout) · CreatedAt.
 
 ## 2.5 `password_reset_tokens`
-| Cột | Kiểu | Ràng buộc | Ghi chú |
-|---|---|---|---|
-| Id | BIGINT | PK, IDENTITY | |
-| UserId | BIGINT | FK → users.Id, NOT NULL | |
-| TokenHash | NVARCHAR(255) | NOT NULL | bản băm |
-| ExpiresAt | DATETIME2 | NOT NULL | 30 phút |
-| UsedAt | DATETIME2 | NULL | đánh dấu đã dùng |
-| CreatedAt | DATETIME2 | NOT NULL | |
+Id PK · UserId FK→users · TokenHash NVARCHAR(255) (**băm OTP 6 số**) · ExpiresAt DATETIME2 (30 phút) · UsedAt DATETIME2 NULL · **AttemptCount INT** (số lần nhập sai; ≥3 → vô hiệu) · CreatedAt.
 
 ## 2.6 `member_profiles`
-| Cột | Kiểu | Ràng buộc | Ghi chú |
-|---|---|---|---|
-| Id | BIGINT | PK, IDENTITY | |
-| UserId | BIGINT | FK → users.Id, **UNIQUE** (1-1) | |
-| DateOfBirth | DATETIME2 | NULL | |
-| Gender | NVARCHAR(20) | NULL | |
-| Address | NVARCHAR(255) | NULL | |
-| EmergencyContact | NVARCHAR(100) | NULL | |
-| JoinedAt | DATETIME2 | NOT NULL | ngày tham gia |
-| IsDeleted | BIT | NOT NULL, DEFAULT 0 | |
-| CreatedAt | DATETIME2 | NOT NULL | |
-| UpdatedAt | DATETIME2 | NOT NULL | |
+Id PK · UserId FK→users **UNIQUE (1-1)** · DateOfBirth DATETIME2? · Gender NVARCHAR(20)? · Address NVARCHAR(255)? · EmergencyContact NVARCHAR(100)? · JoinedAt DATETIME2 · IsDeleted BIT · CreatedAt/UpdatedAt.
 
-## 2.7 `trainer_profiles`
-| Cột | Kiểu | Ràng buộc | Ghi chú |
-|---|---|---|---|
-| Id | BIGINT | PK, IDENTITY | |
-| UserId | BIGINT | FK → users.Id, **UNIQUE** (1-1) | |
-| Specialty | NVARCHAR(150) | NULL | chuyên môn |
-| Bio | NVARCHAR(1000) | NULL | giới thiệu |
-| Gender | NVARCHAR(20) | NULL | |
-| DateOfBirth | DATETIME2 | NULL | |
-| YearsOfExperience | INT | NULL | số năm kinh nghiệm (≥0) |
-| IsDeleted | BIT | NOT NULL, DEFAULT 0 | |
-| CreatedAt | DATETIME2 | NOT NULL | |
-| UpdatedAt | DATETIME2 | NOT NULL | |
+## 2.7 `staff_profiles`
+Id PK · UserId FK→users **UNIQUE (1-1)** · DateOfBirth? · Gender NVARCHAR(20)? · Address NVARCHAR(255)? · EmergencyContact NVARCHAR(100)? · IsDeleted BIT · CreatedAt/UpdatedAt. *(Cho admin/staff — thông tin cá nhân.)*
 
-## 2.8 `audit_logs`
-| Cột | Kiểu | Ràng buộc | Ghi chú |
-|---|---|---|---|
-| Id | BIGINT | PK, IDENTITY | |
-| UserId | BIGINT | **NULL**, FK → users.Id | actor (NULL nếu hệ thống) |
-| Action | NVARCHAR(100) | NOT NULL | vd `CREATE_MEMBER`, `UPDATE_USER` |
-| Entity | NVARCHAR(60) | NOT NULL | vd `MemberProfile` |
-| EntityId | BIGINT | NOT NULL | |
-| Metadata | NVARCHAR(MAX) | NULL | JSON, KHÔNG chứa PII nhạy cảm |
-| CreatedAt | DATETIME2 | NOT NULL | |
+## 2.8 `trainer_profiles`
+Id PK · UserId FK→users **UNIQUE (1-1)** · Specialty NVARCHAR(150)? · Bio NVARCHAR(1000)? · Gender NVARCHAR(20)? · DateOfBirth? · Address NVARCHAR(255)? · EmergencyContact NVARCHAR(100)? · YearsOfExperience INT? · IsDeleted BIT · CreatedAt/UpdatedAt.
 
----
+## 2.9 `audit_logs`
+Id PK · UserId BIGINT **NULL** FK→users (actor) · Action NVARCHAR(100) · Entity NVARCHAR(60) · EntityId BIGINT · Metadata NVARCHAR(MAX) JSON (không PII nhạy cảm) · CreatedAt · INDEX(Entity, EntityId).
 
-# 2b. Chi tiết cột — ⬜ BẢNG THIẾT KẾ (spec 003–008, CHƯA code)
+## 2.10 `membership_packages`
+Id PK · Name NVARCHAR(100) **UNIQUE** · Description NVARCHAR(500)? · DurationDays SMALLINT · Price DECIMAL(12,2) · **SupportsPT BIT** (0=thường,1=có PT) · IsActive BIT · CreatedAt/UpdatedAt.
 
-> Các bảng này là **bản thiết kế dự kiến**, sẽ chốt khi implement spec tương ứng. Tên bảng/cột cuối cùng theo code lúc đó (giữ quy ước snake_case, BIGINT, DATETIME2). Tham khảo thêm `05_DATABASE_SPEC.md`.
+## 2.11 `memberships`
+Id PK · MemberId FK→member_profiles (INDEX) · PackageId FK→membership_packages · StartDate **DATE** · EndDate **DATE** · Status **TINYINT** (0 PendingPayment,1 Active,2 Expired,3 Cancelled) · CreatedByUserId · CreatedAt/UpdatedAt?.
 
-## `membership_packages` (spec 003)
-Id PK · Name · Description · DurationDays SMALLINT · Price DECIMAL(12,2) · **SupportsPT BIT NOT NULL DEFAULT 0** (0=gói thường, 1=gói có PT) · IsActive BIT · CreatedAt/UpdatedAt.
-> `SupportsPT` thêm bằng `database/008_package_supports_pt.sql`. Quyết định một gói có hỗ trợ PT hay không; quyền PT của hội viên **suy ra động** từ gói còn hiệu lực (spec 003 FR-PKG-04, gác PT ở spec 005 FR-PT-05) — KHÔNG lưu cờ PT ở `users`/`member_profiles`.
+## 2.12 `payments`
+Id PK · MembershipId FK→memberships (INDEX) · Amount DECIMAL(12,2) · PaymentMethod **TINYINT** (1 Cash,2 Transfer,3 Card) · Status **TINYINT** (0 Pending,1 Paid,2 Refunded) · PaidAt DATETIME2? · CreatedByUserId · CreatedAt/UpdatedAt?.
 
-## `memberships` (spec 003)
-Id PK · MemberId FK→member_profiles · PackageId FK→membership_packages · StartDate DATE · EndDate DATE · Status (0=PendingPayment,1=Active,2=Expired,3=Cancelled) · CreatedAt/UpdatedAt.
+## 2.13 `check_ins`
+Id PK · MemberId FK→member_profiles · CheckInAt DATETIME2 (UTC) · CreatedBy FK→users **NULL** (null = member tự check-in) · INDEX(MemberId, CheckInAt).
 
-## `payments` (spec 003)
-Id PK · MembershipId FK→memberships · Amount DECIMAL(12,2) CHECK ≥0 · Method (1=Cash,2=Transfer,3=Card) · Status (0=Pending,1=Paid,2=Refunded) · PaidAt · CreatedBy FK→users · CreatedAt.
+## 2.14 `trainer_assignments`
+Id PK · MemberId FK→member_profiles · TrainerId FK→trainer_profiles · StartDate DATE · EndDate DATE? · Status **TINYINT** (1 Active,2 Ended) · CreatedByUserId · CreatedAt/UpdatedAt? · INDEX(MemberId,Status), INDEX(TrainerId,Status).
 
-## `check_ins` (spec 004)
-Id PK · MemberId FK→member_profiles INDEX · CheckInAt DATETIME2 (UTC) · CreatedBy FK→users (NULL nếu self).
+## 2.15 `workout_plans`
+Id PK · MemberId FK · TrainerId FK · Title NVARCHAR(150) · Goal NVARCHAR(255)? · StartDate DATE · EndDate DATE? · Status **TINYINT** (1 Active,2 Completed,3 Cancelled) · CreatedAt/UpdatedAt? · INDEX(MemberId,Status), INDEX(TrainerId,Status).
 
-## `meal_logs` / `meal_log_items` (spec 007)
-**meal_logs:** Id PK · MemberId FK · LogDate DATE · MealType (1=Breakfast,2=Lunch,3=Dinner,4=Snack) · CreatedAt.
-**meal_log_items:** Id PK · MealLogId FK · FoodItemId FK · Quantity DECIMAL(8,2) CHECK >0 · Calories DECIMAL(8,2).
+## 2.16 `workout_exercises`
+Id PK · WorkoutPlanId FK→workout_plans (**CASCADE**) · ExerciseId FK→exercise_catalog · SortOrder SMALLINT · Sets TINYINT? · Reps SMALLINT? · WeightKg DECIMAL(6,2)? · DurationMinutes SMALLINT? · RestSeconds SMALLINT? · Note NVARCHAR(255)? · **UNIQUE(WorkoutPlanId, SortOrder)**, INDEX(ExerciseId).
 
-*(Các bảng còn lại — membership_packages, trainer_assignments, workout_plans, workout_exercises, trainer_notes, progress_logs, food_items, calorie_targets — theo cùng quy ước; cột chính nêu ở `05_DATABASE_SPEC.md`, chốt khi code.)*
+## 2.17 `exercise_catalog`
+Id PK · Name NVARCHAR(150) **UNIQUE** · MuscleGroup NVARCHAR(80)? · Description NVARCHAR(500)? · IsActive BIT. *(Bài tập nhập theo tên → tra/tạo bản ghi ở đây.)*
+
+## 2.18 `trainer_notes`
+Id PK · TrainerId FK→trainer_profiles · MemberId FK→member_profiles · NoteDate DATE · Content NVARCHAR(1000) · CreatedByUserId? · CreatedAt/UpdatedAt? · INDEX(MemberId,NoteDate), INDEX(TrainerId,NoteDate).
+
+## 2.19 `progress_logs`
+Id PK · MemberId FK→member_profiles · MeasuredAt DATETIME2 · WeightKg DECIMAL(5,2)? · BodyFatPercent DECIMAL(5,2)? · ChestCm DECIMAL(5,2)? · WaistCm DECIMAL(5,2)? · HipCm DECIMAL(5,2)? · Note NVARCHAR(500)? · CreatedByUserId? · CreatedAt · INDEX(MemberId,MeasuredAt).
+
+## 2.20 `food_items`
+Id PK · Name NVARCHAR(150) **UNIQUE** · Unit NVARCHAR(30) · CaloriesPerUnit DECIMAL(8,2) · ProteinG DECIMAL(8,2)? · CarbG DECIMAL(8,2)? · FatG DECIMAL(8,2)? · IsActive BIT · **ServingSize DECIMAL(8,2)** (mặc định 100) · **Source NVARCHAR(20)** (`Admin`/`AI`) · CreatedAt.
+
+## 2.21 `meal_logs`
+Id PK · MemberId FK→member_profiles · LogDate **DATE** · MealType **TINYINT** (1 Breakfast,2 Lunch,3 Dinner,4 Snack) · CreatedAt · INDEX(MemberId, LogDate).
+
+## 2.22 `meal_log_items`
+Id PK · MealLogId FK→meal_logs · FoodItemId FK→food_items · Quantity DECIMAL(8,2) · Calories DECIMAL(8,2) (**snapshot** lúc ghi).
+
+## 2.23 `calorie_targets`
+Id PK · MemberId · EffectiveDate **DATE** · DailyCalories DECIMAL(8,2) · ProteinG?/CarbG?/FatG? DECIMAL(8,2) · CreatedAt · **UNIQUE(MemberId, EffectiveDate)**.
 
 ---
 
-# 3. Quan hệ chính (phần ĐÃ CODE)
-- `users` 1—N `user_roles` N—1 `roles` (nhiều-nhiều; mỗi user hiện gắn 1 role).
-- `users` 1—1 `member_profiles` (qua UserId UNIQUE) — chỉ với role member.
-- `users` 1—1 `trainer_profiles` (qua UserId UNIQUE) — chỉ với role pt.
-- `users` 1—N `refresh_tokens`, 1—N `password_reset_tokens`.
-- Mọi hành động mutating quan trọng → 1 dòng `audit_logs`.
+# 3. Quan hệ chính
+- `users` 1—N `user_roles` N—1 `roles` (mỗi user hiện gắn 1 role).
+- `users` 1—1 `member_profiles` / `staff_profiles` / `trainer_profiles` (UserId UNIQUE, theo role).
+- `users` 1—N `refresh_tokens`, `password_reset_tokens`, `audit_logs` (actor).
+- `member_profiles` 1—N `memberships` 1—N `payments`; 1—N `check_ins`, `progress_logs`, `meal_logs`, `calorie_targets`, `trainer_assignments`, `workout_plans`, `trainer_notes`.
+- `membership_packages` 1—N `memberships`. `trainer_profiles` 1—N `trainer_assignments`/`workout_plans`/`trainer_notes`.
+- `workout_plans` 1—N `workout_exercises` N—1 `exercise_catalog`. `meal_logs` 1—N `meal_log_items` N—1 `food_items`.
 
-*(Quan hệ nghiệp vụ khác — membership/payment/checkin/workout/meal — thuộc spec 003–008.)*
-
-# 4. Index & ràng buộc quan trọng (phần ĐÃ CODE)
-- UNIQUE: `users.Email`; `users.Phone` (filtered, bỏ qua NULL); `roles.Name`; `member_profiles.UserId`; `trainer_profiles.UserId`.
+# 4. Index & ràng buộc quan trọng
+- UNIQUE: `users.Email`, `users.Phone` (filtered), `roles.Name`, `member_profiles.UserId`, `staff_profiles.UserId`, `trainer_profiles.UserId`, `membership_packages.Name`, `exercise_catalog.Name`, `food_items.Name`, `workout_exercises(WorkoutPlanId,SortOrder)`, `calorie_targets(MemberId,EffectiveDate)`.
 - PK kép: `user_roles(UserId, RoleId)`.
-- INDEX: `audit_logs(Entity, EntityId)`.
-- FK ON DELETE NO ACTION cho dữ liệu nghiệp vụ (dùng soft-delete). `password_reset_tokens`/`refresh_tokens` có thể CASCADE theo user.
-- `users.Status` lưu chuỗi `'active'`/`'locked'` (KHÔNG TINYINT). Các enum nghiệp vụ khác (spec sau) sẽ dùng TINYINT + CHECK.
+- Enum nghiệp vụ dùng **TINYINT** (memberships/payments/trainer_assignments/workout_plans/meal_logs Status/Type). `users.Status` là chuỗi.
+- Soft-delete (users, *_profiles) + lazy-expire membership ở tầng code (`MembershipLifecycle`).
 
-# 5. Map use case → bảng
-| Use case | Bảng chính | Trạng thái |
-|---|---|---|
-| Login / Auth (UC-01/02, spec 001) | `users`, `roles`, `user_roles`, `refresh_tokens`, `password_reset_tokens` | ✅ |
-| Quản lý User/Member/PT (UC-03/04/05, spec 002) | `users`, `roles`, `user_roles`, `member_profiles`, `trainer_profiles` | ✅ |
-| Audit (UC-23) | `audit_logs` | ✅ |
-| Sell/Renew (UC-07/08) | `memberships`, `payments`, `membership_packages` | ⬜ spec 003 |
-| Check-in (UC-09) | `check_ins`, `memberships` | ⬜ spec 004 |
-| Assign PT / Workout (UC-10/12) | `trainer_assignments`, `workout_plans`, `workout_exercises` | ⬜ spec 005 |
-| Progress (UC-15) | `progress_logs` | ⬜ spec 006 |
-| Meal/Calorie (UC-17/20) | `meal_logs`, `meal_log_items`, `food_items`, `calorie_targets` | ⬜ spec 007 |
-| Dashboard (UC-22) | `payments`, `memberships`, `check_ins` | ⬜ spec 008 |
-
----
+# 5. Map use case → bảng (tất cả đã code)
+| Use case | Bảng chính |
+|---|---|
+| Auth (UC-01/02, spec 001) | users, roles, user_roles, refresh_tokens, password_reset_tokens |
+| User/Member/PT (UC-03/04/05, spec 002) | users, *_profiles |
+| Sell/Renew/Pay (UC-06/07/08, spec 003/010) | membership_packages, memberships, payments |
+| Check-in (UC-09, spec 004) | check_ins, memberships |
+| Assign PT / Workout / Note (UC-10..13, spec 005) | trainer_assignments, workout_plans, workout_exercises, exercise_catalog, trainer_notes |
+| Progress & 360 (UC-14/15, spec 006) | progress_logs (+ tổng hợp nhiều bảng) |
+| Meal/Calorie (UC-16..21, spec 007/009) | food_items, meal_logs, meal_log_items, calorie_targets |
+| Dashboard & Audit (UC-22/23, spec 008) | payments, memberships, check_ins, audit_logs |
 
 # 6. Ghi chú đồng bộ (cho team DB)
-- Phần **✅ ĐÃ CODE** là contract chuẩn từ code backend (spec 001 + 002). Nếu tạo DB tay, **khớp đúng tên/kiểu** ở mục 2.1–2.8 thì backend chạy được ngay.
-- Cách chắc chắn 100% (khuyến nghị): khi backend bật EF Migration, chạy `dotnet ef migrations script` để **xuất file SQL đúng y hệt code** → dùng file đó tạo DB thay vì viết tay.
-- Bản schema cũ (RoleId trực tiếp / Status TINYINT / tên PascalCase) đã **lỗi thời** — không dùng nữa; chuẩn theo file này.
-</content>
+- Toàn bộ bảng là contract chuẩn từ code backend. Nguồn schema thực tế: `database/GymMaster_SQLServer_Final.sql` (22 bảng gốc + `SupportsPT`). Backend map theo `GymMasterDbContext`.
+- Cách chắc chắn 100%: `dotnet ef migrations script` để xuất SQL đúng y hệt code.
+- Bản schema cũ (RoleId trực tiếp / Status TINYINT trên users / tên PascalCase) đã lỗi thời.

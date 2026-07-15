@@ -2,105 +2,84 @@
 
 **Feature Branch**: `007-nutrition-calorie`
 **Created**: 2026-05-30
-**Status**: Approved
+**Status**: Implemented (spec đồng bộ theo code 2026-07-15)
 **Spec style**: SDD + Spec Kit — 9 components, EARS notation
 **Source**: 06_FEATURE_SPECS (F4), 03_SRS (UC-16..21), 04 (FR-MEAL/CAL), ADR-04
 
-> EARS legend như spec 001.
+> EARS legend như spec 001. Mọi path dưới `/api/v1`. Ngày tính theo giờ VN (`AppClock`).
 
 ---
 
 ## 1. Context & Goal
-Member ghi nhật ký bữa ăn từ food database (nhập tay — ADR-04), hệ thống tính calo/macro theo ngày so với mục tiêu. Mục tiêu: theo dõi dinh dưỡng chính xác, hỗ trợ PT tư vấn.
+Member ghi nhật ký bữa ăn từ food database (nhập tay — ADR-04), hệ thống tính calo/macro theo ngày so với mục tiêu. Member **chưa có gói tập active** chỉ được tập trên **20 món cố định** (tier miễn phí) để dùng thử; có gói active (hoặc Admin/Staff/PT) → toàn bộ kho món. Mục tiêu: theo dõi dinh dưỡng chính xác, hỗ trợ PT tư vấn.
 
 ## 2. Actors
 | Actor | Vai trò |
 |---|---|
-| Member | Đặt mục tiêu calo; ghi bữa ăn; xem tổng kết ngày/lịch sử |
-| PT | Xem lịch sử calo của member được phân công |
-| System | Tính tổng calo, so mục tiêu, cập nhật summary |
+| Member | Đặt mục tiêu calo; ghi bữa ăn; xem tổng kết ngày/lịch sử; thêm món |
+| PT | Xem/đặt mục tiêu + xem lịch sử calo của member được phân công |
+| Admin/Staff | Xem toàn bộ; thêm món |
+| System | Tính tổng calo/macro, so mục tiêu |
 
 ## 3. Functional Requirements (EARS)
-- **FR-CAL-TGT-01 (Event):** WHEN Member/PT đặt mục tiêu calo (> 0), THE system SHALL lưu CalorieTarget hiệu lực từ ngày chỉ định.
-- **FR-FOOD-01 (Event):** WHEN Member tìm món, THE system SHALL trả danh sách FoodItem khớp tên (không phân biệt hoa thường).
-- **FR-FOOD-02 (Optional):** WHERE món không có trong database, THE system SHALL cho Member thêm Custom Food (tên + calo/đơn vị).
-- **FR-MEAL-01 (Event):** WHEN Member thêm món vào bữa ăn với khẩu phần > 0, THE system SHALL tạo MealLogItem và tính lại Daily Calorie Summary.
-- **FR-MEAL-02 (Unwanted):** IF khẩu phần ≤ 0, THEN THE system SHALL từ chối với 422.
-- **FR-MEAL-03 (Event):** WHEN cùng món được thêm lại trong cùng bữa, THE system SHALL cộng dồn khẩu phần.
-- **FR-CAL-01 (Ubiquitous):** THE system SHALL tính Daily Summary = Σ(calo/đơn vị × khẩu phần) của mọi món trong ngày, và remaining = target − consumed.
-- **FR-CAL-02 (Optional):** WHERE người gọi là PT, THE system SHALL chỉ cho xem lịch sử calo của member được phân công.
+- **FR-CAL-TGT-01 (Event):** WHEN Member/PT/Admin/Staff đặt mục tiêu calo (DailyCalories > 0, macro ≥ 0), THE system SHALL lưu (hoặc cập nhật) CalorieTarget theo (member, EffectiveDate). UNIQUE(MemberId, EffectiveDate).
+- **FR-CAL-TGT-02 (Event):** WHEN xem mục tiêu (`GET /calorie-target`), THE system SHALL trả mục tiêu hiệu lực gần nhất ≤ hôm nay (404 `NO_TARGET` nếu chưa đặt).
+- **FR-FOOD-01 (Event):** WHEN tìm món (`GET /food-items`), THE system SHALL trả FoodItem active khớp tên (không phân biệt DẤU + hoa/thường, collation `Latin1_General_100_CI_AI`), phân trang. WHERE người gọi là Member **chưa có gói active**, THE system SHALL giới hạn universe = **20 món đầu (A→Z)** trước khi lọc từ khoá.
+- **FR-FOOD-02 (Event):** WHEN Member/Admin/Staff thêm món (`POST /food-items`), THE system SHALL find-or-create theo tên: trùng tên → trả món có sẵn (200), ngược lại tạo mới (201).
+- **FR-MEAL-01 (Event):** WHEN Member thêm món vào bữa (khẩu phần > 0), THE system SHALL tạo/ghép MealLog theo (member, ngày, bữa) và tạo MealLogItem, **snapshot Calories = CaloriesPerUnit × Quantity**.
+- **FR-MEAL-02 (Unwanted):** IF khẩu phần ≤ 0 hoặc mealType không hợp lệ, THEN 422.
+- **FR-MEAL-03 (Event):** WHEN cùng món được thêm lại trong cùng bữa/ngày, THE system SHALL cộng dồn khẩu phần + calo.
+- **FR-CAL-01 (Ubiquitous):** THE system SHALL tính Daily Summary = Σ calo trong ngày; remaining = target − consumed (null nếu chưa đặt target). Summary còn trả **macro** (protein/carb/fat consumed/target/remaining).
+- **FR-CAL-02 (Optional):** WHERE người gọi là PT, THE system SHALL chỉ cho xem/đặt của member được phân công active.
 
 ## 4. Non-functional Requirements
-- **NFR-01:** Cập nhật summary < 500ms sau khi thêm món.
-- **NFR-02:** Calo lưu tại thời điểm ghi (snapshot) để không đổi khi FoodItem bị sửa sau.
-- **NFR-03:** Food search có phân trang.
+- **NFR-01:** Cập nhật summary < 500ms.
+- **NFR-02:** **Calo** snapshot tại thời điểm ghi (không đổi khi FoodItem sửa sau). Macro theo ngày lấy từ `food_items` hiện tại (live) — xem §10.
+- **NFR-03:** Food search có phân trang (mặc định 20, tối đa 100).
 
 ## 5. Data Model
-- **FoodItems**(Id, Name, Unit, CaloriesPerUnit DECIMAL(8,2), ProteinG?, CarbG?, FatG?, IsCustom BIT, CreatedByUserId nullable, IsDeleted, CreatedAt)
-- **MealLogs**(Id, MemberId→MemberProfiles, LogDate DATE, MealType{Breakfast,Lunch,Dinner,Snack}, CreatedAt)
-- **MealLogItems**(Id, MealLogId→MealLogs, FoodItemId→FoodItems, Quantity DECIMAL(8,2)>0, Calories DECIMAL(8,2) snapshot)
-- **CalorieTargets**(Id, MemberId, TargetCalories, EffectiveFrom DATE, CreatedAt)
-- Xem `15_DATABASE_SCHEMA.md` §2.7.
+- **food_items**(Id, Name[UNIQUE], Unit, CaloriesPerUnit DECIMAL(8,2), ProteinG?, CarbG?, FatG?, IsActive, **ServingSize** DECIMAL(8,2) mặc định 100, **Source** {Admin/AI} mặc định Admin, CreatedAt)
+- **meal_logs**(Id, MemberId→member_profiles, LogDate DATE, MealType TINYINT{1 Breakfast,2 Lunch,3 Dinner,4 Snack}, CreatedAt) — index (MemberId, LogDate)
+- **meal_log_items**(Id, MealLogId→meal_logs, FoodItemId→food_items, Quantity DECIMAL(8,2)>0, Calories DECIMAL(8,2) snapshot)
+- **calorie_targets**(Id, MemberId, EffectiveDate DATE, DailyCalories DECIMAL(8,2), ProteinG?, CarbG?, FatG?, CreatedAt) — UNIQUE(MemberId, EffectiveDate)
 
 ## 6. API Spec
 | Method | Path | Role | Request | Success | Lỗi |
 |---|---|---|---|---|---|
-| POST | /api/v1/members/{id}/calorie-target | Member(self), PT(assigned) | {dailyCalories, effectiveDate?, proteinG?, carbG?, fatG?} | 201 | 403, 422 |
-| GET | /api/v1/food-items?query=&page= | Member, PT, Admin | — | 200 (paged FoodItemResponse) | 401 |
-| POST | /api/v1/food-items | Member | {name, unit, caloriesPerUnit, proteinG?, carbG?, fatG?} | 201 (custom) | 400 |
-| POST | /api/v1/meal-logs | Member(self) | {memberId, logDate, mealType, items:[{foodItemId, quantity}]} | 201 (MealLogResponse) | 404, 422 |
-| GET | /api/v1/meal-logs?memberId=&date= | Member(self), Admin, Staff | — | 200 (mảng MealLogResponse) | 403 |
-| GET | /api/v1/members/{id}/calorie-summary?date= | Member(self), PT(assigned) | — | 200 (CalorieSummaryResponse) | 403 |
-| GET | /api/v1/members/{id}/calorie-history?from=&to= | Member(self), PT(assigned) | — | 200 (mảng CalorieSummaryResponse) | 403 |
+| POST | /api/v1/members/{id}/calorie-target | Member(self), PT(assigned), Admin/Staff | {dailyCalories, effectiveDate?, proteinG?, carbG?, fatG?} | 200/201 | 403, 404, 422 |
+| GET | /api/v1/members/{id}/calorie-target | Member(self), PT(assigned), Admin/Staff | — | 200 CalorieTargetResponse | 403, 404 `NO_TARGET` |
+| GET | /api/v1/members/{id}/calorie-summary?date= | Member(self), PT(assigned), Admin/Staff | — | 200 CalorieSummaryResponse | 403, 404 |
+| GET | /api/v1/members/{id}/calorie-history?from=&to= | Member(self), PT(assigned), Admin/Staff | — | 200 (mảng, mặc định 7 ngày) | 403, 404, 422 |
+| GET | /api/v1/food-items?query=&page=&pageSize= | tất cả (Member giới hạn tier) | — | 200 (paged FoodItemResponse) | 401 |
+| POST | /api/v1/food-items | Member, Admin, Staff | {name, unit, caloriesPerUnit, proteinG?, carbG?, fatG?} | 200/201 | 400 |
+| POST | /api/v1/meal-logs | Member(self), Admin, Staff | {memberId, logDate, mealType, items:[{foodItemId, quantity}]} | 201 MealLogResponse | 403, 404, 422 |
+| GET | /api/v1/meal-logs?memberId=&date= | Member(self), Admin, Staff, PT(assigned) | — | 200 (mảng MealLogResponse) | 403 |
 
-### 6.1. Response contract cho FE (đúng field code trả — JSON camelCase)
-
-> **Ai tính:** `calories`/`consumed`/`target`/`remaining` do **backend tính sẵn** (FE chỉ hiển thị). Tổng **macro theo ngày** thì **FE tự cộng** từ `items[]` (mỗi món đã kèm `proteinG/carbG/fatG`). Các field macro có thể `null` nếu món chưa khai báo.
-
-**FoodItemResponse** (`GET/POST /food-items`):
-```json
-{ "id", "name", "unit", "caloriesPerUnit", "proteinG", "carbG", "fatG", "isActive" }
-```
-
-**CalorieTargetResponse** (`POST /calorie-target`):
-```json
-{ "id", "memberId", "effectiveDate", "dailyCalories", "proteinG", "carbG", "fatG" }
-```
-
-**MealLogResponse** (`POST/GET /meal-logs`) — lồng sẵn từng món + macro:
-```json
-{ "id", "memberId", "logDate", "mealType", "totalCalories",
-  "items": [ { "id", "foodItemId", "foodName", "quantity", "calories", "proteinG", "carbG", "fatG" } ] }
-```
-
-**CalorieSummaryResponse** (`GET /calorie-summary`; mỗi phần tử của `calorie-history`):
-```json
-{ "date", "consumed", "target", "remaining" }
-```
+### 6.1. Response contract (camelCase)
+- **FoodItemResponse:** `{ id, name, unit, caloriesPerUnit, proteinG, carbG, fatG, isActive }`.
+- **CalorieTargetResponse:** `{ id, memberId, effectiveDate, dailyCalories, proteinG, carbG, fatG }`.
+- **MealLogResponse:** `{ id, memberId, logDate, mealType, totalCalories, items:[{ id, foodItemId, foodName, quantity, calories, proteinG, carbG, fatG }] }` — macro/món = giá trị/đơn vị × khẩu phần.
+- **CalorieSummaryResponse:** `{ date, consumed, target, remaining, consumedProteinG, consumedCarbG, consumedFatG, targetProteinG, targetCarbG, targetFatG, remainingProteinG, remainingCarbG, remainingFatG }`.
 
 ## 7. Error Handling (EARS Unwanted)
 - IF khẩu phần ≤ 0, THEN 422 `INVALID_QUANTITY`.
-- IF FoodItem không tồn tại, THEN 404 `FOOD_NOT_FOUND` (gợi ý Add Custom Food).
-- IF target ≤ 0, THEN 422 `INVALID_TARGET`.
-- IF PT xem calo member không thuộc mình, THEN 403 `FORBIDDEN`.
+- IF FoodItem không tồn tại/không active, THEN 404 `FOOD_NOT_FOUND`.
+- IF target ≤ 0 hoặc macro < 0, THEN 422 `INVALID_TARGET`.
+- IF PT/Member xem của member không thuộc mình, THEN 403 `FORBIDDEN`.
+- IF khoảng ngày history không hợp lệ (from > to), THEN 422 `VALIDATION_ERROR`.
 
 ## 8. Acceptance Criteria (Given-When-Then)
-- [ ] **AC-01:** Given món có trong DB, When Member thêm khẩu phần 2 đơn vị, Then summary tăng đúng = 2×calo/đơn vị.
+- [ ] **AC-01:** Given món trong DB, When thêm 2 đơn vị, Then summary tăng đúng 2×calo/đơn vị.
 - [ ] **AC-02:** Given khẩu phần 0, When thêm món, Then 422.
-- [ ] **AC-03:** Given món không có, When Member add custom food, Then lưu và dùng được ngay.
+- [ ] **AC-03:** Given món chưa có, When thêm món mới, Then lưu và dùng ngay (201); trùng tên → trả món cũ (200).
 - [ ] **AC-04:** Given target 2000 + đã ăn 1500, When xem summary, Then remaining=500.
-- [ ] **AC-05:** Given món được thêm 2 lần cùng bữa, When tính, Then khẩu phần cộng dồn.
+- [ ] **AC-05:** Given món thêm 2 lần cùng bữa, When tính, Then khẩu phần cộng dồn.
 - [ ] **AC-06:** Given FoodItem bị sửa calo sau đó, When xem log cũ, Then calo giữ nguyên (snapshot).
+- [ ] **AC-07:** Given Member chưa có gói active, When tìm món, Then chỉ thấy/tìm được trong 20 món cố định.
 
 ## 9. Out of Scope
-- Tự định lượng calo từ ảnh (chỉ gợi ý tên — spec 009 enhancement), gợi ý thực đơn AI, quét barcode dinh dưỡng (secondary), đồng bộ app dinh dưỡng bên thứ ba.
+- Tự định lượng calo từ ảnh (gợi ý tên + ước lượng — spec 009), quét barcode dinh dưỡng, đồng bộ app dinh dưỡng bên thứ ba.
 
-## 10. Cần bàn rõ với team — open items (2026-06-12)
-> Các đề xuất nâng cấp CHƯA chốt, cần thống nhất với team trước khi làm. Code 007 hiện vẫn đúng spec §6 ở trên; các mục này là hướng mở rộng.
-
-**Đã bổ sung (2026-06-15):** mỗi món trong `GET /api/v1/meal-logs` nay trả kèm `proteinG/carbG/fatG` (= giá trị/đơn vị × khẩu phần, giống cách tính calo) để **FE tự cộng tổng macro** — KHÔNG làm endpoint gộp `daily-overview`. Vẫn là endpoint cũ, không thêm endpoint, không đụng DB. Lưu ý: macro tính từ `food_items` hiện tại (live), calo thì đã snapshot — đồng nhất với mục "snapshot macro" còn mở dưới đây. Có test ở `tests/GymMaster.Api.Tests/NutritionServiceTests.cs`.
-
-- **Gộp 1 API tổng quan theo ngày (daily-overview)** thay vì để FE ghép nhiều call:
-  `GET /api/v1/members/{memberId}/nutrition/daily-overview?date=` → `{ date, consumed, target, remaining, protein, carb, fat, meals: [ { mealType, items: [ { foodName, quantity, calories, protein, carb, fat } ] } ] }`.
-  **Cần chốt**: làm gộp, hay giữ `calorie-summary` + `meal-logs` tách như §6. (Làm được ngay phía BE, không đụng DB.)
-- **Snapshot macro cho lịch sử (NFR-02)**: `meal_log_items` hiện CHỈ snapshot `Calories` → tổng calo lịch sử đúng, nhưng **macro (đạm/tinh bột/béo) đang lấy từ `food_items` sống** nên sẽ lệch nếu admin sửa món. Để đúng NFR-02 **cần DB team thêm cột** `FoodNameSnapshot/ProteinGSnapshot/CarbGSnapshot/FatGSnapshot` (giữ `FoodItemId` để biết món gốc). Backend sẽ ưu tiên đọc snapshot khi có cột.
+## 10. Ghi chú triển khai
+- Mỗi món trong `GET /meal-logs` trả kèm `proteinG/carbG/fatG` để FE tự cộng tổng macro (không có endpoint gộp).
+- **Snapshot macro (NFR-02, còn mở):** `meal_log_items` chỉ snapshot `Calories`; macro lịch sử lấy từ `food_items` sống → cần DB team thêm cột snapshot macro nếu muốn tuyệt đối đúng khi admin sửa món.

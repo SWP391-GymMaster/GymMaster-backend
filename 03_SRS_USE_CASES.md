@@ -2,7 +2,7 @@
 
 # GymMaster — Use Case Specification
 
-**Status:** Updated — Approved 4 Roles
+**Status:** Implemented — đồng bộ code 2026-07-15 (4 Roles). Chi tiết API/mã lỗi ở `specs/001-010/`.
 
 ---
 
@@ -50,7 +50,12 @@
 | UC-23 | View Audit Logs | Admin | Medium |
 | UC-24 | Barcode Lookup | Member | Medium |
 | UC-25 | Basic In-app Reminder | System/Member | Medium |
-| UC-26 | Image Food Recognition Assist | Member | Low / Enhancement |
+| UC-26 | Image Food Recognition Assist (Gemini AI) | Member | Enhancement (đã làm) |
+| UC-27 | Online Payment via VNPay (sandbox, IPN auto-activate) | Member/Admin/Staff | High (đã làm — spec 010) |
+| UC-28 | Cancel Membership (đơn Pending / gói Active) | Member/Admin/Staff | Medium (đã làm — spec 003) |
+| UC-29 | Self-service hồ sơ + avatar (Cloudinary) | All | Medium (đã làm — spec 002) |
+
+> UC-24 (Barcode) và UC-25 (In-app Reminder) vẫn **Deferred** (chưa làm — `specs/SECONDARY_BACKLOG.md`). Endpoint `/notifications` hiện trả rỗng (placeholder cho FE).
 
 ---
 
@@ -125,9 +130,9 @@
 | Pre-condition | Member & PT tồn tại. |
 | Post-condition | TrainerAssignment được tạo. |
 
-**Main Flow:** mở hồ sơ Member → Assign PT → chọn PT → đóng assignment cũ nếu có → tạo assignment mới → ghi AuditLog.
-**Exception Flow:** PT inactive/locked → không cho; Member not found → 404; assign trùng PT active → warning/422.
-**Acceptance Criteria:** Member có tối đa 1 PT active; PT thấy Member được phân công; audit log ghi.
+**Main Flow:** mở hồ sơ Member → Assign PT → chọn PT → **tự đóng assignment cũ** nếu có (Ended) → tạo assignment mới → ghi AuditLog.
+**Exception Flow:** Member/PT not found → 404; Member không có gói `SupportsPT` còn hạn → **409 `PACKAGE_PT_REQUIRED`** (chỉ hội viên gói có PT còn hạn mới được phân công — quyền PT suy động từ gói).
+**Acceptance Criteria:** Member có tối đa 1 PT active (tự đóng cái cũ, không báo lỗi trùng); PT thấy Member được phân công; audit log ghi.
 
 ## UC-17 — Add Meal Log
 | Field | Content |
@@ -153,29 +158,33 @@
 ## UC-26 — Image Food Recognition Assist (Enhancement)
 | Field | Content |
 |---|---|
-| Objective | Member upload ảnh bữa ăn → hệ thống gợi ý tên món/nguyên liệu, giúp nhập MealLog nhanh hơn. |
-| Actors | Member |
-| Pre-condition | Meal Journal đã chạy ổn định. |
-| Post-condition | Hiển thị gợi ý; Member xác nhận/chỉnh sửa trước khi lưu. |
+| Objective | Member (có gói active) upload ảnh bữa ăn → **Gemini Vision** nhận diện **nhiều món** + ước lượng dinh dưỡng (calo/macro/gram), giúp nhập MealLog nhanh hơn. |
+| Actors | Member (có gói tập active) |
+| Pre-condition | Meal Journal đã chạy; hội viên có gói tập active; `Gemini:ApiKey` đã cấu hình. |
+| Post-condition | Hiển thị danh sách món (Database/AI draft); Member xác nhận từng món AI trước khi lưu FoodItem. |
 
-**Main Flow:** mở Meal Journal → upload ảnh → gửi dịch vụ nhận diện → trả tên món/nguyên liệu → map FoodItem → Member xác nhận/chỉnh + nhập khẩu phần → tính calories từ FoodItem+quantity → lưu MealLog.
-**Exception Flow:** Không nhận diện → nhập thủ công; gợi ý sai → xóa/sửa; service lỗi → fallback manual; không có FoodItem → Add Custom Food.
-**Acceptance Criteria:** Không thay thế manual; AI chỉ gợi ý tên/nguyên liệu; calories không tự lưu nếu chưa xác nhận; phải nhập khẩu phần trước khi lưu.
+**Main Flow:** upload ảnh (`POST /foods/scan-image`) → Gemini trả nhiều món + dinh dưỡng/gram → mỗi món: khớp DB → dùng luôn; chưa có → nháp AI (`requiresConfirmation=true`) → Member xác nhận (`POST /foods/confirm-ai-food`) lưu FoodItem `Source="AI"` → dùng để ghi MealLog (spec 007).
+**Exception Flow:** Member không có gói active → 403 `MEMBERSHIP_REQUIRED`; ảnh sai định dạng/>5MB → 422 `INVALID_FILE`; Gemini lỗi/timeout → 502, fallback nhập tay.
+**Acceptance Criteria:** Không thay thế manual; món AI phải xác nhận trước khi lưu; không tự tạo MealLog từ ảnh; chỉ hội viên có gói dùng được. Chi tiết: spec 009.
 
 ---
 
 # 4. Approved Technology Stack
 | Layer | Công nghệ |
 |---|---|
-| Frontend | Next.js |
+| Frontend | Next.js (App Router) |
 | Backend | C# / ASP.NET Core 10 Web API (.NET 10) |
-| Database | SQL Server |
-| ORM | Entity Framework Core 10 - Code First Migrations |
-| Authentication | JWT Bearer Token + BCrypt |
-| Token Policy | Access 15 phút, Refresh 7 ngày |
-| AI Vision | Google Cloud Vision API |
-| File Storage | Azure Blob Storage |
-| Deploy | Vercel (FE) + Azure App Service (BE) |
+| Database | SQL Server (Cloud SQL) |
+| ORM | Entity Framework Core 10 - Code First |
+| Authentication | JWT Bearer (HS256) + BCrypt cost 12; Google ID token |
+| Token Policy | Access 15 phút, Refresh 7 ngày (rotate) |
+| AI Vision | **Google Gemini Vision** (`gemini-2.5-flash`) — nhận nhiều món + ước lượng dinh dưỡng (đã đổi từ Google Cloud Vision) |
+| File Storage (avatar) | **Cloudinary** (đã đổi từ Azure Blob) |
+| Online Payment | **VNPay** sandbox (HMAC-SHA512 + IPN) |
+| Email | SMTP (Gmail App Password) cho OTP reset |
+| Deploy | **Google Cloud Run** (cả FE + BE) + Cloud SQL |
+
+> Đồng bộ code 2026-07-15: stack thực tế đã đổi so với thiết kế gốc (Gemini thay Vision, Cloudinary thay Azure Blob, Cloud Run thay Vercel/Azure). Xem memory GCP deploy.
 
 ---
 
