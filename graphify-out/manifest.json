@@ -1,0 +1,657 @@
+{
+  "GymMaster.API/Controllers/AccountController.cs": {
+    "mtime": 1783305628.707065,
+    "ast_hash": "cb668adb52fcbe45b481749ba70ed39c",
+    "semantic_hash": "cb668adb52fcbe45b481749ba70ed39c"
+  },
+  "GymMaster.API/Controllers/ApiControllerBase.cs": {
+    "mtime": 1780460426.1365857,
+    "ast_hash": "0704e14ebbc7d9089fb2ee326b8a597b",
+    "semantic_hash": "0704e14ebbc7d9089fb2ee326b8a597b"
+  },
+  "GymMaster.API/Controllers/AssignmentsController.cs": {
+    "mtime": 1781766811.815122,
+    "ast_hash": "96101b49a148f189e7220c727330c4bb",
+    "semantic_hash": "96101b49a148f189e7220c727330c4bb"
+  },
+  "GymMaster.API/Controllers/AuditLogsController.cs": {
+    "mtime": 1781766811.815122,
+    "ast_hash": "11fe88e6d0db87ad0a36516f643fb426",
+    "semantic_hash": "11fe88e6d0db87ad0a36516f643fb426"
+  },
+  "GymMaster.API/Controllers/AuthController.cs": {
+    "mtime": 1780460426.1375825,
+    "ast_hash": "989faf8ab5a0a19b719f846d1049586b",
+    "semantic_hash": "989faf8ab5a0a19b719f846d1049586b"
+  },
+  "GymMaster.API/Controllers/CheckInsController.cs": {
+    "mtime": 1781512734.0797484,
+    "ast_hash": "92543276b8a016c6c86d8c1d57c116c7",
+    "semantic_hash": "92543276b8a016c6c86d8c1d57c116c7"
+  },
+  "GymMaster.API/Controllers/DashboardController.cs": {
+    "mtime": 1781766811.8160765,
+    "ast_hash": "267cbf3309288568e127478a919dd81c",
+    "semantic_hash": "267cbf3309288568e127478a919dd81c"
+  },
+  "GymMaster.API/Controllers/ExercisesController.cs": {
+    "mtime": 1781766811.8160765,
+    "ast_hash": "fd8263a3838a399401a36be71287319a",
+    "semantic_hash": "fd8263a3838a399401a36be71287319a"
+  },
+  "GymMaster.API/Controllers/FoodItemsController.cs": {
+    "mtime": 1782890061.7567225,
+    "ast_hash": "7dff0aad77bf535973dc240d912986c7",
+    "semantic_hash": "7dff0aad77bf535973dc240d912986c7"
+  },
+  "GymMaster.API/Controllers/FoodScanController.cs": {
+    "mtime": 1782624035.3454456,
+    "ast_hash": "b77f542cabcfbf8e9957f24fe6600e41",
+    "semantic_hash": "b77f542cabcfbf8e9957f24fe6600e41"
+  },
+  "GymMaster.API/Controllers/MealLogsController.cs": {
+    "mtime": 1780993348.4156272,
+    "ast_hash": "875b219840de1ef5c77f84119023e0fc",
+    "semantic_hash": "875b219840de1ef5c77f84119023e0fc"
+  },
+  "GymMaster.API/Controllers/MemberMembershipsController.cs": {
+    "mtime": 1780993348.4156272,
+    "ast_hash": "8994292f6bbf41f60e3a817450854617",
+    "semantic_hash": "8994292f6bbf41f60e3a817450854617"
+  },
+  "GymMaster.API/Controllers/MemberNutritionController.cs": {
+    "mtime": 1782456562.9709759,
+    "ast_hash": "4ee777d387a6ad6b4ef795887e0c11d1",
+    "semantic_hash": "4ee777d387a6ad6b4ef795887e0c11d1"
+  },
+  "GymMaster.API/Controllers/MemberPaymentsController.cs": {
+    "mtime": 1780993348.417961,
+    "ast_hash": "f802c4724f0dd7e625d403cbaaebeeb2",
+    "semantic_hash": "f802c4724f0dd7e625d403cbaaebeeb2"
+  },
+  "GymMaster.API/Controllers/MemberProgressController.cs": {
+    "mtime": 1782109179.4696605,
+    "ast_hash": "d9e44ea7fea82dfd2f9fcd021aff7b8d",
+    "semantic_hash": "d9e44ea7fea82dfd2f9fcd021aff7b8d"
+  },
+  "GymMaster.API/Controllers/MembersController.cs": {
+    "mtime": 1783305628.708064,
+    "ast_hash": "69bc1e9462f3656558d5b884f2f152ca",
+    "semantic_hash": "69bc1e9462f3656558d5b884f2f152ca"
+  },
+  "GymMaster.API/Controllers/MembershipsController.cs": {
+    "mtime": 1782456562.9709759,
+    "ast_hash": "5bf024e8c7781fc6fd921a9ae6695f4b",
+    "semantic_hash": "5bf024e8c7781fc6fd921a9ae6695f4b"
+  },
+  "GymMaster.API/Controllers/NotificationsController.cs": {
+    "mtime": 1781766811.8170743,
+    "ast_hash": "482cceb299d58d282ae7862d1277f445",
+    "semantic_hash": "482cceb299d58d282ae7862d1277f445"
+  },
+  "GymMaster.API/Controllers/PackagesController.cs": {
+    "mtime": 1780993348.419988,
+    "ast_hash": "decbc2a86507924855af6077e268b937",
+    "semantic_hash": "decbc2a86507924855af6077e268b937"
+  },
+  "GymMaster.API/Controllers/PaymentsController.cs": {
+    "mtime": 1780993348.419988,
+    "ast_hash": "8df6229c00561d0dd0549d7bbdf75afe",
+    "semantic_hash": "8df6229c00561d0dd0549d7bbdf75afe"
+  },
+  "GymMaster.API/Controllers/PtController.cs": {
+    "mtime": 1782624035.3454456,
+    "ast_hash": "cf2d5425c123b99553523ef30fa92ab0",
+    "semantic_hash": "cf2d5425c123b99553523ef30fa92ab0"
+  },
+  "GymMaster.API/Controllers/TrainerNotesController.cs": {
+    "mtime": 1782624035.3469517,
+    "ast_hash": "4fa2b452626c9a4227dfdad4900d22fc",
+    "semantic_hash": "4fa2b452626c9a4227dfdad4900d22fc"
+  },
+  "GymMaster.API/Controllers/TrainersController.cs": {
+    "mtime": 1783305628.708064,
+    "ast_hash": "8b260f61d6a9a31c88d25e95bffaaea1",
+    "semantic_hash": "8b260f61d6a9a31c88d25e95bffaaea1"
+  },
+  "GymMaster.API/Controllers/UsersController.cs": {
+    "mtime": 1781766811.8190675,
+    "ast_hash": "6cd26039787578f0e188272a8429f746",
+    "semantic_hash": "6cd26039787578f0e188272a8429f746"
+  },
+  "GymMaster.API/Controllers/VnPayController.cs": {
+    "mtime": 1782109179.470778,
+    "ast_hash": "71463bd43bef0d2ad26c754d24252e92",
+    "semantic_hash": "71463bd43bef0d2ad26c754d24252e92"
+  },
+  "GymMaster.API/Controllers/WorkoutPlansController.cs": {
+    "mtime": 1781766811.821069,
+    "ast_hash": "e70bd6f2a31234dc3c0a5c7534bc2bf8",
+    "semantic_hash": "e70bd6f2a31234dc3c0a5c7534bc2bf8"
+  },
+  "GymMaster.API/DTOs/AccountDtos.cs": {
+    "mtime": 1783305628.708064,
+    "ast_hash": "18cbd2403fcbd5c0cdb3ccaddfd76dbc",
+    "semantic_hash": "18cbd2403fcbd5c0cdb3ccaddfd76dbc"
+  },
+  "GymMaster.API/DTOs/AuthDtos.cs": {
+    "mtime": 1783305628.709061,
+    "ast_hash": "c44387b077d6491ebdd26f24100c8840",
+    "semantic_hash": "c44387b077d6491ebdd26f24100c8840"
+  },
+  "GymMaster.API/DTOs/CheckInDtos.cs": {
+    "mtime": 1782624035.3469517,
+    "ast_hash": "91a03c8e339bad78a0e2094e9baab7f0",
+    "semantic_hash": "91a03c8e339bad78a0e2094e9baab7f0"
+  },
+  "GymMaster.API/DTOs/DashboardDtos.cs": {
+    "mtime": 1781766811.821069,
+    "ast_hash": "0b64be1f073eb1537c38999842374581",
+    "semantic_hash": "0b64be1f073eb1537c38999842374581"
+  },
+  "GymMaster.API/DTOs/FoodScanDtos.cs": {
+    "mtime": 1782890061.7567225,
+    "ast_hash": "037cdbbe5790c3bca21b5f842cf72c67",
+    "semantic_hash": "037cdbbe5790c3bca21b5f842cf72c67"
+  },
+  "GymMaster.API/DTOs/MemberDtos.cs": {
+    "mtime": 1783305628.709061,
+    "ast_hash": "aca9dc09d35c09a66d39aba88670994e",
+    "semantic_hash": "aca9dc09d35c09a66d39aba88670994e"
+  },
+  "GymMaster.API/DTOs/MembershipDtos.cs": {
+    "mtime": 1782714836.3439515,
+    "ast_hash": "594179653e9f7d0c85caf6fae7a8f737",
+    "semantic_hash": "594179653e9f7d0c85caf6fae7a8f737"
+  },
+  "GymMaster.API/DTOs/NutritionDtos.cs": {
+    "mtime": 1782456562.9709759,
+    "ast_hash": "baf9bf78ce9d496cda6de143221c81b6",
+    "semantic_hash": "baf9bf78ce9d496cda6de143221c81b6"
+  },
+  "GymMaster.API/DTOs/PackageDtos.cs": {
+    "mtime": 1782456562.9709759,
+    "ast_hash": "b0ce3d7ffe830acc01c415455b4e2ce9",
+    "semantic_hash": "b0ce3d7ffe830acc01c415455b4e2ce9"
+  },
+  "GymMaster.API/DTOs/PaymentDtos.cs": {
+    "mtime": 1782456562.9709759,
+    "ast_hash": "e5bdf4574adb0e56ab76c18bcfa78404",
+    "semantic_hash": "e5bdf4574adb0e56ab76c18bcfa78404"
+  },
+  "GymMaster.API/DTOs/ProgressDtos.cs": {
+    "mtime": 1783305628.7095637,
+    "ast_hash": "61164268e64b1f12f67c57156f8a5f31",
+    "semantic_hash": "61164268e64b1f12f67c57156f8a5f31"
+  },
+  "GymMaster.API/DTOs/PtTrainingDtos.cs": {
+    "mtime": 1782624035.3484807,
+    "ast_hash": "4ff5572e9d8d6f60a6c3c7e249c55652",
+    "semantic_hash": "4ff5572e9d8d6f60a6c3c7e249c55652"
+  },
+  "GymMaster.API/DTOs/TrainerDtos.cs": {
+    "mtime": 1783305628.7095637,
+    "ast_hash": "b89ead7c8d1ece85da323a34f8efdff0",
+    "semantic_hash": "b89ead7c8d1ece85da323a34f8efdff0"
+  },
+  "GymMaster.API/DTOs/UserDtos.cs": {
+    "mtime": 1783305628.7095637,
+    "ast_hash": "25bea9040de00dcd27a02469b39dc257",
+    "semantic_hash": "25bea9040de00dcd27a02469b39dc257"
+  },
+  "GymMaster.API/DTOs/VnPayDtos.cs": {
+    "mtime": 1782109179.475766,
+    "ast_hash": "92772ac14c5113372f75a38f1ef76570",
+    "semantic_hash": "92772ac14c5113372f75a38f1ef76570"
+  },
+  "GymMaster.API/Data/DatabaseSeeder.cs": {
+    "mtime": 1783305628.7095637,
+    "ast_hash": "ce813c65d369eaac4a272322d3f43bff",
+    "semantic_hash": "ce813c65d369eaac4a272322d3f43bff"
+  },
+  "GymMaster.API/Data/GymMasterDbContext.cs": {
+    "mtime": 1783305628.7110143,
+    "ast_hash": "634c6bf4bdc17d25eaa84c87178a5735",
+    "semantic_hash": "634c6bf4bdc17d25eaa84c87178a5735"
+  },
+  "GymMaster.API/Entities/AuditLog.cs": {
+    "mtime": 1780460426.1395764,
+    "ast_hash": "c62745bc8437d84742e696734d170123",
+    "semantic_hash": "c62745bc8437d84742e696734d170123"
+  },
+  "GymMaster.API/Entities/CalorieTarget.cs": {
+    "mtime": 1780993348.4230747,
+    "ast_hash": "dee9eea8a082f62eedaa0ea0f5719302",
+    "semantic_hash": "dee9eea8a082f62eedaa0ea0f5719302"
+  },
+  "GymMaster.API/Entities/CheckIn.cs": {
+    "mtime": 1781516870.0093665,
+    "ast_hash": "47ecfc03c3ff3c9b183758a45ce9fae4",
+    "semantic_hash": "47ecfc03c3ff3c9b183758a45ce9fae4"
+  },
+  "GymMaster.API/Entities/ExerciseCatalog.cs": {
+    "mtime": 1781766811.822057,
+    "ast_hash": "de7ea4f6c1e4415105a8f5d5580fe765",
+    "semantic_hash": "de7ea4f6c1e4415105a8f5d5580fe765"
+  },
+  "GymMaster.API/Entities/FoodItem.cs": {
+    "mtime": 1782624035.3507657,
+    "ast_hash": "f7e4b3b62eb0618023706ee234208a8e",
+    "semantic_hash": "f7e4b3b62eb0618023706ee234208a8e"
+  },
+  "GymMaster.API/Entities/MealLog.cs": {
+    "mtime": 1780993348.4241693,
+    "ast_hash": "e237a87919d609127a15b6abde24e85b",
+    "semantic_hash": "e237a87919d609127a15b6abde24e85b"
+  },
+  "GymMaster.API/Entities/MealLogItem.cs": {
+    "mtime": 1780993348.4241693,
+    "ast_hash": "7c34972cbc62c72dee26aa597857987d",
+    "semantic_hash": "7c34972cbc62c72dee26aa597857987d"
+  },
+  "GymMaster.API/Entities/MemberProfile.cs": {
+    "mtime": 1780460426.1395764,
+    "ast_hash": "3a59f76c037566b0cd4f90fb9b5a6715",
+    "semantic_hash": "3a59f76c037566b0cd4f90fb9b5a6715"
+  },
+  "GymMaster.API/Entities/Membership.cs": {
+    "mtime": 1781766811.822057,
+    "ast_hash": "6b0e49a56292d1af81f4634b2654be59",
+    "semantic_hash": "6b0e49a56292d1af81f4634b2654be59"
+  },
+  "GymMaster.API/Entities/MembershipEnums.cs": {
+    "mtime": 1780993348.4241693,
+    "ast_hash": "9787c42c9d10541d13fa5986a311b891",
+    "semantic_hash": "9787c42c9d10541d13fa5986a311b891"
+  },
+  "GymMaster.API/Entities/MembershipPackage.cs": {
+    "mtime": 1782456562.9709759,
+    "ast_hash": "70373842d6596c5a83545bb92015e965",
+    "semantic_hash": "70373842d6596c5a83545bb92015e965"
+  },
+  "GymMaster.API/Entities/NutritionEnums.cs": {
+    "mtime": 1780993348.4254742,
+    "ast_hash": "176ab18e5820d66058d1c8b616566621",
+    "semantic_hash": "176ab18e5820d66058d1c8b616566621"
+  },
+  "GymMaster.API/Entities/PasswordResetToken.cs": {
+    "mtime": 1781937550.352312,
+    "ast_hash": "0ecef76a5c3bd767a196b59f0e0b4a2d",
+    "semantic_hash": "0ecef76a5c3bd767a196b59f0e0b4a2d"
+  },
+  "GymMaster.API/Entities/Payment.cs": {
+    "mtime": 1781516870.0113597,
+    "ast_hash": "be135bfe8581b9a11f6e67e4763b3757",
+    "semantic_hash": "be135bfe8581b9a11f6e67e4763b3757"
+  },
+  "GymMaster.API/Entities/ProgressLog.cs": {
+    "mtime": 1780993348.4254742,
+    "ast_hash": "c8ec73de17dd143eecb39a4c7d2d5841",
+    "semantic_hash": "c8ec73de17dd143eecb39a4c7d2d5841"
+  },
+  "GymMaster.API/Entities/RefreshToken.cs": {
+    "mtime": 1780153942.3872035,
+    "ast_hash": "fb7e49f1046521f44996a0a2ab286f1a",
+    "semantic_hash": "fb7e49f1046521f44996a0a2ab286f1a"
+  },
+  "GymMaster.API/Entities/Role.cs": {
+    "mtime": 1780159611.4608495,
+    "ast_hash": "3cfabc7cd194231cec17dc489bba6026",
+    "semantic_hash": "3cfabc7cd194231cec17dc489bba6026"
+  },
+  "GymMaster.API/Entities/StaffProfile.cs": {
+    "mtime": 1783305628.7110143,
+    "ast_hash": "aed5f23bb2b890256e2da1a20822b8f9",
+    "semantic_hash": "aed5f23bb2b890256e2da1a20822b8f9"
+  },
+  "GymMaster.API/Entities/TrainerAssignment.cs": {
+    "mtime": 1781766811.8230536,
+    "ast_hash": "8af462d036f9e816f408928282f4494e",
+    "semantic_hash": "8af462d036f9e816f408928282f4494e"
+  },
+  "GymMaster.API/Entities/TrainerNote.cs": {
+    "mtime": 1781766811.8230536,
+    "ast_hash": "bf63abb2b96a52be89696f94c09dc995",
+    "semantic_hash": "bf63abb2b96a52be89696f94c09dc995"
+  },
+  "GymMaster.API/Entities/TrainerProfile.cs": {
+    "mtime": 1783305628.7110143,
+    "ast_hash": "7624bd8d8743faff23ef83bdc8f55728",
+    "semantic_hash": "7624bd8d8743faff23ef83bdc8f55728"
+  },
+  "GymMaster.API/Entities/User.cs": {
+    "mtime": 1783305628.7110143,
+    "ast_hash": "fa7f1914549d8725b9c17d71234f4e25",
+    "semantic_hash": "fa7f1914549d8725b9c17d71234f4e25"
+  },
+  "GymMaster.API/Entities/UserRole.cs": {
+    "mtime": 1780153942.3270998,
+    "ast_hash": "251647ce2b4d04b1ad57f59ea41ac3ee",
+    "semantic_hash": "251647ce2b4d04b1ad57f59ea41ac3ee"
+  },
+  "GymMaster.API/Entities/WorkoutExercise.cs": {
+    "mtime": 1781766811.8230536,
+    "ast_hash": "e85cf2fa2823117e5372e285ab052689",
+    "semantic_hash": "e85cf2fa2823117e5372e285ab052689"
+  },
+  "GymMaster.API/Entities/WorkoutPlan.cs": {
+    "mtime": 1781766811.8230536,
+    "ast_hash": "935de8655866474a5f4b3e55b8c6d466",
+    "semantic_hash": "935de8655866474a5f4b3e55b8c6d466"
+  },
+  "GymMaster.API/GymMaster.API.csproj": {
+    "mtime": 1783305628.7110143,
+    "ast_hash": "8594c51465dd134852c6ba9a16b42790",
+    "semantic_hash": "8594c51465dd134852c6ba9a16b42790"
+  },
+  "GymMaster.API/Options/CheckInOptions.cs": {
+    "mtime": 1782890061.9175706,
+    "ast_hash": "5df3dadb4d46964c4e6f7417da5d545b",
+    "semantic_hash": "5df3dadb4d46964c4e6f7417da5d545b"
+  },
+  "GymMaster.API/Options/CloudinaryOptions.cs": {
+    "mtime": 1783305628.7110143,
+    "ast_hash": "8f903df8da70eb7fd350938f8a928129",
+    "semantic_hash": "8f903df8da70eb7fd350938f8a928129"
+  },
+  "GymMaster.API/Options/EmailOptions.cs": {
+    "mtime": 1781937550.353521,
+    "ast_hash": "c926dde3e19a22e5db26f99d7c25c7d0",
+    "semantic_hash": "c926dde3e19a22e5db26f99d7c25c7d0"
+  },
+  "GymMaster.API/Options/GeminiOptions.cs": {
+    "mtime": 1782624035.3517623,
+    "ast_hash": "c1c5e16242d36e6705f4ac67d5f8cef4",
+    "semantic_hash": "c1c5e16242d36e6705f4ac67d5f8cef4"
+  },
+  "GymMaster.API/Options/GoogleAuthOptions.cs": {
+    "mtime": 1780160914.0253267,
+    "ast_hash": "810574c624e6f860713395549127e23d",
+    "semantic_hash": "810574c624e6f860713395549127e23d"
+  },
+  "GymMaster.API/Options/JwtOptions.cs": {
+    "mtime": 1780153942.111539,
+    "ast_hash": "bc62492adb2ac66989ba27306b6cad20",
+    "semantic_hash": "bc62492adb2ac66989ba27306b6cad20"
+  },
+  "GymMaster.API/Options/VnPayOptions.cs": {
+    "mtime": 1782109179.4777627,
+    "ast_hash": "7d2d3b9e041695128ba78393b0568354",
+    "semantic_hash": "7d2d3b9e041695128ba78393b0568354"
+  },
+  "GymMaster.API/Program.cs": {
+    "mtime": 1783305628.71245,
+    "ast_hash": "e95d79025da47919d0d07c5c3c64f778",
+    "semantic_hash": "e95d79025da47919d0d07c5c3c64f778"
+  },
+  "GymMaster.API/Properties/launchSettings.json": {
+    "mtime": 1780151003.9517832,
+    "ast_hash": "6b28e973ee16130fdb16509da7b77bb3",
+    "semantic_hash": "6b28e973ee16130fdb16509da7b77bb3"
+  },
+  "GymMaster.API/Services/AccountService.cs": {
+    "mtime": 1783305628.71245,
+    "ast_hash": "499e2a36a73e6618453bb35e4e3898bb",
+    "semantic_hash": "499e2a36a73e6618453bb35e4e3898bb"
+  },
+  "GymMaster.API/Services/AppClock.cs": {
+    "mtime": 1782456562.9722328,
+    "ast_hash": "b03b6895d4ebf150d8f08105741e7b3b",
+    "semantic_hash": "b03b6895d4ebf150d8f08105741e7b3b"
+  },
+  "GymMaster.API/Services/AssignmentService.cs": {
+    "mtime": 1782745934.7918346,
+    "ast_hash": "83a275ef67f62447857b2e48114774d4",
+    "semantic_hash": "83a275ef67f62447857b2e48114774d4"
+  },
+  "GymMaster.API/Services/AuditService.cs": {
+    "mtime": 1780460426.1415694,
+    "ast_hash": "910804c326fdfebb6bf559646eabfdb2",
+    "semantic_hash": "910804c326fdfebb6bf559646eabfdb2"
+  },
+  "GymMaster.API/Services/AuthService.cs": {
+    "mtime": 1783305628.71245,
+    "ast_hash": "5e98400a7c8b7bfd66c1625a57742214",
+    "semantic_hash": "5e98400a7c8b7bfd66c1625a57742214"
+  },
+  "GymMaster.API/Services/AuthServiceResult.cs": {
+    "mtime": 1780162895.5581157,
+    "ast_hash": "f7164de41e5d66ddfd524dcdc686e51e",
+    "semantic_hash": "f7164de41e5d66ddfd524dcdc686e51e"
+  },
+  "GymMaster.API/Services/AvatarStorageException.cs": {
+    "mtime": 1783305628.713454,
+    "ast_hash": "b8fb39d55711c85a16364111591913fa",
+    "semantic_hash": "b8fb39d55711c85a16364111591913fa"
+  },
+  "GymMaster.API/Services/CheckInService.cs": {
+    "mtime": 1782890061.9175706,
+    "ast_hash": "1f937b402c940abd60b3f4c258c33077",
+    "semantic_hash": "1f937b402c940abd60b3f4c258c33077"
+  },
+  "GymMaster.API/Services/CloudinaryAvatarStorage.cs": {
+    "mtime": 1783305628.713454,
+    "ast_hash": "1e045d15763b86efa91d5942c4fbad34",
+    "semantic_hash": "1e045d15763b86efa91d5942c4fbad34"
+  },
+  "GymMaster.API/Services/DashboardService.cs": {
+    "mtime": 1782624035.355748,
+    "ast_hash": "a6655c58f96619b6f8fb5031e8c5db04",
+    "semantic_hash": "a6655c58f96619b6f8fb5031e8c5db04"
+  },
+  "GymMaster.API/Services/EmailSender.cs": {
+    "mtime": 1781937550.353521,
+    "ast_hash": "35db2bd901ca74859edb5287f6722b2c",
+    "semantic_hash": "35db2bd901ca74859edb5287f6722b2c"
+  },
+  "GymMaster.API/Services/FoodItemService.cs": {
+    "mtime": 1782890061.7577193,
+    "ast_hash": "9684c54ba6a2d43d52c9e2042e05e805",
+    "semantic_hash": "9684c54ba6a2d43d52c9e2042e05e805"
+  },
+  "GymMaster.API/Services/FoodScanService.cs": {
+    "mtime": 1782890061.7577193,
+    "ast_hash": "6f523c4c7c0e60cd29b9be4223d80500",
+    "semantic_hash": "6f523c4c7c0e60cd29b9be4223d80500"
+  },
+  "GymMaster.API/Services/GeminiService.cs": {
+    "mtime": 1782890061.7590714,
+    "ast_hash": "14a098291a7ff73f8edb90a2912339c4",
+    "semantic_hash": "14a098291a7ff73f8edb90a2912339c4"
+  },
+  "GymMaster.API/Services/IAccountService.cs": {
+    "mtime": 1783305628.713454,
+    "ast_hash": "add660f72acc3626ec8974af02ac60e0",
+    "semantic_hash": "add660f72acc3626ec8974af02ac60e0"
+  },
+  "GymMaster.API/Services/IAssignmentService.cs": {
+    "mtime": 1781766811.8240502,
+    "ast_hash": "8c8b1b1b5375b79b50212f61fe97f2d1",
+    "semantic_hash": "8c8b1b1b5375b79b50212f61fe97f2d1"
+  },
+  "GymMaster.API/Services/IAuditService.cs": {
+    "mtime": 1780460426.1415694,
+    "ast_hash": "94c2f3380047f4427bd2302f01e5fd82",
+    "semantic_hash": "94c2f3380047f4427bd2302f01e5fd82"
+  },
+  "GymMaster.API/Services/IAuthService.cs": {
+    "mtime": 1780160936.939278,
+    "ast_hash": "c49cbb1bb1758f10c461b6486f0d049e",
+    "semantic_hash": "c49cbb1bb1758f10c461b6486f0d049e"
+  },
+  "GymMaster.API/Services/IAvatarStorage.cs": {
+    "mtime": 1783305628.713454,
+    "ast_hash": "1f23bb5ec509dab25935e10e429e6105",
+    "semantic_hash": "1f23bb5ec509dab25935e10e429e6105"
+  },
+  "GymMaster.API/Services/ICheckInService.cs": {
+    "mtime": 1782624035.3597217,
+    "ast_hash": "362fece3dfd3981208feadc95c012509",
+    "semantic_hash": "362fece3dfd3981208feadc95c012509"
+  },
+  "GymMaster.API/Services/IDashboardService.cs": {
+    "mtime": 1781766811.8240502,
+    "ast_hash": "bea60198385533ae51c3f44444a76eb3",
+    "semantic_hash": "bea60198385533ae51c3f44444a76eb3"
+  },
+  "GymMaster.API/Services/IEmailSender.cs": {
+    "mtime": 1781937550.3549902,
+    "ast_hash": "e4e861ba3d6b3562cfe43310194c06b2",
+    "semantic_hash": "e4e861ba3d6b3562cfe43310194c06b2"
+  },
+  "GymMaster.API/Services/IFoodImageAnalyzer.cs": {
+    "mtime": 1782890061.7590714,
+    "ast_hash": "07bb7de38a18cc5653437f804f1a5223",
+    "semantic_hash": "07bb7de38a18cc5653437f804f1a5223"
+  },
+  "GymMaster.API/Services/IFoodItemService.cs": {
+    "mtime": 1782890061.7590714,
+    "ast_hash": "e23eac3fc699ba92d0e1275e63e15473",
+    "semantic_hash": "e23eac3fc699ba92d0e1275e63e15473"
+  },
+  "GymMaster.API/Services/IFoodScanService.cs": {
+    "mtime": 1782624035.3607316,
+    "ast_hash": "1bdb785e580b66506a8eb04afb0ef8f6",
+    "semantic_hash": "1bdb785e580b66506a8eb04afb0ef8f6"
+  },
+  "GymMaster.API/Services/IMemberService.cs": {
+    "mtime": 1783305628.7144487,
+    "ast_hash": "de12e0528a2a600fb8fd37319d6ba67d",
+    "semantic_hash": "de12e0528a2a600fb8fd37319d6ba67d"
+  },
+  "GymMaster.API/Services/IMembershipPackageService.cs": {
+    "mtime": 1780993348.4281867,
+    "ast_hash": "c7dc9eb87ae64b6e1b43d3efa21b035b",
+    "semantic_hash": "c7dc9eb87ae64b6e1b43d3efa21b035b"
+  },
+  "GymMaster.API/Services/IMembershipService.cs": {
+    "mtime": 1782456562.9722328,
+    "ast_hash": "7036e061ac289e4b5e68ae554a2e6518",
+    "semantic_hash": "7036e061ac289e4b5e68ae554a2e6518"
+  },
+  "GymMaster.API/Services/INutritionService.cs": {
+    "mtime": 1782456562.9722328,
+    "ast_hash": "99f236ca69352d1075dd21608a4f1803",
+    "semantic_hash": "99f236ca69352d1075dd21608a4f1803"
+  },
+  "GymMaster.API/Services/IPaymentService.cs": {
+    "mtime": 1780993348.428494,
+    "ast_hash": "66650ff16ccfba926b43277d84ec2d3f",
+    "semantic_hash": "66650ff16ccfba926b43277d84ec2d3f"
+  },
+  "GymMaster.API/Services/IProgressService.cs": {
+    "mtime": 1782109179.481373,
+    "ast_hash": "d0cbf7b296a5bca4e623eb1d34643cb2",
+    "semantic_hash": "d0cbf7b296a5bca4e623eb1d34643cb2"
+  },
+  "GymMaster.API/Services/ITrainerNoteService.cs": {
+    "mtime": 1782624035.3617146,
+    "ast_hash": "28a75030115bcc458e3da467895ac9b0",
+    "semantic_hash": "28a75030115bcc458e3da467895ac9b0"
+  },
+  "GymMaster.API/Services/ITrainerService.cs": {
+    "mtime": 1783305628.7144487,
+    "ast_hash": "d830cdaacf93df5227d769652844fac9",
+    "semantic_hash": "d830cdaacf93df5227d769652844fac9"
+  },
+  "GymMaster.API/Services/IUserService.cs": {
+    "mtime": 1781766811.825046,
+    "ast_hash": "26ee9e70d2adecf238340864954827af",
+    "semantic_hash": "26ee9e70d2adecf238340864954827af"
+  },
+  "GymMaster.API/Services/IVnPayService.cs": {
+    "mtime": 1782109179.481373,
+    "ast_hash": "10fbd083d356a3b59bd8ccb0453cc9c3",
+    "semantic_hash": "10fbd083d356a3b59bd8ccb0453cc9c3"
+  },
+  "GymMaster.API/Services/IWorkoutPlanService.cs": {
+    "mtime": 1781766811.825046,
+    "ast_hash": "131c80d104cde0525039297eaf98458c",
+    "semantic_hash": "131c80d104cde0525039297eaf98458c"
+  },
+  "GymMaster.API/Services/MemberService.cs": {
+    "mtime": 1783305628.7154458,
+    "ast_hash": "daf09a886bf8032b84d8a9e30ed3bef8",
+    "semantic_hash": "daf09a886bf8032b84d8a9e30ed3bef8"
+  },
+  "GymMaster.API/Services/MembershipLifecycle.cs": {
+    "mtime": 1784118439.9932313,
+    "ast_hash": "2e095b9a15a78223fc6acf4d47b0dccd",
+    "semantic_hash": "2e095b9a15a78223fc6acf4d47b0dccd"
+  },
+  "GymMaster.API/Services/MembershipPackageService.cs": {
+    "mtime": 1782456562.9722328,
+    "ast_hash": "bb10436551b4ad6b8c710bc6485f6f5e",
+    "semantic_hash": "bb10436551b4ad6b8c710bc6485f6f5e"
+  },
+  "GymMaster.API/Services/MembershipService.cs": {
+    "mtime": 1784118439.9932313,
+    "ast_hash": "31cd3ec0d8bdf06801b31444be0c7363",
+    "semantic_hash": "31cd3ec0d8bdf06801b31444be0c7363"
+  },
+  "GymMaster.API/Services/NutritionService.cs": {
+    "mtime": 1782624035.3627255,
+    "ast_hash": "6b05e21a91c355167c52db60dc050faa",
+    "semantic_hash": "6b05e21a91c355167c52db60dc050faa"
+  },
+  "GymMaster.API/Services/PaymentService.cs": {
+    "mtime": 1782624035.3637083,
+    "ast_hash": "d2f01f2c648cadd0b6a597b5c2e3b551",
+    "semantic_hash": "d2f01f2c648cadd0b6a597b5c2e3b551"
+  },
+  "GymMaster.API/Services/PersonValidation.cs": {
+    "mtime": 1783305628.7154458,
+    "ast_hash": "1ff2112fa2cd857d76915747f686d44f",
+    "semantic_hash": "1ff2112fa2cd857d76915747f686d44f"
+  },
+  "GymMaster.API/Services/ProgressService.cs": {
+    "mtime": 1784118439.9932313,
+    "ast_hash": "a44658febd423d83fafa05b439ff8025",
+    "semantic_hash": "a44658febd423d83fafa05b439ff8025"
+  },
+  "GymMaster.API/Services/TrainerNoteService.cs": {
+    "mtime": 1782624035.3647046,
+    "ast_hash": "84c43d0a34ace358181dd8e2a3bd4130",
+    "semantic_hash": "84c43d0a34ace358181dd8e2a3bd4130"
+  },
+  "GymMaster.API/Services/TrainerService.cs": {
+    "mtime": 1783305628.7164438,
+    "ast_hash": "7309aaac30da6b01e88e7c3542fc347c",
+    "semantic_hash": "7309aaac30da6b01e88e7c3542fc347c"
+  },
+  "GymMaster.API/Services/UserService.cs": {
+    "mtime": 1783305628.7164438,
+    "ast_hash": "799aeb4e74bbc22f379d9bedd7af64e4",
+    "semantic_hash": "799aeb4e74bbc22f379d9bedd7af64e4"
+  },
+  "GymMaster.API/Services/VnPayLibrary.cs": {
+    "mtime": 1782456562.9742255,
+    "ast_hash": "b404e6512743acfc59a92918c7344eed",
+    "semantic_hash": "b404e6512743acfc59a92918c7344eed"
+  },
+  "GymMaster.API/Services/VnPayService.cs": {
+    "mtime": 1784118439.9932313,
+    "ast_hash": "b7eac97ef999ffeb5bac73215f129d2f",
+    "semantic_hash": "b7eac97ef999ffeb5bac73215f129d2f"
+  },
+  "GymMaster.API/Services/WorkoutPlanService.cs": {
+    "mtime": 1782624035.3657038,
+    "ast_hash": "d2aa53f2a0f09e8232822ff94ebef13a",
+    "semantic_hash": "d2aa53f2a0f09e8232822ff94ebef13a"
+  },
+  "GymMaster.API/appsettings.Development.json": {
+    "mtime": 1780460426.1428168,
+    "ast_hash": "804b473502a4c415cf75db61c56c32aa",
+    "semantic_hash": "804b473502a4c415cf75db61c56c32aa"
+  },
+  "GymMaster.API/appsettings.json": {
+    "mtime": 1783305628.717438,
+    "ast_hash": "d96ea47275b4e8428d1bb73df9d13878",
+    "semantic_hash": "d96ea47275b4e8428d1bb73df9d13878"
+  },
+  "GymMaster.API/README.md": {
+    "mtime": 1784124385.5108924,
+    "ast_hash": "9ab32200b631947442e99b02dc931340",
+    "semantic_hash": "9ab32200b631947442e99b02dc931340"
+  }
+}

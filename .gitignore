@@ -44,3 +44,7 @@ pnpm-debug.log*
 *.swp
 .DS_Store
 Thumbs.db
+
+# graphify: bo qua duong dan interpreter rieng tung may
+graphify-out/.graphify_python
+graphify-out/.graphify_root
