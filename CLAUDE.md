@@ -43,7 +43,7 @@ Layered: **Controller → Service → Repository → DbContext** (xem `CONSTITUT
 
 ## CURRENT STATE (cập nhật 2026-06-02)
 - ✅ **Spec 001 (Auth)** + **Spec 002 (User/Member/PT)** — code XONG, đã merge vào `main`.
-- Code thật ở `backend/GymMaster.API/` — **1 project**, sắp xếp theo lớp (Controllers/Services/DTOs/Entities/Data/Options). KHÁC sơ đồ `/src` 4-project ở trên (chưa tách, để vậy được).
+- Code thật ở `backend/GymMaster.API/` — **1 project**, sắp xếp **theo feature** (xem mục TRẠNG THÁI 2026-07-16). KHÁC sơ đồ `/src` 4-project ở trên (chưa tách, để vậy được).
 - **DB:** dùng DB ngoài **`GymMasterDb`** trên SQL Server `BanhMiChao` (team DB cung cấp, snake_case khớp code). Backend **KHÔNG tự tạo schema** (đã bỏ `EnsureCreated`). Seeder chỉ tạo roles + 4 tài khoản demo.
 - **Secret** (connection string + JWT key) trong **User Secrets** (không commit). Đổi DB: `dotnet user-secrets set "ConnectionStrings:DefaultConnection" "..."`.
 - **Repo:** đã tách 2 — `GymMaster-backend` (C#, private) + `GymMaster-frontend` (Next.js, public, repo riêng). File SQL tạo DB ở `database/`.
@@ -57,7 +57,20 @@ Layered: **Controller → Service → Repository → DbContext** (xem `CONSTITUT
 - 📄 Chi tiết thay đổi: `CHANGELOG_vs_old_spec.md` · So sánh DB cũ/mới: `DB_DIFF_FOR_DBTEAM.md` · Schema chuẩn: `15_DATABASE_SCHEMA.md`.
 - ▶️ Chạy: backend `dotnet run` ở `backend/GymMaster.API` (cổng 5042) TRƯỚC → frontend `npm run dev` (cổng 3000). Login: `localhost:3000/login`.
 
+## TRẠNG THÁI (cập nhật 2026-07-16)
+- 🏗️ **Backend đã chuyển sang feature-based** — `Controllers/`, `Services/`, `DTOs/`, `Models/` KHÔNG còn tồn tại:
+  - `Features/` — `Auth` · `Account` · `Users` · `Members` · `Trainers` · `Billing` · `CheckIns` · `Training` · `Nutrition` · `Dashboard`. Mỗi feature chứa controller + service + interface + DTO của nó (namespace `GymMaster.API.Features.<Ten>`).
+  - `Common/` (`GymMaster.API.Common`) — `ServiceResult<T>`, `ApiResponse<T>`/`ApiError`, `PagedResult<T>`, `ApiControllerBase`, `AppClock`, `PersonValidation`.
+  - `Infrastructure/` (`GymMaster.API.Infrastructure`) — Cloudinary, Gemini, EmailSender, VnPayLibrary.
+  - `Entities/`, `Data/`, `Options/` giữ nguyên (shared kernel, dùng chung xuyên feature).
+- ⚠️ **`AuthServiceResult<T>` đã đổi tên thành `ServiceResult<T>`** (ở `Common/`). Tên cũ nói dối: nó là kiểu trả về của MỌI service, không riêng auth. Mục "PATTERNS BẮT BUỘC" ở trên gọi nó là `Result<T>` — tên thật trong code là `ServiceResult<T>`.
+- ⚠️ Feature check-in đặt tên thư mục/namespace là **`CheckIns`** (số nhiều) vì `CheckIn` đụng tên entity `CheckIn` (lỗi `CS0118`).
+- 🕸️ **Codebase graph:** `graphify-out/graph.html` (mở bằng browser) · `GRAPH_REPORT.md`. Chạy lại: skill `graphify` ở `.claude/skills/`. Cần `uv` (AST cục bộ, không API key, 0 token). FE cũng có `graphify-out/` riêng.
+- ⚠️ Build cảnh báo `NU1903`: `Microsoft.OpenApi` 2.0.0 có lỗ hổng mức **High** (GHSA-v5pm-xwqc-g5wc) — chưa xử lý.
+- 📖 OpenAPI ở `/openapi/v1.json` (`AddOpenApi()` + `MapOpenApi()` của .NET 10). **Không có** `/swagger`.
+
 ## LESSONS LEARNED
+- [2026-07-16] Refactor feature-based: graphify chỉ ra `AuthServiceResult` là god node degree 185 dùng bởi 38 file ở mọi feature — nếu gom theo tên file thì đã nhét nhầm nó vào `Features/Auth/`. `PagedResult<T>` và `ApiResponse<T>` cũng đang nấp trong `UserDtos.cs`/`AuthDtos.cs`. Bài học: **gom feature theo đồ thị phụ thuộc thật, đừng đoán theo tên**; và build sớm — `CS0118` (namespace đụng tên entity) chỉ lộ ra lúc compile.
 - [2026-05-30] DB từng được chốt MySQL, sau đó team **đổi sang SQL Server** (D-17). Đã cập nhật toàn bộ docs + kiểu dữ liệu (IDENTITY/NVARCHAR/DATETIME2/BIT, không dùng ENUM). Nguồn sự thật stack: `CONSTITUTION.md` Layer 3. Bài học: chốt DB sớm trước khi viết schema chi tiết.
 
 ## AUTO MEMORY (Claude Code tự append phía dưới)
