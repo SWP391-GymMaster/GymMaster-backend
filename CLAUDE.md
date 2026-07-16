@@ -66,7 +66,7 @@ Layered: **Controller → Service → Repository → DbContext** (xem `CONSTITUT
 - ⚠️ **`AuthServiceResult<T>` đã đổi tên thành `ServiceResult<T>`** (ở `Common/`). Tên cũ nói dối: nó là kiểu trả về của MỌI service, không riêng auth. Mục "PATTERNS BẮT BUỘC" ở trên gọi nó là `Result<T>` — tên thật trong code là `ServiceResult<T>`.
 - ⚠️ Feature check-in đặt tên thư mục/namespace là **`CheckIns`** (số nhiều) vì `CheckIn` đụng tên entity `CheckIn` (lỗi `CS0118`).
 - 🕸️ **Codebase graph:** `graphify-out/graph.html` (mở bằng browser) · `GRAPH_REPORT.md`. Chạy lại: skill `graphify` ở `.claude/skills/`. Cần `uv` (AST cục bộ, không API key, 0 token). FE cũng có `graphify-out/` riêng.
-- ⚠️ Build cảnh báo `NU1903`: `Microsoft.OpenApi` 2.0.0 có lỗ hổng mức **High** (GHSA-v5pm-xwqc-g5wc) — chưa xử lý.
+- ✅ `NU1903` đã vá: `Microsoft.OpenApi` **ghim trực tiếp 2.7.5** trong `.csproj` (CVE-2026-49451, High). **Đừng gỡ dòng ghim này** — `Microsoft.AspNetCore.OpenApi` (kể cả bản 10.0.10 mới nhất) vẫn kéo về 2.0.0 dính lỗ hổng, nâng nó không sửa được. Build hiện **0 warning**.
 - 📖 OpenAPI ở `/openapi/v1.json` (`AddOpenApi()` + `MapOpenApi()` của .NET 10). **Không có** `/swagger`.
 
 ## LESSONS LEARNED
