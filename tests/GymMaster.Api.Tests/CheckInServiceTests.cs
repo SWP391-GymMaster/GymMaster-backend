@@ -1,12 +1,13 @@
 using System.Security.Claims;
 using GymMaster.API.Data;
-using GymMaster.API.DTOs;
 using GymMaster.API.Entities;
 using GymMaster.API.Options;
-using GymMaster.API.Services;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using Xunit;
+using GymMaster.API.Common;
+using GymMaster.API.Features.CheckIns;
+using GymMaster.API.Features.Dashboard;
 
 namespace GymMaster.Api.Tests;
 
@@ -53,7 +54,7 @@ public class CheckInServiceTests
         db.MemberProfiles.Add(new MemberProfile { Id = 1, UserId = 10, IsDeleted = false });
     }
 
-    private static Task<AuthServiceResult<CheckInResponse>> CheckIn(CheckInService service)
+    private static Task<ServiceResult<CheckInResponse>> CheckIn(CheckInService service)
         => service.CreateAsync(new CreateCheckInRequest { MemberId = 1 }, Staff(), default);
 
     [Fact] // Mac dinh 2 lan/ngay: lan 3 bi chan DAILY_LIMIT_REACHED

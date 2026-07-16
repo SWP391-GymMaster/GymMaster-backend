@@ -1,10 +1,12 @@
 using System.Security.Claims;
 using GymMaster.API.Data;
-using GymMaster.API.DTOs;
 using GymMaster.API.Entities;
-using GymMaster.API.Services;
 using Microsoft.EntityFrameworkCore;
 using Xunit;
+using GymMaster.API.Features.Dashboard;
+using GymMaster.API.Features.Training;
+using GymMaster.API.Common;
+using GymMaster.API.Features.Nutrition;
 
 namespace GymMaster.Api.Tests;
 

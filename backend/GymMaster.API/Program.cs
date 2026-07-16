@@ -1,10 +1,20 @@
 using System.Text;
 using GymMaster.API.Data;
-using GymMaster.API.Services;
 using GymMaster.API.Options;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
+using GymMaster.API.Features.Account;
+using GymMaster.API.Features.Auth;
+using GymMaster.API.Features.Billing;
+using GymMaster.API.Features.CheckIns;
+using GymMaster.API.Features.Dashboard;
+using GymMaster.API.Features.Members;
+using GymMaster.API.Features.Nutrition;
+using GymMaster.API.Features.Trainers;
+using GymMaster.API.Features.Training;
+using GymMaster.API.Features.Users;
+using GymMaster.API.Infrastructure;
 
 var builder = WebApplication.CreateBuilder(args);
 

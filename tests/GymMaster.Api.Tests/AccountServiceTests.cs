@@ -1,11 +1,12 @@
 using System.Security.Claims;
 using GymMaster.API.Data;
-using GymMaster.API.DTOs;
 using GymMaster.API.Entities;
-using GymMaster.API.Services;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using Xunit;
+using GymMaster.API.Features.Account;
+using GymMaster.API.Features.Dashboard;
+using GymMaster.API.Infrastructure;
 
 namespace GymMaster.Api.Tests;
 
