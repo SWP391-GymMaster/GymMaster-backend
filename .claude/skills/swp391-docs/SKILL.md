@@ -58,8 +58,24 @@ và **screen frontend** (từ cây `src/app`). Hiện tại: ~89 endpoint, ~47 s
 Script hiểu đúng semantics ASP.NET: không có `[Authorize]` ở cả action lẫn class ⇒ **Anonymous**
 (không phải "Authenticated"); `[HttpGet("/...")]` có `/` đầu là route **tuyệt đối**, ghi đè `[Route]`.
 
-→ Đổ vào **sheet `Product`** của `Template1_Project Tracking.xlsx`:
-`# | Screen/Function | Feature | Actor | Description | In Charge | Status | Actual | Updated | Update Details`
+```bash
+uv run --with openpyxl python .claude/skills/swp391-docs/scripts/fill_tracking.py \
+  out/inventory.csv ".claude/skills/swp391-docs/templates/Template1_Project Tracking.xlsx" \
+  "out/docs/GYM_Project Tracking.xlsx" --in-charge "Ten Ban"
+```
+
+→ Ghi vào **sheet `Project`** — Student Guides gọi là "sheet Product" nhưng file `.xlsx` thật
+đặt tên là `Project`.
+
+**Đơn vị dòng = SCREEN + NON-UI FUNCTION, KHÔNG phải từng REST endpoint.**
+Thầy chấm `LOC × Quality` theo function nghiệp vụ (60/120/240, cần ≥720 cả dự án) — nếu 240 là
+tối đa thì 720 ≈ 3 function phức tạp, tức thầy đếm ở mức nghiệp vụ như mẫu *"User Login"*.
+Đổ 89 endpoint thô vào là **sai đơn vị**, làm loãng phần chấm cá nhân. 89 endpoint thuộc về
+**RDS mục III** (Database Access + SQL) của từng màn hình.
+
+Kết quả: **50 dòng** = 47 screen + 3 non-UI (VNPay IPN, auto-cancel 30′, lazy Expire).
+Tên nghiệp vụ lấy từ `../GymMaster-frontend/docs/design/08_ROUTE_MAP_NAVIGATION.md`
+(bảng `NAMES` trong script); route mới chưa có tên sẽ được script báo ra để đặt tay.
 
 **Danh sách này là nguồn sự thật.** Mọi file sau phải dùng đúng tên ở đây.
 
@@ -148,10 +164,11 @@ uv run --with python-docx --with openpyxl python <script>
 
 ## Giới hạn đã biết — đọc trước khi hứa với user
 
-- **Chưa có script tự điền `.docx`/`.xlsx`.** Chỉ có `inventory.py` (liệt kê) và
-  `check_consistency.py` (kiểm tra). Việc điền nội dung là **agent tự làm** theo quy trình ở trên,
-  dùng `python-docx`/`openpyxl` ad-hoc. Cố ý làm vậy: điền là việc cần đọc hiểu spec+code từng
-  function, không phải việc máy móc. Đừng nói với user là "có script điền tự động".
+- **Chỉ sheet `Project` có script điền** (`fill_tracking.py`). **RDS/SDS `.docx` KHÔNG có script** —
+  agent tự điền theo quy trình ở trên bằng `python-docx`. Cố ý: điền RDS cần đọc hiểu spec+code
+  từng function, không máy móc được. Đừng nói với user là "có script điền RDS tự động".
+- **Sheet `Iter1–4` phải user tự chia** — chia function nào vào iteration nào là lịch sử dự án,
+  script không suy ra được. `fill_tracking.py` chỉ đụng sheet `Project`.
 - `inventory.py` không suy được **độ phức tạp** (simple/medium/complex) để tính LOC — user tự chấm.
 - Không suy được **In Charge** — user tự điền.
 - Screen description lấy từ đường dẫn route, không phải mô tả nghiệp vụ — cần user viết lại cho người đọc.
