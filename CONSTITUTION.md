@@ -2,10 +2,10 @@
 
 **Ratified:** 2026-05-30 | **Version:** 1.2.0 | **Status:** LOCKED
 **Team:** GymMaster Dev Team (Admin/BA, Backend, Frontend, Database, QA)
-**RULE:** Mọi thay đổi file này cần đồng thuận toàn team + ghi vào `12_DECISION_LOG.md`.
+**RULE:** Mọi thay đổi file này cần đồng thuận toàn team + ghi vào `docs/init/12_DECISION_LOG.md`.
 
 > Đây là "luật bất biến" của dự án. Mọi Spec, code, và quyết định kỹ thuật đều phải tuân thủ.
-> Đọc cùng `10_AGENTS.md` (persona) và `CLAUDE.md` (ngữ cảnh).
+> Đọc cùng `docs/init/10_AGENTS.md` (persona) và `CLAUDE.md` (ngữ cảnh).
 
 ---
 

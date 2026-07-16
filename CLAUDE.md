@@ -1,6 +1,6 @@
 # CLAUDE.md — GymMaster Project Memory
 
-> Đọc `10_AGENTS.md` (persona + rules) và `CONSTITUTION.md` (luật) trước.
+> Đọc `docs/init/10_AGENTS.md` (persona + rules) và `CONSTITUTION.md` (luật) trước.
 > File này là **bộ nhớ ngữ cảnh** cho AI agent: kiến trúc, patterns, lessons learned.
 
 ## TL;DR (60 giây)
@@ -23,7 +23,7 @@ Layered: **Controller → Service → Repository → DbContext** (xem `CONSTITUT
 /docs                     # 15 spec files
 ```
 
-## QUYẾT ĐỊNH KIẾN TRÚC (tóm tắt — chi tiết ở 12_DECISION_LOG.md)
+## QUYẾT ĐỊNH KIẾN TRÚC (tóm tắt — chi tiết ở docs/init/12_DECISION_LOG.md)
 - **ADR-01:** 4 roles (Admin/Staff/PT/Member) thay vì 3 — cần tách lễ tân khỏi chủ phòng.
 - **ADR-02:** ~~MySQL~~ → **SQL Server** + EF Core Code First (đổi 2026-05-30, xem D-17) — team quen toolset Microsoft (LocalDB/SSMS), tích hợp Azure SQL.
 - **ADR-06:** ~~.NET 8~~ → **.NET 10** (ASP.NET Core 10 + EF Core 10) (đổi 2026-06-01, xem D-18) — code đã build trên `net10.0`; docs đồng bộ theo code.
@@ -54,7 +54,7 @@ Layered: **Controller → Service → Repository → DbContext** (xem `CONSTITUT
 - ✅ Path FE ↔ BE đã **khớp `/api/v1/...`** (FE gọi qua `apiRequest()` base `NEXT_PUBLIC_API_BASE_URL`). Ghi chú lệch path `/api/members` trước đây đã hết hiệu lực.
 - ⬜ **Unit test** coverage chưa đạt DoD ≥80% (một số service đã có test ở `tests/`).
 - ⚠️ Seeder thêm 4 tài khoản demo (`EnsureUserAsync`) + hồ sơ member/PT demo.
-- 📄 Chi tiết thay đổi: `CHANGELOG_vs_old_spec.md` · So sánh DB cũ/mới: `DB_DIFF_FOR_DBTEAM.md` · Schema chuẩn: `15_DATABASE_SCHEMA.md`.
+- 📄 Chi tiết thay đổi: `docs/archive/CHANGELOG_vs_old_spec.md` · So sánh DB cũ/mới: `docs/archive/DB_DIFF_FOR_DBTEAM.md` · Schema chuẩn: `docs/init/15_DATABASE_SCHEMA.md`.
 - ▶️ Chạy: backend `dotnet run` ở `backend/GymMaster.API` (cổng 5042) TRƯỚC → frontend `npm run dev` (cổng 3000). Login: `localhost:3000/login`.
 
 ## TRẠNG THÁI (cập nhật 2026-07-16)
@@ -65,7 +65,7 @@ Layered: **Controller → Service → Repository → DbContext** (xem `CONSTITUT
   - `Entities/`, `Data/`, `Options/` giữ nguyên (shared kernel, dùng chung xuyên feature).
 - ⚠️ **`AuthServiceResult<T>` đã đổi tên thành `ServiceResult<T>`** (ở `Common/`). Tên cũ nói dối: nó là kiểu trả về của MỌI service, không riêng auth. Mục "PATTERNS BẮT BUỘC" ở trên gọi nó là `Result<T>` — tên thật trong code là `ServiceResult<T>`.
 - ⚠️ Feature check-in đặt tên thư mục/namespace là **`CheckIns`** (số nhiều) vì `CheckIn` đụng tên entity `CheckIn` (lỗi `CS0118`).
-- 🕸️ **Codebase graph:** `graphify-out/graph.html` (mở bằng browser) · `GRAPH_REPORT.md`. Chạy lại: skill `graphify` ở `.claude/skills/`. Cần `uv` (AST cục bộ, không API key, 0 token). FE cũng có `graphify-out/` riêng.
+- 🕸️ **Codebase graph:** `graphify-out/graph.html` (mở bằng browser) · `graphify-out/GRAPH_REPORT.md`. Chạy lại: skill `graphify` ở `.claude/skills/`. Cần `uv` (AST cục bộ, không API key, 0 token). FE cũng có `graphify-out/` riêng.
 - ✅ `NU1903` đã vá: `Microsoft.OpenApi` **ghim trực tiếp 2.7.5** trong `.csproj` (CVE-2026-49451, High). **Đừng gỡ dòng ghim này** — `Microsoft.AspNetCore.OpenApi` (kể cả bản 10.0.10 mới nhất) vẫn kéo về 2.0.0 dính lỗ hổng, nâng nó không sửa được. Build hiện **0 warning**.
 - 📖 OpenAPI ở `/openapi/v1.json` (`AddOpenApi()` + `MapOpenApi()` của .NET 10). **Không có** `/swagger`.
 

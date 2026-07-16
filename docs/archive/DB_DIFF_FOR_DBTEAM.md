@@ -1,6 +1,6 @@
 # DB cần sửa — CŨ vs MỚI (cho team DB)
 
-> Chỉ rõ chỗ khác giữa DB hiện tại (`GymMaster_SQLServer_Final.sql`) và schema đúng theo code backend. Làm theo cột **MỚI**. Chi tiết đầy đủ ở `15_DATABASE_SCHEMA.md`.
+> Chỉ rõ chỗ khác giữa DB hiện tại (`GymMaster_SQLServer_Final.sql`) và schema đúng theo code backend. Làm theo cột **MỚI**. Chi tiết đầy đủ ở `docs/init/15_DATABASE_SCHEMA.md`.
 
 ## ⭐ Quy ước chung (áp cho MỌI bảng)
 | | CŨ | MỚI |

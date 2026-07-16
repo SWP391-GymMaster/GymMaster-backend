@@ -86,7 +86,7 @@ Tái dùng bảng của spec 003 — **không đổi schema** (bản tối giả
 - Đa cổng (MoMo/ZaloPay), ví điện tử, trả góp.
 
 ## 10. Ghi chú triển khai (2026-06-15)
-- **Override ADR-03**: MVP gốc chốt thủ công; spec này bổ sung cổng online theo yêu cầu giảng viên. Luồng thủ công (`POST /memberships/{id}/payment`) **vẫn giữ** làm fallback. Đề nghị log quyết định ở `12_DECISION_LOG.md`.
+- **Override ADR-03**: MVP gốc chốt thủ công; spec này bổ sung cổng online theo yêu cầu giảng viên. Luồng thủ công (`POST /memberships/{id}/payment`) **vẫn giữ** làm fallback. Đề nghị log quyết định ở `docs/init/12_DECISION_LOG.md`.
 - **Bản tối giản (demo)**: không đổi schema DB; `vnp_TxnRef = Payment.Id`; `Method = Transfer`; member tự trả gói của mình.
 - **IPN chạy local cần tunnel** (ngrok / Cloudflare Tunnel) để VNPay sandbox gọi vào `localhost`; đăng ký URL tunnel làm Return/IPN trên portal sandbox. Return URL có finalize dự phòng nếu IPN không tới được.
 - **Thuộc Part Y** (billing 003) — không đụng module của thành viên khác.

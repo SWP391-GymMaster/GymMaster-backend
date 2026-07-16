@@ -15,6 +15,6 @@
 ## Quy tắc xử lý (theo SDD / Spec Kit)
 - Khi quyết định làm một secondary feature → tạo `specs/NNN-<name>/spec.md` đủ 9 thành phần + EARS, đặt số tiếp theo (010, 011, …).
 - Không implement secondary nào khi chưa có spec Approved (ARCH-05).
-- Mọi quyết định đưa secondary vào/ra scope → ghi `12_DECISION_LOG.md`.
+- Mọi quyết định đưa secondary vào/ra scope → ghi `docs/init/12_DECISION_LOG.md`.
 
 > Liên quan: feature enhancement `009-image-food-recognition` đã có spec riêng (mức enhancement, ngoài MVP).

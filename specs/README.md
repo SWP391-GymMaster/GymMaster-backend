@@ -19,7 +19,7 @@ Mỗi feature có `spec.md` theo cấu trúc **9 thành phần** (Context & Goal
 Các feature secondary (Barcode, In-app Notification, PT Booking, Group Classes, Combo Packages, PT KPI, Room Booking) được theo dõi ở [SECONDARY_BACKLOG.md](SECONDARY_BACKLOG.md) — trạng thái **Deferred**, chưa viết spec chi tiết cho tới khi core 001–008 ổn định.
 
 ## Quy ước
-- ID yêu cầu (FR-*) là **nguồn truy vết**: code phải gắn tag `// FR-...`, test map theo (xem `09_TEST_PLAN.md`).
+- ID yêu cầu (FR-*) là **nguồn truy vết**: code phải gắn tag `// FR-...`, test map theo (xem `docs/init/09_TEST_PLAN.md`).
 - Stack canonical: ASP.NET Core 10 (.NET 10) + **SQL Server** + EF Core 10 + Next.js (xem `CONSTITUTION.md` Layer 3).
 - Luồng Spec Kit: `/speckit-plan` → `/speckit-tasks` → `/speckit-implement`.
 - **Status hiện tại (2026-07-15): tất cả 001–010 đã `Implemented`** — spec kit đã được **đồng bộ ngược từ code thật** (backend .NET 10 + FE Next.js đang chạy trên Cloud Run). Mọi path là `/api/v1/...`; "hôm nay" tính theo giờ VN (GMT+7, `AppClock`). Đây là bản spec phản ánh đúng hành vi code hiện tại, không phải bản thiết kế ban đầu.
