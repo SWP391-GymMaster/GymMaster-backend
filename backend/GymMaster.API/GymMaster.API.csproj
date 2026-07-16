@@ -14,6 +14,10 @@
     <PackageReference Include="MailKit" Version="4.17.0" />
     <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="10.0.8" />
     <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="10.0.8" />
+    <!-- Ghim truc tiep de vuot qua ban 2.0.0 ma Microsoft.AspNetCore.OpenApi keo vao:
+         2.0.0 dinh CVE-2026-49451 (NU1903, High) - tran stack khi parse OpenAPI doc
+         co tham chieu vong. Ban va dau tien la 2.7.5. -->
+    <PackageReference Include="Microsoft.OpenApi" Version="2.7.5" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="10.0.8" />
   </ItemGroup>
 
