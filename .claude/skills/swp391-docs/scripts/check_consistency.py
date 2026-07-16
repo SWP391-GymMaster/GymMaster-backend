@@ -122,7 +122,7 @@ def main():
         for p in problems:
             print('  - ' + p)
         sys.exit(1)
-    print('OK — cac file khop nhau.')
+    print('OK - cac file khop nhau.')
 
 
 if __name__ == '__main__':

@@ -27,14 +27,14 @@ Mọi lệnh chạy từ **gốc repo backend**.
 
 ## Chọn công cụ theo loại diagram
 
-| Diagram | Định dạng | Vì sao |
-|---|---|---|
-| Use Case | **.drawio** | Mermaid KHÔNG có use case diagram |
-| ERD / Database Schema | Mermaid `erDiagram` | draw.io tự dàn layout |
-| Sequence | Mermaid `sequenceDiagram` | |
-| Class | Mermaid `classDiagram` | |
-| Screens Flow | Mermaid `flowchart` | |
-| Package | Mermaid `classDiagram` + `namespace` | gần đúng |
+| Diagram | Định dạng | Script | Ghi chú |
+|---|---|---|---|
+| Use Case | **.drawio** | `usecase_drawio.py` | Mermaid KHÔNG có use case diagram |
+| ERD / Database Schema | Mermaid `erDiagram` | `erd_mermaid.py` | draw.io tự dàn layout |
+| Sequence | Mermaid `sequenceDiagram` | `sequence_mermaid.py` | |
+| Class | Mermaid `classDiagram` | `class_mermaid.py class` | |
+| Package | Mermaid `classDiagram` + `namespace` | `class_mermaid.py package` | Mermaid không có notation package thật |
+| Screens Flow | Mermaid `flowchart` | **chưa có script — viết tay** | nguồn: `../GymMaster-frontend/docs/design/25_SCREEN_FLOW.md` + `26_SWIMLANE_MAIN_FLOWS.md` |
 
 **KHÔNG dùng PlantUML.** draw.io đã gỡ PlantUML khỏi app.diagrams.net từ cuối 2025
 (<https://www2.drawio.com/blog/plantuml-to-mermaid>). Dán vào sẽ không nhập được.
@@ -72,6 +72,28 @@ $PY .claude/skills/swp391-diagrams/scripts/sequence_mermaid.py CheckInsControlle
 Lần theo Controller action → Service method → **cả helper private trong cùng service** → các bảng DbContext.
 Việc lần helper là bắt buộc: `CheckInService.CreateAsync` nhìn trực tiếp chỉ thấy bảng `CheckIns`,
 nhưng `MemberProfiles`/`Memberships` nằm trong `ValidateMembershipAsync`/`ResolveMemberAsync`.
+
+## 4. Class diagram → Mermaid
+
+```bash
+$PY .claude/skills/swp391-diagrams/scripts/class_mermaid.py class out/cls_billing.mmd --feature Billing
+```
+
+Đọc `Features/<Ten>/`. Lấy **chỉ method public** (private không thuộc về class diagram),
+property của DTO, và quan hệ `..|>` (implements) / `..>` (constructor injection).
+Interface lấy method không cần từ khoá `public` — C# ngầm định public.
+
+Không truyền `--feature` thì quét cả `Features/` — **23 class một hình thì không đọc nổi**,
+nên với SDS hãy làm từng feature.
+
+## 5. Package diagram → Mermaid
+
+```bash
+$PY .claude/skills/swp391-diagrams/scripts/class_mermaid.py package out/packages.mmd
+```
+
+Sinh 15 package: 10 feature + `Common`/`Infrastructure`/`Entities`/`Data`/`Options`.
+Mỗi package hiện tối đa 6 class cho dễ đọc.
 
 ## Đưa vào draw.io
 

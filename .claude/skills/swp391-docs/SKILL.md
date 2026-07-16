@@ -146,8 +146,13 @@ không tồn tại, function có trong code mà thiếu trong tracking.
 uv run --with python-docx --with openpyxl python <script>
 ```
 
-## Giới hạn đã biết
+## Giới hạn đã biết — đọc trước khi hứa với user
 
+- **Chưa có script tự điền `.docx`/`.xlsx`.** Chỉ có `inventory.py` (liệt kê) và
+  `check_consistency.py` (kiểm tra). Việc điền nội dung là **agent tự làm** theo quy trình ở trên,
+  dùng `python-docx`/`openpyxl` ad-hoc. Cố ý làm vậy: điền là việc cần đọc hiểu spec+code từng
+  function, không phải việc máy móc. Đừng nói với user là "có script điền tự động".
 - `inventory.py` không suy được **độ phức tạp** (simple/medium/complex) để tính LOC — user tự chấm.
 - Không suy được **In Charge** — user tự điền.
 - Screen description lấy từ đường dẫn route, không phải mô tả nghiệp vụ — cần user viết lại cho người đọc.
+- `check_consistency.py` so khớp tên **chính xác từng ký tự**. Tên có khoảng trắng thừa sẽ báo lệch.
