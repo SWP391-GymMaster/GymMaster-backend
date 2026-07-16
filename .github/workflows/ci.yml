@@ -1,0 +1,47 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  build-test:
+    name: Build · Test · Security
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup .NET 10
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+
+      # Khong co file .sln nen restore/build tung project.
+      - name: Restore
+        run: |
+          dotnet restore backend/GymMaster.API/GymMaster.API.csproj
+          dotnet restore tests/GymMaster.Api.Tests/GymMaster.Api.Tests.csproj
+
+      - name: Build
+        run: |
+          dotnet build backend/GymMaster.API/GymMaster.API.csproj -c Release --no-restore
+          dotnet build tests/GymMaster.Api.Tests/GymMaster.Api.Tests.csproj -c Release --no-restore
+
+      # Test dung UseInMemoryDatabase -> khong can dung SQL Server trong CI.
+      - name: Test
+        run: dotnet test tests/GymMaster.Api.Tests/GymMaster.Api.Tests.csproj -c Release --no-build --verbosity normal
+
+      # `dotnet list --vulnerable` LUON tra exit 0, ke ca khi tim thay lo hong.
+      # Phai tu bat chuoi trong output, neu khong CI se bao xanh gia.
+      - name: Security - vulnerable packages
+        run: |
+          dotnet list backend/GymMaster.API/GymMaster.API.csproj package \
+            --vulnerable --include-transitive 2>&1 | tee vuln.txt
+          if grep -q "has the following vulnerable packages" vuln.txt; then
+            echo "::error::Phat hien package dinh lo hong - xem log phia tren"
+            exit 1
+          fi
+          echo "Khong co package nao dinh lo hong."
