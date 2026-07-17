@@ -22,6 +22,10 @@ def parse():
         m = ROW.match(line.strip())
         if m:
             uid, name, actor, prio = (g.strip() for g in m.groups())
+            # UC da go khoi pham vi thi khong ve — diagram phai ta he thong THAT
+            # da giao, khong phai y dinh ban dau. Cot uu tien danh dau '~~Removed~~'.
+            if 'removed' in prio.lower():
+                continue
             rows.append({'id': uid, 'name': name, 'actor': actor, 'prio': prio})
     return rows
 

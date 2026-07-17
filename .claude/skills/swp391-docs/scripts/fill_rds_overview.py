@@ -81,7 +81,12 @@ def read_ucs():
         m = re.match(r'^\|\s*(UC-[0-9A-Z]+)\s*\|\s*([^|]+?)\s*\|\s*([^|]+?)\s*\|\s*([^|]+?)\s*\|', ln.strip())
         if m:
             g = [demd(x) for x in m.groups()]
-            out.append(dict(zip(('id', 'name', 'actor', 'prio'), g)))
+            d = dict(zip(('id', 'name', 'actor', 'prio'), g))
+            # UC da go khoi pham vi thi khong liet ke — RDS phai ta he thong THAT
+            # da giao. Cot uu tien danh dau '~~Removed~~'.
+            if 'removed' in d['prio'].lower():
+                continue
+            out.append(d)
     return out
 
 

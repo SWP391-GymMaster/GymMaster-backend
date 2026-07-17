@@ -88,17 +88,17 @@ def main():
          'Script SQL Server: tao 23 bang + du lieu. Nguon: database/*.sql '
          '(011 script tang dan) + GymMaster_SQLServer_Final.sql'],
         ['2', '{}_RDS_final.docx'.format(X),
-         'Requirement & Design Specification — 3 phan: Overview (actor, 30 use case, '
-         '47 man, phan quyen, 23 bang DB, 15 package), Requirement Spec (30 bang UC), '
-         'Design Spec (47 man kem mockup)'],
+         'Requirement & Design Specification — 3 phan: Overview (5 actor, 29 use case, '
+         '46 man, phan quyen, 23 bang DB, 15 package), Requirement Spec (29 bang UC + '
+         'business rules), Design Spec (46 man: mockup + bang field + Database Access)'],
         ['3', '{}_SDS_final.docx'.format(X),
          'Software Design Specification — package diagram, database design, '
          'class specification cho 10 feature backend'],
         ['4', '{}_Final Product Backlog.xlsx'.format(X),
-         'Project Tracking: 60 dong (47 man + 3 non-UI function + 10 API backend). '
+         'Project Tracking: 59 dong (46 man + 3 non-UI function + 10 API backend). '
          'Sheet Project + Iter1-4. Cot Actual lay tu ngay commit that.'],
         ['5', '{}_Issues Report.xlsx'.format(X),
-         'Issues Report: 208 dong sinh tu git log that (co link commit GitHub kiem chung duoc), '
+         'Issues Report: 215 dong sinh tu git log that (co link commit GitHub kiem chung duoc), '
          'phan theo milestone iter1-4, nhan Task/Defect.'],
         ['6', '{}_UseCase.drawio'.format(X),
          'Use case diagram — 5 tab (Admin/Staff/PT/Member/System), mo bang draw.io'],

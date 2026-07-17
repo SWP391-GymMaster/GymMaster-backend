@@ -30,7 +30,7 @@ NAMES = {
     '/admin/members/[id]': 'Member 360 Profile (Admin)', '/admin/trainers': 'Manage PTs',
     '/admin/packages': 'Manage Packages', '/admin/memberships': 'Manage Memberships',
     '/admin/payments': 'Payments (Admin)', '/admin/assignments': 'PT Assignment',
-    '/admin/audit-logs': 'Audit Logs', '/admin/notifications': 'Notifications (Admin)',
+    '/admin/audit-logs': 'Audit Logs',
     '/admin/profile': 'Admin Profile',
     '/staff/dashboard': 'Staff Dashboard', '/staff/members': 'Member Search',
     '/staff/members/[id]': 'Member 360 Profile (Staff)', '/staff/sell-package': 'Sell Package',

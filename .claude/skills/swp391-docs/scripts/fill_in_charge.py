@@ -38,7 +38,7 @@ BE_DESC = {
     'Users': ('User Management', 'API quan ly tai khoan: tao, khoa/mo, phan quyen, reset mat khau'),
     'Members': ('Member Management', 'API ho so hoi vien: tao, tim kiem, cap nhat, Member 360'),
     'Trainers': ('Trainer Management', 'API ho so PT: tao, danh sach, cap nhat'),
-    'Dashboard': ('Dashboard & Audit', 'API doanh thu, thong ke van hanh, audit log, notification'),
+    'Dashboard': ('Dashboard & Audit', 'API doanh thu, thong ke van hanh, audit log'),
     'Billing': ('Membership & Billing', 'API goi tap, ban/gia han, thanh toan, VNPay (tao URL, IPN, return)'),
     'Nutrition': ('Nutrition', 'API bua an, muc tieu calo, danh muc mon, quet anh AI (Gemini)'),
     'Training': ('PT Training', 'API phan cong PT, giao an, ghi chu, tien do'),
