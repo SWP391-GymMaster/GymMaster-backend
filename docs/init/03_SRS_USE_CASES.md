@@ -48,14 +48,16 @@
 | UC-21 | View Calorie History | Member/PT | High |
 | UC-22 | View Revenue & Payment Dashboard | Admin | High |
 | UC-23 | View Audit Logs | Admin | Medium |
-| UC-24 | Barcode Lookup | Member | Medium |
-| UC-25 | Basic In-app Reminder | System/Member | Medium |
+| UC-24 | Barcode Lookup | Member | Medium — Deferred (chưa làm) |
+| UC-25 | Basic In-app Reminder | System/Member | ~~Removed~~ (đã gỡ khỏi phạm vi) |
 | UC-26 | Image Food Recognition Assist (Gemini AI) | Member | Enhancement (đã làm) |
 | UC-27 | Online Payment via VNPay (sandbox, IPN auto-activate) | Member/Admin/Staff | High (đã làm — spec 010) |
 | UC-28 | Cancel Membership (đơn Pending / gói Active) | Member/Admin/Staff | Medium (đã làm — spec 003) |
 | UC-29 | Self-service hồ sơ + avatar (Cloudinary) | All | Medium (đã làm — spec 002) |
 
-> UC-24 (Barcode) và UC-25 (In-app Reminder) vẫn **Deferred** (chưa làm — `specs/SECONDARY_BACKLOG.md`). Endpoint `/notifications` hiện trả rỗng (placeholder cho FE).
+> **UC-24 (Barcode Lookup)** vẫn **Deferred** — chưa làm, còn trong `specs/SECONDARY_BACKLOG.md`.
+>
+> **UC-25 (Basic In-app Reminder) đã bị GỠ khỏi phạm vi dự án** (2026-07-17). Trước đó nó chỉ là vỏ rỗng: không có bảng `notifications` trong DB, không entity, không service — `NotificationsController` trả mảng rỗng cứng để FE không bị 404, và chỉ mock MSW mới tự sinh thông báo lúc demo offline. Hệ thống thật chưa bao giờ tạo thông báo nào, nên nút chuông luôn mở ra panel trống. Đã xoá toàn bộ code liên quan (BE `c61cadc`, FE `54475f0`). SEC-02 trong `SECONDARY_BACKLOG.md` cũng đóng theo.
 
 ---
 
