@@ -218,6 +218,14 @@ Settings → Secrets and variables → Actions → New repository secret.
 
 Actions → **Deploy to Cloud Run** → Run workflow → chọn `main` → Run.
 
+Deploy xong workflow tự `curl` kiểm tra service sống: `/` cho backend (trả
+`{"app":"GymMaster API","status":"running"}`), `/login` cho frontend.
+
+> **`/openapi/v1.json` chỉ sống ở LOCAL.** `Program.cs` bọc `MapOpenApi()` trong
+> `if (app.Environment.IsDevelopment())`, mà Cloud Run chạy Production → trên
+> cloud endpoint này **luôn 404**. Đừng dùng nó để kiểm tra service, và đừng
+> tưởng 404 ở đó là deploy hỏng.
+
 ### 6.3. Việc CD KHÔNG làm — vẫn phải chạy tay
 
 CD cố tình **không truyền `--env-vars-file`**, vì `env.yaml` chứa mật khẩu DB,

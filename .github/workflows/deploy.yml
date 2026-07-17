@@ -55,10 +55,13 @@ jobs:
           URL=$(gcloud run services describe gymmaster-api \
             --region asia-southeast1 --format='value(status.url)')
           echo "Deployed: $URL"
-          # /openapi/v1.json la endpoint khong can auth, dung de smoke test.
-          CODE=$(curl -s -o /dev/null -w '%{http_code}' --max-time 30 "$URL/openapi/v1.json")
+          # Dung "/" chu KHONG dung /openapi/v1.json: MapOpenApi() bi boc trong
+          # if (app.Environment.IsDevelopment()) o Program.cs, ma Cloud Run chay
+          # Production -> /openapi/v1.json luon 404 tren cloud (chi song o local).
+          # "/" tra {"app":"GymMaster API","status":"running"}, khong can auth.
+          CODE=$(curl -s -o /dev/null -w '%{http_code}' --max-time 30 "$URL/")
           if [ "$CODE" != "200" ]; then
-            echo "::error::Smoke test that bai: /openapi/v1.json tra ve $CODE"
+            echo "::error::Smoke test that bai: / tra ve $CODE"
             exit 1
           fi
           echo "Smoke test OK (200)."
