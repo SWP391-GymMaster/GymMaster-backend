@@ -27,6 +27,7 @@ except ImportError:
 
 sys.path.insert(0, str(Path(__file__).parent))
 from fill_tracking import NAMES
+from who_owns import FE_FEATURE, pick
 
 API = Path('backend/GymMaster.API/Features')
 
@@ -77,8 +78,50 @@ FEAT = {
     'profile': 'Account',
 }
 
-ZOD_FIELD = re.compile(r'^\s*(\w+)\s*:\s*z\.(\w+)\(\s*(?:"([^"]*)")?', re.M)
-ZOD_OBJ = re.compile(r'export const (\w+Schema)\s*=\s*z\.object\(\{(.*?)^\}\)', re.M | re.S)
+# Mot feature co nhieu schema; lay het thi sai. Vd feature 'auth' co ca
+# loginSchema lan signupSchema -> man Login bi gan them fullName/phone (field cua
+# Signup). Ten schema noi ro no thuoc man nao, nen map thang route -> schema.
+# Route khong co o day thi lay toan bo schema cua feature (thua con hon thieu —
+# cung nguyen tac voi Business Rules: thua thi nhin thay ma cat).
+SCHEMA_OF = {
+    '/login': ['loginSchema'],
+    '/signup': ['signupSchema'],
+    '/forgot-password': ['forgotPasswordSchema'],
+    '/reset-password': ['resetPasswordSchema'],
+    '/change-password': ['changePasswordSchema'],
+    '/admin/packages': ['packageFormSchema'],
+    '/admin/users': ['createUserSchema', 'updateUserSchema'],
+    '/admin/staff': ['createUserSchema', 'updateUserSchema'],
+    '/admin/members': ['createMemberSchema', 'updateMemberSchema', 'memberSearchSchema'],
+    '/admin/trainers': ['createTrainerSchema', 'updateTrainerSchema'],
+    '/staff/members': ['staffSearchSchema'],
+    '/staff/check-in': ['checkInSchema'],
+    '/staff/sell-package': ['sellPackageSchema'],
+    '/staff/payments': ['manualPaymentSchema'],
+    '/pt/check-in': ['checkInSchema'],
+    '/pt/members/[id]/notes': ['trainerNoteSchema'],
+    '/pt/members/[id]/workout': ['workoutPlanSchema', 'workoutExerciseSchema'],
+    '/pt/members/[id]/progress': ['progressEntrySchema'],
+    '/member/nutrition/meal-journal': ['mealLogSchema', 'customFoodSchema'],
+    '/member/progress': ['progressEntrySchema'],
+    '/member/profile/edit': ['memberProfileSchema'],
+}
+
+ZOD_FIELD = re.compile(r'^\s*(\w+)\s*:\s*z\s*\.(\w+)\(\s*(?:"([^"]*)")?', re.M)
+
+# Field tro toi schema dung chung thay vi goi z.* truc tiep:
+#   fullName: personFieldSchemas.fullName
+#   newPassword: passwordSchema
+# Khong bat thi accountSchema/changePasswordSchema ra RONG.
+ZOD_REF = re.compile(r'^\s*(\w+)\s*:\s*([A-Za-z_][\w.]*)\s*,\s*$', re.M)
+
+# 'z' co the xuong dong truoc '.object' (khi co .refine phia sau):
+#   export const resetPasswordSchema = z
+#     .object({
+# Ban cu doi 'z.object({' lien nhau -> truot resetPasswordSchema va
+# changePasswordSchema, hai man do ra rong ma khong ai biet vi sao.
+ZOD_OBJ = re.compile(r'export const (\w+Schema)\s*=\s*z\s*\.object\(\{(.*?)^\s*\}\)',
+                     re.M | re.S)
 
 
 def feature_of(route):
@@ -116,28 +159,49 @@ def crud_of(feature):
 
 
 def zod_fields(fe_root, route):
-    """Field cua man hinh <- Zod schema. Thong bao loi tieng Viet lam mo ta."""
-    feat_dir = None
-    for cand in Path(fe_root, 'src/features').iterdir() if Path(fe_root, 'src/features').is_dir() else []:
-        key = cand.name.replace('member-', '').replace('-', '')
-        if key and key in route.replace('/', '').replace('-', ''):
-            feat_dir = cand
-            break
-    if not feat_dir:
+    """Field cua man hinh <- Zod schema. Thong bao loi tieng Viet lam mo ta.
+
+    Dung ban do route->feature cua who_owns.py, KHONG doan bang cach so chuoi.
+    Ban cu: key = ten thu muc bo dau '-', khop neu key nam trong route da bo '/'.
+    Cach do truot phan lon: feature 'billing' vs route '/admin/packages' ->
+    'billing' not in 'adminpackages' -> tra ve rong, du billing CO schema.
+    """
+    want = SCHEMA_OF.get(route)
+    if want:
+        # Ten schema la duy nhat trong ca code base -> tim khap src/features,
+        # KHONG buoc vao thu muc feature. Ban do route->feature khong phai luc nao
+        # cung trung cho dat schema: /staff/sell-package map sang feature 'billing'
+        # nhung sellPackageSchema lai nam o 'staff-front-desk' -> tim theo feature
+        # thi truot.
+        search_root = Path(fe_root, 'src/features')
+    else:
+        feat = pick(route, FE_FEATURE)
+        search_root = Path(fe_root, 'src/features', feat) if feat else None
+    if not search_root or not search_root.is_dir():
         return []
     out = []
-    for sf in feat_dir.rglob('*.ts'):
+    for sf in search_root.rglob('*.ts'):
         if 'schema' not in sf.name:
             continue
         src = sf.read_text(encoding='utf-8')
         for m in ZOD_OBJ.finditer(src):
-            for f in ZOD_FIELD.finditer(m.group(2)):
+            if want and m.group(1) not in want:
+                continue
+            body = m.group(2)
+            for f in ZOD_FIELD.finditer(body):
                 name, typ, msg = f.group(1), f.group(2), f.group(3) or ''
                 out.append((name, {'string': 'Text Box', 'email': 'Text Box (email)',
                                    'number': 'Number Box', 'boolean': 'Checkbox',
                                    'enum': 'Combo Box', 'date': 'Date Picker',
                                    'coerce': 'Number Box'}.get(typ, typ),
                             msg or 'Truong {} cua form'.format(name)))
+            for f in ZOD_REF.finditer(body):
+                name, ref = f.group(1), f.group(2)
+                low = name.lower()
+                typ = ('Date Picker' if 'date' in low else
+                       'Combo Box' if low in ('gender', 'status', 'role') else 'Text Box')
+                out.append((name, typ,
+                            'Truong {} cua form (dung schema chung {})'.format(name, ref)))
     seen, uniq = set(), []
     for f in out:
         if f[0] not in seen:
@@ -151,6 +215,20 @@ def set_cell(cell, text):
     p = cell.paragraphs[0]
     r = p.add_run(str(text))
     r.font.size = Pt(9)
+
+
+def reset_rows(tb, n):
+    """Xoa het hang du lieu cua bang mau roi them n hang moi.
+
+    Bang mau cua thay co hang du lieu bi GOP O (vd hang dau bang field chi co 1
+    <w:tc> thay vi 3). Giu lai hang do roi ghi de thi cot 2-3 bi nuot mat: ghi
+    3 gia tri vao 1 o thi chi gia tri dau tien song. add_row() sinh hang tu luoi
+    bang nen luon du cot va khong gop.
+    """
+    while len(tb.rows) > 1:
+        tb._tbl.remove(tb.rows[-1]._tr)
+    for _ in range(n):
+        tb.add_row()
 
 
 def uniq_cells(row):
@@ -257,13 +335,16 @@ def main():
         t = copy.deepcopy(tpl_field)
         add(t)
         tb = docx.table.Table(t, d)
-        rows = flds or [('[CAN BO SUNG]', '-', 'Khong tim thay Zod schema cho man nay')]
+        # Khong co field KHONG phai la thieu sot: 9 man (dashboard, landing,
+        # about, welcome, PT Assignment, Member 360) chi HIEN THI du lieu, khong
+        # co form nhap lieu nen khong co Zod schema. Ghi '[CAN BO SUNG]' o day la
+        # noi sai — nguoi doc se tuong con viec chua lam.
+        rows = flds or [('(khong co)', '-',
+                         'Man chi hien thi du lieu, khong co form nhap lieu '
+                         '(khong co Zod schema trong code)')]
         if not flds:
             no_field += 1
-        while len(tb.rows) - 1 < len(rows):
-            tb.add_row()
-        while len(tb.rows) - 1 > len(rows):
-            tb._tbl.remove(tb.rows[-1]._tr)
+        reset_rows(tb, len(rows))
         for k, vals in enumerate(rows, 1):
             cs = uniq_cells(tb.rows[k])
             for j, v in enumerate(vals):
@@ -281,10 +362,7 @@ def main():
         crud = crud_of(feat) if feat else 'R'
         rows = [(x, crud, 'Truy cap qua {}Service (Features/{})'.format(feat, feat))
                 for x in tbls] or [('[CAN BO SUNG]', '-', 'Chua map duoc feature backend')]
-        while len(tb.rows) - 1 < len(rows):
-            tb.add_row()
-        while len(tb.rows) - 1 > len(rows):
-            tb._tbl.remove(tb.rows[-1]._tr)
+        reset_rows(tb, len(rows))
         for k, vals in enumerate(rows, 1):
             cs = uniq_cells(tb.rows[k])
             for j, v in enumerate(vals):
