@@ -25,7 +25,7 @@
 |---|---|---|
 | **SQL Commands** (RDS III + SDS II.d) | **0/46** | Backend dùng **EF Core LINQ, không có SQL thô**. Cách lấy SQL thật: bật log `Microsoft.EntityFrameworkCore.Database.Command`, chạy app, gọi endpoint, chép SQL EF sinh ra. |
 | **Main Flow** (RDS phần II) | **9/29 UC** | `docs/init/03_SRS_USE_CASES.md` chỉ viết chi tiết 9 UC (UC-01, 04, 07, 08, 09, 10, 17, 22, 26). **20 UC còn lại** cần viết tay hoặc suy từ code. UC-24 (Barcode) là Deferred — **không có code để suy**, phải để `[CAN BO SUNG]`. |
-| **Bảng field** (RDS III) | **7/46 màn** | Phần lớn màn là trang danh sách, không có form → không có Zod schema. 39 màn còn lại ghi `[CAN BO SUNG]`. |
+| **Bảng field** (RDS III) | **XONG: 37 form + 9 no-form** | 37 màn có form → field lấy từ Zod schema thật. 9 màn còn lại là dashboard / trang xem / landing — thật sự **không có form**, ghi thẳng "Màn chỉ hiển thị dữ liệu, không có Zod schema" (trung thực, KHÔNG phải lỗ hổng). Đừng ép bảng field vào màn không có form. Fix ở commit `83acf7a` (dùng bản đồ `SCHEMA_OF` + `who_owns.FE_FEATURE` thay vì đoán tên thư mục). |
 | **Ảnh mockup** (RDS III) | **42/46** | 4 route chưa có trong `visual-screenshots.spec.ts`. |
 | **Business Rules** (RDS II) | thừa | Mỗi UC đang liệt kê **toàn bộ** FR của spec, đánh dấu `[CAN CAT BOT]`. Người đọc phải cắt. |
 | **Class/Sequence diagram** (SDS) | ghi `[Chèn ảnh]` | Phải qua draw.io xuất PNG rồi chèn tay. |
