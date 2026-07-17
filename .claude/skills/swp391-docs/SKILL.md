@@ -7,6 +7,10 @@ description: "Làm tài liệu nộp môn SWP391/ISP392 cho GymMaster: RDS (Requ
 
 Điền bộ template SWP391 **từ code và spec thật**, làm **từng function một**.
 
+> **ĐỌC `references/tien-do.md` TRƯỚC.** File đó ghi: 5 file nộp cái nào xong cái nào chưa,
+> chỗ trống còn lại, các quyết định đã chốt (đừng làm lại), bẫy đã gặp, và lệnh dựng lại từ đầu.
+> Sản phẩm ở `out/docs/` — **`out/` bị gitignore**, chỉ có trên máy local.
+
 ## Luật bất di bất dịch
 
 1. **KHÔNG sinh cả tài liệu trong một lượt.** 22 bảng sinh một lèo thì tên function sẽ trôi,
