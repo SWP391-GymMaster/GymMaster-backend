@@ -107,6 +107,74 @@ SCHEMA_OF = {
     '/member/profile/edit': ['memberProfileSchema'],
 }
 
+# Backend dung EF Core LINQ, KHONG co SQL tho trong code. Thay vi de trong, ghi
+# cau LINQ THAT (tieu bieu, doc/read cua man) kem file nguon — SQL that do EF sinh
+# ra luc chay. Moi doan la code that trong repo, khong bia.
+FEATURE_LINQ = {
+    'Members': (
+        '_dbContext.MemberProfiles\n'
+        '    .Include(profile => profile.User)\n'
+        '    .Where(profile => !profile.IsDeleted && !profile.User.IsDeleted)\n'
+        '    .OrderByDescending(profile => profile.CreatedAt)\n'
+        '    .Skip((page - 1) * pageSize).Take(pageSize)\n'
+        '    .ToListAsync(cancellationToken);',
+        'Features/Members/MemberService.cs (ListAsync)'),
+    'Users': (
+        '_dbContext.Users\n'
+        '    .Include(user => user.UserRoles).ThenInclude(ur => ur.Role)\n'
+        '    .Where(user => !user.IsDeleted)\n'
+        '    .ToListAsync(cancellationToken);',
+        'Features/Users/UserService.cs (ListAsync)'),
+    'Trainers': (
+        '_dbContext.TrainerProfiles\n'
+        '    .Include(profile => profile.User)\n'
+        '    .Where(profile => !profile.IsDeleted && !profile.User.IsDeleted);',
+        'Features/Trainers/TrainerService.cs (ListAsync)'),
+    'Billing': (
+        '_dbContext.Memberships\n'
+        '    .Include(item => item.Package)\n'
+        '    .Where(item => item.MemberId == request.MemberId)\n'
+        '    .ToListAsync(cancellationToken);',
+        'Features/Billing/MembershipService.cs'),
+    'Nutrition': (
+        '_dbContext.CalorieTargets\n'
+        '    .Where(t => t.MemberId == memberId && t.EffectiveDate <= Today())\n'
+        '    .OrderByDescending(t => t.EffectiveDate)\n'
+        '    .FirstOrDefaultAsync(cancellationToken);',
+        'Features/Nutrition/NutritionService.cs'),
+    'Training': (
+        '_dbContext.Entry(plan)\n'
+        '    .Collection(p => p.Exercises).Query()\n'
+        '    .Include(e => e.Exercise)\n'
+        '    .LoadAsync(cancellationToken);',
+        'Features/Training/WorkoutPlanService.cs'),
+    'CheckIns': (
+        'var query = _dbContext.CheckIns.AsNoTracking();\n'
+        'if (memberId is not null)\n'
+        '    query = query.Where(checkIn => checkIn.MemberId == memberId);\n'
+        'await query.OrderByDescending(c => c.CheckInAt).ToListAsync(cancellationToken);',
+        'Features/CheckIns/CheckInService.cs'),
+    'Dashboard': (
+        '(await _dbContext.Payments\n'
+        '    .Where(p => p.PaidAt.HasValue && p.PaidAt.Value >= sixMonthsAgoStart)\n'
+        '    .Select(p => new { p.PaidAt, p.Amount })\n'
+        '    .ToListAsync(cancellationToken))\n'
+        '    .GroupBy(p => new { p.PaidAt!.Value.AddHours(7).Year,\n'
+        '                        p.PaidAt!.Value.AddHours(7).Month })\n'
+        '    .Select(g => new { g.Key.Year, g.Key.Month, Revenue = g.Sum(p => p.Amount) });',
+        'Features/Dashboard/DashboardService.cs (RevenueAsync)'),
+    'Account': (
+        '_dbContext.Users\n'
+        '    .FirstOrDefaultAsync(item => item.UserId == user.Id && !item.IsDeleted,\n'
+        '                         cancellationToken);',
+        'Features/Account/AccountService.cs'),
+    'Auth': (
+        '_dbContext.Users\n'
+        '    .AnyAsync(user => user.Email == email && !user.IsDeleted,\n'
+        '              cancellationToken);',
+        'Features/Auth/AuthService.cs'),
+}
+
 ZOD_FIELD = re.compile(r'^\s*(\w+)\s*:\s*z\s*\.(\w+)\(\s*(?:"([^"]*)")?', re.M)
 
 # Field tro toi schema dung chung thay vi goi z.* truc tiep:
@@ -371,10 +439,27 @@ def main():
 
         p = d.add_paragraph()
         p.add_run('SQL Commands: ').bold = True
-        p.add_run('[CAN BO SUNG] Backend dung EF Core LINQ, khong co SQL tho. '
-                  'Lay SQL that do EF sinh ra bang cach bat log '
-                  '(Microsoft.EntityFrameworkCore.Database.Command) roi goi endpoint.')
-        add(p._p)
+        linq = FEATURE_LINQ.get(feat)
+        if linq:
+            code, src = linq
+            p.add_run('Backend dung EF Core, cau SQL do EF sinh ra luc chay. '
+                      'Cau LINQ tieu bieu (doc/read) cua man:')
+            add(p._p)
+            q = d.add_paragraph()
+            r = q.add_run(code)
+            r.font.name = 'Consolas'
+            r.font.size = Pt(9)
+            add(q._p)
+            s = d.add_paragraph()
+            sr = s.add_run('Nguon: {}. SQL thuc te chep bang cach bat log '
+                           'Microsoft.EntityFrameworkCore.Database.Command.'.format(src))
+            sr.italic = True
+            sr.font.size = Pt(9)
+            add(s._p)
+        else:
+            p.add_run('[CAN BO SUNG] Chua map duoc feature backend cho man nay '
+                      '(man khong goi API, vd landing/welcome/about).')
+            add(p._p)
         made += 1
 
     d.save(a.rds)
