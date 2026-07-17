@@ -33,10 +33,15 @@ SQL_TYPES = {'BIGINT', 'INT', 'SMALLINT', 'TINYINT', 'NVARCHAR', 'VARCHAR', 'DAT
 
 
 def set_cell(cell, text):
+    """Ghi text vao o. '\\n' phai thanh line-break that: add_run('a\\nb') trong
+    python-docx cho ra 'ab' dinh lien, khong xuong dong."""
     cell.text = ''
     p = cell.paragraphs[0]
-    r = p.add_run(str(text))
-    r.font.size = Pt(10)
+    for i, line in enumerate(str(text).split('\n')):
+        r = p.add_run(line)
+        r.font.size = Pt(10)
+        if i < len(str(text).split('\n')) - 1:
+            r.add_break()
 
 
 def resize(table, n_rows):
@@ -64,7 +69,7 @@ def read_actors():
     for ln in blk.splitlines():
         m = re.match(r'^\|\s*([A-Za-z]+)\s*\|\s*(.+?)\s*\|$', ln.strip())
         if m and m.group(1) != 'Actor' and not set(m.group(1)) <= set('-'):
-            out.append((m.group(1), m.group(2)))
+            out.append((m.group(1), demd(m.group(2))))
     return out
 
 
@@ -75,8 +80,18 @@ def read_ucs():
     for ln in blk.splitlines():
         m = re.match(r'^\|\s*(UC-[0-9A-Z]+)\s*\|\s*([^|]+?)\s*\|\s*([^|]+?)\s*\|\s*([^|]+?)\s*\|', ln.strip())
         if m:
-            out.append(dict(zip(('id', 'name', 'actor', 'prio'), m.groups())))
+            g = [demd(x) for x in m.groups()]
+            out.append(dict(zip(('id', 'name', 'actor', 'prio'), g)))
     return out
+
+
+def demd(s):
+    """Go cu phap markdown: Word khong hieu ** va `, chung hien ra thanh rac."""
+    s = re.sub(r'\*\*(.+?)\*\*', r'\1', s)      # **dam**
+    s = re.sub(r'\*(.+?)\*', r'\1', s)          # *nghieng*
+    s = s.replace('`', '')                      # `code`
+    s = re.sub(r'\s+', ' ', s)
+    return s.strip(' .·')
 
 
 def _from_markdown_table(block):
@@ -113,9 +128,9 @@ def read_tables():
         name, block = m.group(1), m.group(2)
         if block.lstrip().startswith('|'):
             cols, pk, fk = _from_markdown_table(block)
-            d = 'Cac cot: ' + ', '.join(cols)
+            d = 'Các cột: ' + ', '.join(cols)
         else:
-            flat = ' '.join(block.split())
+            flat = demd(' '.join(block.split()))
             # Dang viet la 'Id BIGINT PK' -> regex (\w+)\s+PK chop trung 'BIGINT'.
             # Phai cho phep co kieu SQL o giua, va loai kieu SQL ra khoi ten cot.
             pk = [g[0] if g[0] not in SQL_TYPES else g[1]
@@ -128,11 +143,11 @@ def read_tables():
                 pk = [c.strip() for c in comp.group(1).split(',') if c.strip()]
             fk = [m for m in re.findall(r'(\w+)\s+(?:\w+\s+)?(?:\(FK|FK)\b', flat)
                   if m not in SQL_TYPES]
-            d = flat[:280]
+            d = flat.replace(' · ', '; ')[:300]
         if pk:
-            d += ' | Primary keys: ' + ', '.join(dict.fromkeys(pk))
+            d += '\nPrimary keys: ' + ', '.join(dict.fromkeys(pk))
         if fk:
-            d += ' | Foreign keys: ' + ', '.join(dict.fromkeys(fk))
+            d += '\nForeign keys: ' + ', '.join(dict.fromkeys(fk))
         out.append((name, d))
     return out
 
