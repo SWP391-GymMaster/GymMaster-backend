@@ -93,8 +93,12 @@ def read_uc_details():
             mm = re.search(r'\|\s*' + k + r'\s*\|\s*(.+?)\s*\|', body)
             if mm:
                 d[k] = demd(mm.group(1))
-        for k in ('Main Flow', 'Exception Flow', 'Acceptance Criteria'):
-            mm = re.search(r'\*\*' + k + r':?\*\*\s*(.+?)(?=\n\*\*|\n##|\Z)', body, re.S)
+        # 'Alternative Flow' phai dung TRUOC 'Main Flow' trong danh sach: neu khong,
+        # regex cua 'Main Flow' se khop luon vao chuoi 'Alternative Flow' (chua
+        # 'Flow') o cac UC co ca hai muc.
+        for k in ('Alternative Flow', 'Main Flow', 'Exception Flow', 'Acceptance Criteria'):
+            mm = re.search(r'\*\*' + re.escape(k) + r':?\*\*\s*(.+?)(?=\n\*\*|\n##|\n>|\Z)',
+                           body, re.S)
             if mm:
                 d[k] = demd(mm.group(1))
         det[uid] = d
@@ -219,11 +223,27 @@ def main():
             normal = ('{}.0 {}\n[CAN BO SUNG] 03_SRS_USE_CASES.md chua co Main Flow '
                       'chi tiet cho UC nay.'.format(n, uc['name']))
 
+        # Uu tien Exception Flow viet RIENG cho UC nay (suy tu code that trong
+        # 03_SRS_USE_CASES.md). errors_of() tra ve TOAN BO error code cua ca spec,
+        # ma nhieu UC dung chung mot spec -> nhet het vao la sai: UC-02 Logout tung
+        # bi gan "IF credentials sai THEN 401 INVALID_CREDENTIALS" trong khi logout
+        # khong he co credentials.
+        # UC chua co Exception Flow rieng thi van liet ke ca rổ + danh dau de nguoi
+        # doc tu cat — cung ly do voi Business Rules: thua thi nhin thay ma cat, loc
+        # sai thi khong ai biet (xem tien-do.md, quyet dinh #5).
         exc = []
-        for j, e in enumerate(errs, 1):
-            exc.append('{}.0.E{} {}'.format(n, j, e))
-        if dd.get('Exception Flow'):
-            exc.insert(0, dd['Exception Flow'])
+        own = dd.get('Exception Flow')
+        if own:
+            parts = [p.strip(' .·') for p in re.split(r'\s*·\s*|\s*;\s*', own) if p.strip(' .·')]
+            for j, e in enumerate(parts, 1):
+                exc.append('{}.0.E{} {}'.format(n, j, e))
+        else:
+            for j, e in enumerate(errs, 1):
+                exc.append('{}.0.E{} {}'.format(n, j, e))
+            if exc:
+                exc.insert(0, '[CAN CAT BOT] Duoi day la TOAN BO error code cua spec '
+                              '{} — nhieu UC dung chung spec nay, can cat cai khong '
+                              'thuoc UC nay:'.format(sd or '?'))
 
         pre = dd.get('Pre-condition', '')
         pre = 'PRE-1: {}'.format(pre) if pre else \
@@ -241,7 +261,9 @@ def main():
             ('Preconditions:', pre),
             ('Postconditions:', post),
             ('Normal Flow:', normal),
-            ('Alternative Flows:', 'None'),
+            ('Alternative Flows:',
+             '{}.1 {}'.format(n, dd['Alternative Flow'])
+             if dd.get('Alternative Flow') else 'None'),
             ('Exceptions:', '\n'.join(exc) if exc else 'None'),
             ('Priority:', uc['prio']),
             ('Frequency of Use:', ''),
