@@ -49,3 +49,7 @@ Thumbs.db
 graphify-out/.graphify_python
 graphify-out/.graphify_root
 out/
+
+# Python bytecode cua cac script trong .claude/skills/
+__pycache__/
+*.pyc

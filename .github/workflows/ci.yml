@@ -5,6 +5,8 @@ on:
     branches: [main]
   pull_request:
   workflow_dispatch:
+  # Cho deploy.yml goi lai, de khong phai chep buoc build/test sang ben do.
+  workflow_call:
 
 jobs:
   build-test:
