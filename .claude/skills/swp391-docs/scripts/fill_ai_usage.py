@@ -67,6 +67,19 @@ ROWS = [
      'commit a9e4e63', '30 bang; 0/32 -> 31/32 co du lieu', 4,
      'Neu khong doc nguoc file ra kiem tra thi da nop mot RDS trang tron 30 bang.'),
 
+    ('Documentation', 'Go tinh nang thong bao khoi pham vi', 'Claude Code (Opus 4.8)',
+     'Xoa 877 dong FE + NotificationsController; sinh lai RDS/Tracking/Issues',
+     'Script bao "man co bang field Zod: 46/46" -> DOC NGUOC file .docx ra dem thi '
+     'phan III co 0 BANG. Nguyen nhan: fill_rds_design.py ghim cung d.tables[74]/[75] '
+     'lam bang mau; bot 1 use case -> phan II bot 2 bang -> index truot -> tpl=None -> '
+     'khong sinh bang nao, ma bien dem no_field cung khong tang nen VAN IN 46/46. '
+     'Sua: tim bang mau theo tieu de ("Field Name|Field Type|Description"), khong theo '
+     'chi so. Doi chieu lai: 7/46 man co Zod that — khop so 7/47 ghi trong tien-do',
+     'commit 8e02f74', '69 -> 161 bang; bang Database Access 0 -> 46', 5,
+     'Loi IM LANG nguy hiem hon loi bao do: script van "thanh cong". Ban RDS cu 118 '
+     'bang cung da sai san (nhan ban nham tu bang Business Rules, chua bao gio co '
+     'bang Database Access) — khong ai phat hien vi con so 118 trong co ve hop ly.'),
+
     ('Documentation', 'Loc Business Rules cho tung use case', 'Claude Code (Opus 4.8)',
      'Loc FR theo tu khoa trong ten UC',
      'HONG: "Login" chi khop FR-RBAC-03 (chang lien quan), con FR-AUTH-02 (dung '

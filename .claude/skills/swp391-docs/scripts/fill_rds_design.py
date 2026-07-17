@@ -12,6 +12,7 @@ Setting Details, anh co chu "Teacher"). Khong xoa la nop nham du an nguoi khac.
 Dung: python fill_rds_design.py <rds.docx> <inventory.csv> [--fe <path>]
 """
 import argparse
+import copy
 import csv
 import re
 import sys
@@ -181,15 +182,40 @@ def main():
     if i_start is None or i_end is None:
         sys.exit('Khong tim thay moc phan III / IV')
 
+    # --- 2. LAY BANG MAU TRUOC KHI XOA
+    # Tim theo NOI DUNG TIEU DE, khong dung chi so cung.
+    # Ban cu ghim d.tables[74]/[75]: so bang phu thuoc so use case cua phan II,
+    # nen chi can them/bot 1 use case la index truot -> tpl = None -> khong sinh
+    # bang nao, ma van in "46/46" (bien dem no_field khong tang khi tpl la None).
+    # Loi im lang: RDS mat sach bang phan III ma script bao thanh cong.
+    def _hdr(tbl):
+        return [c.text.strip().lower() for c in tbl.rows[0].cells] if tbl.rows else []
+
+    tpl_field = tpl_db = None
+    for c in kids[i_start + 1:i_end]:
+        if c.tag != qn('w:tbl'):
+            continue
+        t = docx.table.Table(c, d)
+        h = _hdr(t)
+        if tpl_field is None and 'field name' in h[0]:
+            tpl_field = copy.deepcopy(t._tbl)
+        elif tpl_db is None and h and h[0] == 'table':
+            tpl_db = copy.deepcopy(t._tbl)
+        if tpl_field is not None and tpl_db is not None:
+            break
+
+    if tpl_field is None or tpl_db is None:
+        sys.exit('Khong tim thay bang mau trong vung III cua template '
+                 '(can "Field Name|Field Type|Description" va "Table|CRUD|Description"). '
+                 'Template co thay doi?')
+
+    # --- 3. XOA MAU
     removed = 0
     for c in kids[i_start + 1:i_end]:
         body.remove(c)
         removed += 1
     print('Da xoa {} phan tu mau cua thay (User Login / Setting List / Setting '
           'Details + anh "Teacher")'.format(removed))
-
-    tpl_field = d.tables[74] if len(d.tables) > 74 else None
-    tpl_db = d.tables[75] if len(d.tables) > 75 else None
 
     with open(a.inventory, encoding='utf-8-sig') as fh:
         inv = [r for r in csv.DictReader(fh) if r['kind'] == 'Screen']
@@ -223,46 +249,42 @@ def main():
         add(p._p)
 
         flds = zod_fields(a.fe, route)
-        if tpl_field is not None:
-            import copy
-            t = copy.deepcopy(tpl_field._tbl)
-            add(t)
-            tb = docx.table.Table(t, d)
-            rows = flds or [('[CAN BO SUNG]', '-', 'Khong tim thay Zod schema cho man nay')]
-            if not flds:
-                no_field += 1
-            while len(tb.rows) - 1 < len(rows):
-                tb.add_row()
-            while len(tb.rows) - 1 > len(rows):
-                tb._tbl.remove(tb.rows[-1]._tr)
-            for k, vals in enumerate(rows, 1):
-                cs = uniq_cells(tb.rows[k])
-                for j, v in enumerate(vals):
-                    if j < len(cs):
-                        set_cell(cs[j], v)
+        t = copy.deepcopy(tpl_field)
+        add(t)
+        tb = docx.table.Table(t, d)
+        rows = flds or [('[CAN BO SUNG]', '-', 'Khong tim thay Zod schema cho man nay')]
+        if not flds:
+            no_field += 1
+        while len(tb.rows) - 1 < len(rows):
+            tb.add_row()
+        while len(tb.rows) - 1 > len(rows):
+            tb._tbl.remove(tb.rows[-1]._tr)
+        for k, vals in enumerate(rows, 1):
+            cs = uniq_cells(tb.rows[k])
+            for j, v in enumerate(vals):
+                if j < len(cs):
+                    set_cell(cs[j], v)
 
         h = d.add_paragraph(style='Heading 5')
         h.add_run('Database Access')
         add(h._p)
 
         tbls = tables_of(feat) if feat else []
-        if tpl_db is not None:
-            import copy
-            t = copy.deepcopy(tpl_db._tbl)
-            add(t)
-            tb = docx.table.Table(t, d)
-            crud = crud_of(feat) if feat else 'R'
-            rows = [(x, crud, 'Truy cap qua {}Service (Features/{})'.format(feat, feat))
-                    for x in tbls] or [('[CAN BO SUNG]', '-', 'Chua map duoc feature backend')]
-            while len(tb.rows) - 1 < len(rows):
-                tb.add_row()
-            while len(tb.rows) - 1 > len(rows):
-                tb._tbl.remove(tb.rows[-1]._tr)
-            for k, vals in enumerate(rows, 1):
-                cs = uniq_cells(tb.rows[k])
-                for j, v in enumerate(vals):
-                    if j < len(cs):
-                        set_cell(cs[j], v)
+        t = copy.deepcopy(tpl_db)
+        add(t)
+        tb = docx.table.Table(t, d)
+        crud = crud_of(feat) if feat else 'R'
+        rows = [(x, crud, 'Truy cap qua {}Service (Features/{})'.format(feat, feat))
+                for x in tbls] or [('[CAN BO SUNG]', '-', 'Chua map duoc feature backend')]
+        while len(tb.rows) - 1 < len(rows):
+            tb.add_row()
+        while len(tb.rows) - 1 > len(rows):
+            tb._tbl.remove(tb.rows[-1]._tr)
+        for k, vals in enumerate(rows, 1):
+            cs = uniq_cells(tb.rows[k])
+            for j, v in enumerate(vals):
+                if j < len(cs):
+                    set_cell(cs[j], v)
 
         p = d.add_paragraph()
         p.add_run('SQL Commands: ').bold = True

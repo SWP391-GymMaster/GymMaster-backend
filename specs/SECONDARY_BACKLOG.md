@@ -5,7 +5,7 @@
 | ID | Feature | Mô tả | Phụ thuộc | Ưu tiên |
 |---|---|---|---|---|
 | SEC-01 | Barcode Lookup | Member nhập/scan barcode để tìm sản phẩm đóng gói và thêm vào meal log | 007 (Meal Journal) | Medium |
-| SEC-02 | Basic In-app Notification | Nhắc gói tập sắp hết hạn / thông báo đơn giản trong hệ thống | 003 (Membership) | Medium |
+| ~~SEC-02~~ | ~~Basic In-app Notification~~ | **Đóng 2026-07-17 — gỡ khỏi phạm vi.** Nhóm quyết định không làm thông báo. Phần vỏ rỗng đã có (nút chuông + `NotificationsController` trả rỗng) đã bị xoá hẳn: BE `c61cadc`, FE `54475f0`. Xem `docs/init/03_SRS_USE_CASES.md` UC-25. | 003 (Membership) | ~~Medium~~ |
 | SEC-03 | PT Online Booking | Member đặt lịch buổi tập với PT | 005 (PT Assignment) | Low |
 | SEC-04 | Basic Group Classes | Quản lý lớp nhóm (Yoga, Zumba, HIIT) ở mức đơn giản | — | Low |
 | SEC-05 | Combo Packages | Quản lý gói combo / nhiều dịch vụ | 003 (Package) | Low |

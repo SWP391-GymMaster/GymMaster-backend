@@ -46,7 +46,7 @@ def authors_of(repo, *paths):
 # nguoi viet ruot (va nguoi viet backend) thi 0 man. Phai dem ca thu muc feature.
 FE_FEATURE = [
     ('/admin/assignments', 'pt-assignment'), ('/admin/audit-logs', 'admin-dashboard'),
-    ('/admin/dashboard', 'admin-dashboard'), ('/admin/notifications', 'notifications'),
+    ('/admin/dashboard', 'admin-dashboard'),
     ('/admin/users', 'member-management'), ('/admin/staff', 'member-management'),
     ('/admin/members', 'member-management'), ('/admin/trainers', 'member-management'),
     ('/admin/packages', 'billing'), ('/admin/memberships', 'billing'),
@@ -72,7 +72,7 @@ BE_FEATURE = [
     ('package', 'Billing'), ('membership', 'Billing'), ('payment', 'Billing'),
     ('sell-', 'Billing'), ('renew-', 'Billing'),
     ('nutrition', 'Nutrition'), ('dashboard', 'Dashboard'), ('audit', 'Dashboard'),
-    ('notification', 'Dashboard'), ('users', 'Users'), ('staff', 'Users'),
+    ('users', 'Users'), ('staff', 'Users'),
     ('trainers', 'Trainers'), ('members', 'Members'), ('profile', 'Account'),
     ('login', 'Auth'), ('signup', 'Auth'), ('password', 'Auth'),
 ]

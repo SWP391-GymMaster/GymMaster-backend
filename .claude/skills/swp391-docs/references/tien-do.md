@@ -1,4 +1,4 @@
-# Tiến độ làm tài liệu SWP391 — cập nhật 2026-07-17
+# Tiến độ làm tài liệu SWP391 — cập nhật 2026-07-17 (lần 2)
 
 > File này để agent (và người) đọc lại sau khi mất ngữ cảnh chat.
 > Sản phẩm nằm ở `out/docs/` và `out/diagrams/` — **`out/` bị gitignore**, chỉ có trên máy local.
@@ -6,23 +6,27 @@
 
 ## Trạng thái 5 file nộp
 
+> **2026-07-17: đã GỠ tính năng thông báo (UC-25) khỏi phạm vi.** BE `c61cadc`, FE `54475f0`.
+> Nó là vỏ rỗng (không bảng DB, không service, controller trả `[]`). Mọi số liệu dưới đây
+> đã tính lại: **47→46 màn**, **30→29 use case**, 60→59 dòng Tracking.
+
 | # | File | Trạng thái | Ghi chú |
 |---|---|---|---|
-| 1 | `GYM_Project Tracking.xlsx` | ✅ xong | 50 dòng (47 screen + 3 non-UI), Iter1–4 điền theo **ngày git thật** |
-| 2 | `GYM_RDS.docx` | ✅ 3 phần, còn chỗ trống | 118 bảng, 48 ảnh, 20MB |
+| 1 | `GYM_Project Tracking.xlsx` | ✅ xong | 59 dòng (46 screen + 3 non-UI + 10 API), Iter1–4 theo **ngày git thật** |
+| 2 | `GYM_RDS.docx` | ✅ 3 phần, còn chỗ trống | **161 bảng**, 47 ảnh, 19.6MB |
 | 3 | `GYM_SDS.docx` | ✅ xong, còn chỗ trống | 15 package, 23 bảng, 10 feature |
-| 4 | `GYM_Issues Report.xlsx` | ⬜ **chưa làm** | Nguồn: git log (236 commit, có ngày + tác giả) |
-| 5 | `GYM_Final Release.docx` | ⬜ **chưa làm** | Làm cuối cùng, chỉ là bìa gói |
-| + | `AI Usage Report.xlsx` | ⬜ **chưa làm** | Ghi theo tuần, xem mục "ví dụ ăn điểm" dưới |
+| 4 | `GYM_Issues Report.xlsx` | ✅ xong | 215 issue từ git log thật, map 125/215 vào Functions/Screens |
+| 5 | `GYM_Final Release.docx` | ✅ xong | Bìa gói + Installation Guide thật |
+| + | `AI Usage Report.xlsx` | ✅ xong | 10 dòng, đều là việc CÓ THẬT kèm link commit |
 
 ## Chỗ trống CÒN LẠI (đã đánh dấu `[CAN BO SUNG]` ngay trong file, không bịa)
 
 | Chỗ | Hiện có | Vì sao thiếu |
 |---|---|---|
-| **SQL Commands** (RDS III + SDS II.d) | **0/47** | Backend dùng **EF Core LINQ, không có SQL thô**. Cách lấy SQL thật: bật log `Microsoft.EntityFrameworkCore.Database.Command`, chạy app, gọi endpoint, chép SQL EF sinh ra. |
-| **Main Flow** (RDS phần II) | **9/30 UC** | `docs/init/03_SRS_USE_CASES.md` chỉ viết chi tiết 9 UC (UC-01, 04, 07, 08, 09, 10, 17, 22, 26). 21 UC còn lại cần viết tay hoặc suy từ code. |
-| **Bảng field** (RDS III) | **7/47 màn** | Phần lớn màn là trang danh sách, không có form → không có Zod schema. |
-| **Ảnh mockup** (RDS III) | **43/47** | 4 route chưa có trong `visual-screenshots.spec.ts`. |
+| **SQL Commands** (RDS III + SDS II.d) | **0/46** | Backend dùng **EF Core LINQ, không có SQL thô**. Cách lấy SQL thật: bật log `Microsoft.EntityFrameworkCore.Database.Command`, chạy app, gọi endpoint, chép SQL EF sinh ra. |
+| **Main Flow** (RDS phần II) | **9/29 UC** | `docs/init/03_SRS_USE_CASES.md` chỉ viết chi tiết 9 UC (UC-01, 04, 07, 08, 09, 10, 17, 22, 26). **20 UC còn lại** cần viết tay hoặc suy từ code. UC-24 (Barcode) là Deferred — **không có code để suy**, phải để `[CAN BO SUNG]`. |
+| **Bảng field** (RDS III) | **7/46 màn** | Phần lớn màn là trang danh sách, không có form → không có Zod schema. 39 màn còn lại ghi `[CAN BO SUNG]`. |
+| **Ảnh mockup** (RDS III) | **42/46** | 4 route chưa có trong `visual-screenshots.spec.ts`. |
 | **Business Rules** (RDS II) | thừa | Mỗi UC đang liệt kê **toàn bộ** FR của spec, đánh dấu `[CAN CAT BOT]`. Người đọc phải cắt. |
 | **Class/Sequence diagram** (SDS) | ghi `[Chèn ảnh]` | Phải qua draw.io xuất PNG rồi chèn tay. |
 
@@ -44,6 +48,18 @@
 
 ## Bẫy đã gặp — đừng vấp lại
 
+- **Chỉ số bảng hardcode → lỗi IM LẶNG (nặng nhất, 2026-07-17).** `fill_rds_design.py` từng ghim
+  `d.tables[74]`/`[75]` làm bảng mẫu. Số bảng phụ thuộc **số use case của phần II**, nên chỉ cần
+  bớt 1 UC là index trượt → `tpl = None` → **không sinh bảng nào**, mà biến đếm `no_field` cũng
+  không tăng nên script **vẫn in "46/46"**. Phát hiện bằng cách **đọc ngược .docx ra đếm bảng**
+  (69 thay vì ~160). Bản RDS "118 bảng" cũ **cũng đã sai sẵn**: nó nhân bản nhầm từ bảng Business
+  Rules và **chưa bao giờ có bảng Database Access** — không ai nghi vì 118 trông hợp lý.
+  → Đã sửa: tìm bảng mẫu theo **tiêu đề** (`Field Name|Field Type|Description` và
+  `Table|CRUD|Description`), lấy **trước khi xoá** vùng mẫu, thiếu thì `sys.exit` chứ không im.
+  **Bài học: đừng tin số script tự in ra — đọc ngược file đã sinh mà đếm.**
+- **Ba script cùng parse một bảng UC** (`fill_rds_overview`, `fill_rds_usecases`,
+  `usecase_drawio`). Sửa trạng thái UC phải sửa **cả ba**, không thì số liệu lệch nhau
+  (đã gặp: I.1.2 báo 30 UC trong khi phần II chỉ sinh 29).
 - **Ô gộp trong Word:** `row.cells` trả 4 phần tử nhưng ô gộp dùng **chung một `<w:tc>`**. Ghi
   `cells[1]` rồi xoá `cells[2:]` là tự xoá mất chữ vừa ghi → **cả 30 bảng UC rỗng trắng**.
   Dùng `uniq_cells()` lọc theo `id(_tc)`.
@@ -77,10 +93,14 @@ $PY $D/usecase_drawio.py out/diagrams/UseCase.drawio
 $PY $D/erd_mermaid.py    out/diagrams/erd_full.mmd
 $PY $D/class_mermaid.py  package out/diagrams/packages.mmd
 
-# 3. Project Tracking
+# 3. Project Tracking  (iters_map.csv sinh từ git: commit CŨ NHẤT chạm page.tsx)
 $UV run --with openpyxl python $S/fill_tracking.py out/inventory.csv \
    "$T/Template1_Project Tracking.xlsx" "out/docs/GYM_Project Tracking.xlsx" --in-charge "BanhMiChao"
-# (fill_iterations.py cần iters_map.csv — sinh từ git, xem git log của commit bcca327)
+$UV run --with openpyxl python $S/fill_iterations.py "out/docs/GYM_Project Tracking.xlsx" \
+   out/iters_map.csv --in-charge "BanhMiChao" \
+   --iter4-note "Refactor backend sang feature-based (91 file), dong bo spec kit, va CVE-2026-49451, them CI/CD, go tinh nang thong bao khoi pham vi"
+$UV run --with openpyxl python $S/fill_in_charge.py "out/docs/GYM_Project Tracking.xlsx" \
+   out/inventory.csv --add-backend
 
 # 4. RDS — PHẢI theo đúng thứ tự này
 $UV run --with python-docx --with openpyxl python $S/fill_rds_overview.py \
@@ -96,11 +116,25 @@ $UV run --with python-docx python $S/fill_sds.py "$T/Template3_SDS Document.docx
 $UV run --with python-docx python $S/strip_samples.py out/docs/GYM_SDS.docx \
    --title "GymMaster" --subtitle "Software Design Specification"
 
-# 6. Kiểm tra
+# 6. Issues Report + Final Release + AI Usage
+$UV run --with openpyxl python $S/fill_issues.py "$T/Template4_Issues Report.xlsx" \
+   "out/docs/GYM_Issues Report.xlsx" "out/docs/GYM_Project Tracking.xlsx"
+$UV run --with python-docx python $S/fill_final_release.py \
+   "$T/Template5_Final Release Document.docx" "out/docs/GYM_Final Release.docx"
+$UV run --with python-docx python $S/strip_samples.py "out/docs/GYM_Final Release.docx" \
+   --title "GymMaster" --subtitle "Final Release Document"
+$UV run --with openpyxl python $S/fill_ai_usage.py \
+   "$T/Template0__SWP391_AI_Usage_Report_ Template.xlsx" "out/docs/GYM_AI Usage Report.xlsx"
+
+# 7. Kiểm tra
 $UV run --with openpyxl python $S/check_consistency.py "out/docs/GYM_Project Tracking.xlsx"
 ```
 
-Ảnh UI (43 ảnh, cho RDS phần III): chạy ở repo **frontend**:
+**Sau khi sinh xong, LUÔN đọc ngược file ra đếm** — script từng in "46/46" trong khi file có
+**0 bảng** (xem mục Bẫy). Kỳ vọng hiện tại: RDS **161 bảng / 47 ảnh**, Tracking **59 dòng**,
+Issues **215 dòng**.
+
+Ảnh UI (42 ảnh, cho RDS phần III): chạy ở repo **frontend**:
 ```bash
 cd ../GymMaster-frontend && npx playwright test src/tests/e2e/visual-screenshots.spec.ts
 ```
