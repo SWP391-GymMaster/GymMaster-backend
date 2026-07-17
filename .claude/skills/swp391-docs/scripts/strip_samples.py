@@ -25,6 +25,16 @@ SAMPLE = ('Patron', 'Cafeteria', 'Payroll', 'Order a Meal', 'GAMS',
           'Prithvi Raj', 'Nancy Anderson', 'KienNTHE11', 'MinhNNT',
           'daily special', 'meal order', 'payroll deduction')
 
+# Placeholder cua template (khac voi du an mau: day la cho trong chua dien).
+# Khong xoa thi file nop van con '<Feature/Function Name1>', 'XYZ Class'...
+PLACEHOLDER = ('<Feature/Function Name', 'XYZ Class', 'ABC Class', '<method name>',
+               '<Description of the method', '<Table name>', '<Description of the table',
+               '<Description of the package>', '<<Feature Name>>', '<<SubFeature Name>>',
+               '<<Screen/Function Name>>', '<<Field-Name>>', '<<Table Name>>',
+               '<<Mockup prototype>>', '<<UseCaseCode_UC Name>>', 'Field Group Name',
+               '<<Screen Name1>>', '<<Screen Name2>>', '<<Screen Activity>>',
+               'Role-Name1', 'Role-Name2', 'Role-Name3', '<<Function Name1>>')
+
 # Muc mau trong phan II cua template
 SAMPLE_HEADINGS = ('2. Common Functions', '2.1 UC-2_Login System',
                    '3. Patron Feature', '3.1 UC-5_Order a Meal',
@@ -38,7 +48,7 @@ def text_of(el):
 
 def is_sample(el):
     t = text_of(el)
-    return any(k in t for k in SAMPLE)
+    return any(k in t for k in SAMPLE) or any(k in t for k in PLACEHOLDER)
 
 
 def main():
