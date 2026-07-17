@@ -141,6 +141,96 @@ gcloud run services describe "$SERVICE" --region "$REGION" --format="value(statu
 ## 5. Cập nhật code sau này
 Mỗi lần sửa code, chỉ cần chạy lại lệnh `gcloud run deploy ... --source ./backend`.
 
+Hoặc dùng CD ở mục 6 — bấm nút trên GitHub, khỏi mở Cloud Shell.
+
+---
+
+## 6. CD — deploy bằng nút bấm trên GitHub
+
+`.github/workflows/deploy.yml` (có ở **cả 2 repo**) cho phép deploy mà không cần
+gõ lệnh: vào **Actions → Deploy to Cloud Run → Run workflow**. Nó chạy CI trước,
+CI xanh mới deploy, deploy xong tự smoke test.
+
+### 6.1. Setup — chỉ làm 1 lần
+
+Xác thực bằng **Workload Identity Federation**: GitHub đổi OIDC token lấy quyền GCP,
+**không có file key JSON nào tồn tại** nên không thể bị lộ.
+
+Chạy trong Cloud Shell:
+
+```bash
+PROJECT_ID=gymmaster-500004
+PROJECT_NUM=$(gcloud projects describe "$PROJECT_ID" --format='value(projectNumber)')
+GH_ORG=SWP391-GymMaster          # sửa nếu owner repo khác
+
+gcloud services enable iamcredentials.googleapis.com \
+  sts.googleapis.com cloudbuild.googleapis.com run.googleapis.com
+
+# --- Service account mà GitHub sẽ mượn quyền
+gcloud iam service-accounts create github-deployer \
+  --display-name="GitHub Actions deployer"
+SA="github-deployer@${PROJECT_ID}.iam.gserviceaccount.com"
+
+for ROLE in roles/run.admin roles/cloudbuild.builds.editor \
+            roles/storage.admin roles/artifactregistry.writer \
+            roles/iam.serviceAccountUser; do
+  gcloud projects add-iam-policy-binding "$PROJECT_ID" \
+    --member="serviceAccount:${SA}" --role="$ROLE" --condition=None
+done
+
+# --- Workload Identity Pool + Provider
+gcloud iam workload-identity-pools create github-pool \
+  --location=global --display-name="GitHub Actions"
+
+gcloud iam workload-identity-pools providers create-oidc github-provider \
+  --location=global --workload-identity-pool=github-pool \
+  --display-name="GitHub OIDC" \
+  --issuer-uri="https://token.actions.githubusercontent.com" \
+  --attribute-mapping="google.subject=assertion.sub,attribute.repository=assertion.repository,attribute.repository_owner=assertion.repository_owner" \
+  --attribute-condition="assertion.repository_owner == '${GH_ORG}'"
+```
+
+> `--attribute-condition` **bắt buộc**. Không có nó thì *bất kỳ repo GitHub nào
+> trên đời* cũng mượn được service account này.
+
+```bash
+# --- Cho 2 repo mượn service account
+for REPO in GymMaster-backend GymMaster-frontend; do
+  gcloud iam service-accounts add-iam-policy-binding "$SA" \
+    --role=roles/iam.workloadIdentityUser \
+    --member="principalSet://iam.googleapis.com/projects/${PROJECT_NUM}/locations/global/workloadIdentityPools/github-pool/attribute.repository/${GH_ORG}/${REPO}"
+done
+
+# --- In ra 2 giá trị để dán vào GitHub Secrets
+echo "GCP_WIF_PROVIDER = projects/${PROJECT_NUM}/locations/global/workloadIdentityPools/github-pool/providers/github-provider"
+echo "GCP_SERVICE_ACCOUNT = ${SA}"
+```
+
+Dán 2 giá trị vừa in vào **cả 2 repo**:
+Settings → Secrets and variables → Actions → New repository secret.
+
+| Secret | Giá trị |
+|---|---|
+| `GCP_WIF_PROVIDER` | dòng `projects/...` ở trên |
+| `GCP_SERVICE_ACCOUNT` | `github-deployer@gymmaster-500004.iam.gserviceaccount.com` |
+
+### 6.2. Dùng hằng ngày
+
+Actions → **Deploy to Cloud Run** → Run workflow → chọn `main` → Run.
+
+### 6.3. Việc CD KHÔNG làm — vẫn phải chạy tay
+
+CD cố tình **không truyền `--env-vars-file`**, vì `env.yaml` chứa mật khẩu DB,
+`Jwt__SecretKey`, `VnPay__HashSecret` — không được commit. Bỏ flag env thì
+Cloud Run **giữ nguyên env vars của revision cũ**, nên không cần nhét bí mật nào
+vào GitHub. Đổi lại:
+
+- **Thêm/đổi biến môi trường** → vẫn phải chạy tay 1 lần với `--env-vars-file env.yaml`
+  (nhớ giữ đủ cả 3 key, xem mục 3 — file thiếu key nào là xoá key đó).
+- **Đổi schema DB** → chạy SQL lên Cloud SQL **TRƯỚC** khi bấm deploy, nếu không EF 500.
+- **Đổi `NEXT_PUBLIC_*` của frontend** → sửa `ARG` trong `Dockerfile` chứ không sửa
+  env của Cloud Run (giá trị được inline lúc build).
+
 ## Dọn dẹp (khi xong đồ án, tránh tốn credit)
 ```bash
 gcloud run services delete "$SERVICE" --region "$REGION"

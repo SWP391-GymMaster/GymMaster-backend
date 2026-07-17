@@ -1,0 +1,66 @@
+name: Deploy to Cloud Run
+
+# CHI chay khi bam nut tay (Actions -> Deploy to Cloud Run -> Run workflow).
+# Co y KHONG deploy tu dong theo push: dang demo cho thay ma ai do push
+# len main la ban chay bi thay bang ban dang build -> sap giua chung.
+on:
+  workflow_dispatch:
+
+jobs:
+  # Deploy phai qua CI truoc. Goi lai ci.yml thay vi chep code test sang day,
+  # de hai file khong bao gio lech nhau.
+  ci:
+    uses: ./.github/workflows/ci.yml
+
+  deploy:
+    name: Deploy gymmaster-api
+    needs: ci
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: read
+      id-token: write        # BAT BUOC de lay OIDC token cho WIF
+
+    steps:
+      - uses: actions/checkout@v4
+
+      # Workload Identity Federation: GitHub tu doi OIDC token lay quyen GCP.
+      # Khong co file key JSON nao ton tai -> khong the bi lo.
+      - name: Xac thuc GCP
+        uses: google-github-actions/auth@v2
+        with:
+          project_id: gymmaster-500004
+          workload_identity_provider: ${{ secrets.GCP_WIF_PROVIDER }}
+          service_account: ${{ secrets.GCP_SERVICE_ACCOUNT }}
+
+      - uses: google-github-actions/setup-gcloud@v2
+
+      # KHONG truyen --env-vars-file: env.yaml chua mat khau DB, Jwt key,
+      # VnPay secret nen khong the commit. Bo qua flag env thi Cloud Run GIU
+      # NGUYEN env vars cua revision cu -> khong can nhet bi mat nao vao GitHub.
+      #
+      # Doi lai: them bien moi truong MOI thi van phai chay tay 1 lan trong
+      # Cloud Shell voi --env-vars-file env.yaml (xem docs/DEPLOY_GCP.md).
+      - name: Deploy
+        run: |
+          gcloud run deploy gymmaster-api \
+            --source ./backend \
+            --region asia-southeast1 \
+            --allow-unauthenticated \
+            --port 8080 \
+            --quiet
+
+      - name: Kiem tra service song
+        run: |
+          URL=$(gcloud run services describe gymmaster-api \
+            --region asia-southeast1 --format='value(status.url)')
+          echo "Deployed: $URL"
+          # /openapi/v1.json la endpoint khong can auth, dung de smoke test.
+          CODE=$(curl -s -o /dev/null -w '%{http_code}' --max-time 30 "$URL/openapi/v1.json")
+          if [ "$CODE" != "200" ]; then
+            echo "::error::Smoke test that bai: /openapi/v1.json tra ve $CODE"
+            exit 1
+          fi
+          echo "Smoke test OK (200)."
+          echo "### Backend deployed :rocket:" >> $GITHUB_STEP_SUMMARY
+          echo "$URL" >> $GITHUB_STEP_SUMMARY
