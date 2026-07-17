@@ -35,6 +35,11 @@ SHOT = {
     '/': 'landing', '/ (landing)': 'landing', '/about': 'about', '/login': 'login',
     '/signup': 'signup', '/forgot-password': 'forgot-password',
     '/reset-password': 'reset-password', '/welcome': 'welcome',
+    '/change-password': 'change-password',
+    # Route dong: chup o id 101 (member dau tien trong mock data).
+    '/admin/members/[id]': 'admin-member-360',
+    '/staff/members/[id]': 'staff-member-360',
+    '/member/membership/vnpay-return': 'member-vnpay-return',
     '/admin/dashboard': 'admin-dashboard', '/admin/users': 'admin-users',
     '/admin/staff': 'admin-staff', '/admin/trainers': 'admin-trainers',
     '/admin/members': 'admin-members', '/admin/assignments': 'admin-assignments',
