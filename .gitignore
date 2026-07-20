@@ -53,3 +53,7 @@ out/
 # Python bytecode cua cac script trong .claude/skills/
 __pycache__/
 *.pyc
+
+# Bien moi truong deploy Cloud Run: chua mat khau Cloud SQL + App Password Gmail.
+# Chi ton tai o Cloud Shell (~/GymMaster-backend/env.yaml), KHONG BAO GIO commit.
+env.yaml

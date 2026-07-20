@@ -124,8 +124,14 @@ gcloud run services describe "$SERVICE" --region "$REGION" --format="value(statu
 
 ### Các biến môi trường cấu hình khác (nếu dùng)
 - `VnPay__ReturnUrl` → trỏ về URL Cloud Run: `https://<service-url>/api/v1/payments/vnpay/return`
-- Email OTP (MailKit): `Email__Host`, `Email__Port`, `Email__User`, `Email__Password`, `Email__From`
-  (tên section đúng theo `Options/EmailOptions.cs`).
+- Email OTP quên mật khẩu (MailKit) — tên biến phải khớp **property** trong `Options/EmailOptions.cs`:
+  `Email__SenderEmail`, `Email__AppPassword`, `Email__SenderName`, `Email__SmtpHost`,
+  `Email__SmtpPort`, `Email__FrontendBaseUrl`.
+  - `Email__AppPassword` là **App Password 16 ký tự** của Gmail, KHÔNG phải mật khẩu Gmail thường.
+  - `Email__FrontendBaseUrl` phải là URL Cloud Run của FE (mặc định là `http://localhost:3000`,
+    để nguyên thì link trong mail gửi cho user sẽ chết).
+  - Thiếu `SenderEmail` hoặc `AppPassword` → `IsConfigured = false` → `EmailSender` bỏ qua
+    im lặng, API `/auth/forgot-password` vẫn trả 200 nhưng **không có mail nào được gửi**.
 
 ---
 
