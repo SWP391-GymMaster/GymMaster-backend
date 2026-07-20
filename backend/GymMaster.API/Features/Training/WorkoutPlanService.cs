@@ -73,7 +73,10 @@ public sealed class WorkoutPlanService : IWorkoutPlanService
             plan.Exercises.Add(new WorkoutExercise
             {
                 ExerciseId = exerciseId,
-                SortOrder = ex.OrderIndex > 0 ? ex.OrderIndex : (short)(i + 1),
+                // SortOrder luon theo vi tri trong list (1-based). KHONG dung ex.OrderIndex:
+                // client gui 0-based nen bai dau (0) roi vao fallback i+1=1, trung voi bai
+                // thu 2 (OrderIndex=1) -> Violation UQ_workout_exercises_Plan_Order (2627) -> 500.
+                SortOrder = (short)(i + 1),
                 Sets = ex.Sets,
                 Reps = ParseReps(ex.Reps),
                 Note = string.IsNullOrWhiteSpace(ex.Note) ? null : ex.Note.Trim()
@@ -172,7 +175,8 @@ public sealed class WorkoutPlanService : IWorkoutPlanService
                 {
                     WorkoutPlanId = plan.Id,
                     ExerciseId = exerciseId,
-                    SortOrder = ex.OrderIndex > 0 ? ex.OrderIndex : (short)(i + 1),
+                    // Xem ghi chu o CreateAsync: SortOrder theo vi tri list, tranh trung key.
+                    SortOrder = (short)(i + 1),
                     Sets = ex.Sets,
                     Reps = ParseReps(ex.Reps),
                     Note = string.IsNullOrWhiteSpace(ex.Note) ? null : ex.Note.Trim()
