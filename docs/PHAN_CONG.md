@@ -13,36 +13,35 @@ gom *ca frontend lan backend*, de khong ai phai cho nguoi khac lam xong API moi 
 
 | Nhóm | Người | Git | Miền nghiệp vụ | Màn FE | API BE | Tổng |
 |---|---|---|---|---:|---:|---:|
-| **N1** | **Như** | `BanhMiChao` | Auth & Tài khoản cá nhân | 13 | 13 | 26 |
+| **N1** | **Như** | `BanhMiChao` | Xác thực, Tài khoản cá nhân & Quản trị tài khoản | 12 | 20 | 32 |
 | **N2** | **Quang Anh** | `anhdaijka` | Hồ sơ Hội viên & PT | 7 | 20 | 27 |
 | **N3** | **Lộc** | `Loc-LX` | Gói tập, Membership & Thanh toán | 8 | 16 | 27 |
 | **N4** | **Đam** | `vandam2005` | Tập luyện, Tiến độ & Check-in | 9 | 17 | 26 |
-| **N5** | **Minh** | `Minhdicodedao` | Dinh dưỡng, Dashboard & Quản trị tài khoản | 9 | 19 | 28 |
+| **N5** | **Minh** | `Minhdicodedao` | Dinh dưỡng, Dashboard & Trang giới thiệu | 10 | 12 | 22 |
 | | | | **Tổng** | **46** | **85** | **134** |
 
 ---
 
 ## N1 — Như (`BanhMiChao`)
 
-### Auth & Tài khoản cá nhân
+### Xác thực, Tài khoản cá nhân & Quản trị tài khoản
 
-**Khối lượng:** 13 màn FE + 13 endpoint BE
+**Khối lượng:** 12 màn FE + 20 endpoint BE
 
-**Spec phải đọc:** `specs/001-auth-rbac/spec.md`
+**Spec phải đọc:** `specs/001-auth-rbac/spec.md` · `specs/002-member-management/spec.md`
 
-**Code backend:** `backend/GymMaster.API/Features/Auth/` · `backend/GymMaster.API/Features/Account/`
+**Code backend:** `backend/GymMaster.API/Features/Auth/` · `backend/GymMaster.API/Features/Account/` · `backend/GymMaster.API/Features/Users/`
 
-**Code frontend:** `src/features/auth/` · `src/features/account/` · `src/features/member-profile/` · `src/app/(auth)/`
+**Code frontend:** `src/features/auth/` · `src/features/account/` · `src/features/member-profile/` · `src/app/(auth)/` · `src/features/member-management/ (chi 2 man /admin/users, /admin/staff)`
 
-> Bao gom ca 5 man profile cua 4 role — chung API `/users/me/*`.
+> Gom `Auth` + `Users` ve mot moi: dang nhap/dang ky va admin tao-khoa-reset tai khoan cung la mien **danh tinh & truy cap**, ai sua phan quyen chi dung mot cho. 5 man profile dung chung API `/users/me/*`.
+>
+> ⚠️ `/admin/staff` dung chung file `ManagementWorkspace.tsx` voi `/admin/members` va `/admin/trainers` cua **N2** — bao Quang Anh truoc khi sua. Rieng `/admin/users` co component rieng (`AdminUsersTemplateWorkspace.tsx`), sua thoai mai.
 
-#### Màn hình frontend (13)
+#### Màn hình frontend (12)
 
 | Route | Actor |
 |---|---|
-| `/ (landing)` | - |
-| `/about` | Anonymous |
-| `/welcome` | Anonymous |
 | `/login` | Anonymous |
 | `/signup` | Anonymous |
 | `/forgot-password` | Anonymous |
@@ -53,8 +52,10 @@ gom *ca frontend lan backend*, de khong ai phai cho nguoi khac lam xong API moi 
 | `/pt/profile` | PT |
 | `/member/profile` | Member |
 | `/member/profile/edit` | Member |
+| `/admin/users` | Admin |
+| `/admin/staff` | Admin |
 
-#### Endpoint backend (13)
+#### Endpoint backend (20)
 
 | Feature | Method + Route | Quyền |
 |---|---|---|
@@ -71,13 +72,20 @@ gom *ca frontend lan backend*, de khong ai phai cho nguoi khac lam xong API moi 
 | Account | `POST /api/v1/users/me/avatar` | Authenticated |
 | Account | `PUT /api/v1/users/me` | Authenticated |
 | Account | `PUT /api/v1/users/me/profile` | Authenticated |
+| Users | `DELETE /api/v1/users/{id:long}` | Admin |
+| Users | `GET /api/v1/users` | Admin |
+| Users | `GET /api/v1/users/{id:long}` | Admin |
+| Users | `PATCH /api/v1/users/{id:long}/status` | Admin |
+| Users | `POST /api/v1/users` | Admin |
+| Users | `POST /api/v1/users/{id:long}/reset-password` | Admin |
+| Users | `PUT /api/v1/users/{id:long}` | Admin |
 
 #### Tài liệu phải nộp
 
 - [ ] **RDS mục II** — mỗi use case 1 bảng 15 dòng + bảng Business Rules
 - [ ] **RDS mục III** — bảng field UI + Database Access + câu LINQ thật
 - [ ] **SDS mục II** — class diagram · đặc tả method · sequence diagram · DB queries
-- [ ] **Project Tracking** — 13 dòng function, cột In Charge ghi `Như`
+- [ ] **Project Tracking** — 12 dòng function, cột In Charge ghi `Như`
 - [ ] **Issues Report** — cột `Functions/Screens` khớp y hệt tên ở Project Tracking
 - [ ] **AI Usage Report** — ghi theo tuần, cột *Validation* và *Risks* là chỗ ăn điểm
 
@@ -273,19 +281,21 @@ gom *ca frontend lan backend*, de khong ai phai cho nguoi khac lam xong API moi 
 
 ## N5 — Minh (`Minhdicodedao`)
 
-### Dinh dưỡng, Dashboard & Quản trị tài khoản
+### Dinh dưỡng, Dashboard & Trang giới thiệu
 
-**Khối lượng:** 9 màn FE + 19 endpoint BE
+**Khối lượng:** 10 màn FE + 12 endpoint BE
 
-**Spec phải đọc:** `specs/007-nutrition-calorie/spec.md` · `specs/008-dashboard-audit/spec.md` · `specs/009-image-food-recognition/spec.md` · `specs/002-member-management/spec.md`
+**Spec phải đọc:** `specs/007-nutrition-calorie/spec.md` · `specs/008-dashboard-audit/spec.md` · `specs/009-image-food-recognition/spec.md`
 
-**Code backend:** `backend/GymMaster.API/Features/Nutrition/` · `backend/GymMaster.API/Features/Dashboard/` · `backend/GymMaster.API/Features/Users/`
+**Code backend:** `backend/GymMaster.API/Features/Nutrition/` · `backend/GymMaster.API/Features/Dashboard/`
 
 **Code frontend:** `src/features/member-nutrition/` · `src/features/admin-dashboard/`
 
 > 2 endpoint `food-items/barcode/{id}` va `food-items/online-search` moi co mock MSW, **BE chua implement** — lam not thi tinh them function.
+>
+> 3 trang tinh (`/`, `/about`, `/welcome`) khong goi API, khong dinh code ai — de o day vi day la nhom nhe nhat sau khi chuyen `Users` sang N1.
 
-#### Màn hình frontend (9)
+#### Màn hình frontend (10)
 
 | Route | Actor |
 |---|---|
@@ -293,13 +303,14 @@ gom *ca frontend lan backend*, de khong ai phai cho nguoi khac lam xong API moi 
 | `/member/nutrition/summary` | Member |
 | `/admin/dashboard` | Admin |
 | `/admin/audit-logs` | Admin |
-| `/admin/users` | Admin |
-| `/admin/staff` | Admin |
 | `/staff/dashboard` | Staff |
 | `/pt/dashboard` | PT |
 | `/member/dashboard` | Member |
+| `/ (landing)` | - |
+| `/about` | Anonymous |
+| `/welcome` | Anonymous |
 
-#### Endpoint backend (19)
+#### Endpoint backend (12)
 
 | Feature | Method + Route | Quyền |
 |---|---|---|
@@ -315,20 +326,13 @@ gom *ca frontend lan backend*, de khong ai phai cho nguoi khac lam xong API moi 
 | Nutrition | `POST /api/v1/members/{id:long}/calorie-target` | Authenticated |
 | Dashboard | `GET /api/v1/audit-logs` | Admin |
 | Dashboard | `GET /api/v1/dashboard/summary` | Admin |
-| Users | `DELETE /api/v1/users/{id:long}` | Admin |
-| Users | `GET /api/v1/users` | Admin |
-| Users | `GET /api/v1/users/{id:long}` | Admin |
-| Users | `PATCH /api/v1/users/{id:long}/status` | Admin |
-| Users | `POST /api/v1/users` | Admin |
-| Users | `POST /api/v1/users/{id:long}/reset-password` | Admin |
-| Users | `PUT /api/v1/users/{id:long}` | Admin |
 
 #### Tài liệu phải nộp
 
 - [ ] **RDS mục II** — mỗi use case 1 bảng 15 dòng + bảng Business Rules
 - [ ] **RDS mục III** — bảng field UI + Database Access + câu LINQ thật
 - [ ] **SDS mục II** — class diagram · đặc tả method · sequence diagram · DB queries
-- [ ] **Project Tracking** — 9 dòng function, cột In Charge ghi `Minh`
+- [ ] **Project Tracking** — 10 dòng function, cột In Charge ghi `Minh`
 - [ ] **Issues Report** — cột `Functions/Screens` khớp y hệt tên ở Project Tracking
 - [ ] **AI Usage Report** — ghi theo tuần, cột *Validation* và *Risks* là chỗ ăn điểm
 
@@ -362,16 +366,42 @@ Nó bị **7 feature frontend** khác gọi vào — nhiều nhất hệ thống
 Ai cần thêm hoặc đổi endpoint của `Members` thì báo N2, đừng tự sửa — đổi một chỗ
 là 4 người khác vỡ.
 
-### 3. Đặt tên function phải khớp nhau
+### 3. `ManagementWorkspace.tsx` bị 2 người dùng chung
+
+| Màn | Component | Chủ |
+|---|---|---|
+| `/admin/users` | `AdminUsersTemplateWorkspace.tsx` | N1 — riêng, sửa thoải mái |
+| `/admin/staff` | `ManagementWorkspace.tsx` | **N1** |
+| `/admin/members` | `ManagementWorkspace.tsx` | **N2** |
+| `/admin/trainers` | `ManagementWorkspace.tsx` | **N2** |
+
+Ba màn cuối chung một file. N1 và N2 báo nhau trước khi sửa `ManagementWorkspace.tsx`.
+
+### 4. Đặt tên function phải khớp nhau
 
 Tên function ghi trong **Project Tracking**, **Issues Report** và **RDS/SDS** phải
 giống hệt nhau. Lệch tên là thầy không dò được đóng góp cá nhân.
 
-### 4. Điểm cá nhân
+### 5. Điểm cá nhân
 
 Individual Results = `LOC × Quality` theo function — 60 (đơn giản) / 120 (trung bình) /
 240 (phức tạp), Quality 100% / 75% / 50%. Cần **≥720 cả dự án** để đạt tối đa.
-Mỗi nhóm ở trên có 7–13 function, thừa ngưỡng nếu làm đủ.
+
+Ước lượng độ nặng sau khi chia (**không phải điểm thật** — mức LOC và Quality do thầy
+duyệt, bảng này chỉ để so tương đối giữa 5 người):
+
+| Hạng | Nhóm | Người | Ước lượng | Nặng nhất ở đâu |
+|---:|---|---|---:|---|
+| 1 | N3 | Lộc | ~1740 | 2 wizard bán/gia hạn gói + VNPay + 3 function ngầm |
+| 2 | N2 | Quang Anh | ~1440 | 5 màn CRUD/chi tiết hội viên & PT, 20 endpoint |
+| 3 | N4 | Đam | ~1380 | Workout plan builder + check-in terminal + assign PT |
+| 4 | N1 | Như | ~1320 | `/admin/users` CRUD + 5 form auth |
+| 5 | N5 | Minh | ~1260 | Meal journal + admin dashboard |
+
+**Cả 5 người đều vượt ngưỡng ≥720 rất xa** — thấp nhất ~1260, gần gấp đôi. Nên chênh
+lệch giữa các nhóm ảnh hưởng cảm giác công bằng nhiều hơn là ảnh hưởng điểm thật.
+Lộc đang nặng nhất; muốn cân thêm thì gỡ bớt của Lộc (vd `/admin/payments`,
+`/staff/payments`) chứ không phải của người nhẹ nhất.
 
 **Git history là bằng chứng.** Ai nhận nhóm nào thì commit thật vào nhóm đó —
 phân công trên giấy mà git không ghi nhận thì không tính được.

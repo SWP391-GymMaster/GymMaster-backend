@@ -21,18 +21,26 @@ for r in apis:
 NHOM = [
     dict(
         id='N1', nguoi='Như', git='BanhMiChao',
-        ten='Auth & Tài khoản cá nhân',
-        be=['Auth', 'Account'],
-        specs=['001-auth-rbac'],
-        code_be=['Features/Auth/', 'Features/Account/'],
+        ten='Xác thực, Tài khoản cá nhân & Quản trị tài khoản',
+        be=['Auth', 'Account', 'Users'],
+        specs=['001-auth-rbac', '002-member-management'],
+        code_be=['Features/Auth/', 'Features/Account/', 'Features/Users/'],
         code_fe=['src/features/auth/', 'src/features/account/',
-                 'src/features/member-profile/', 'src/app/(auth)/'],
-        screens=['/ (landing)', '/about', '/welcome', '/login', '/signup',
-                 '/forgot-password', '/reset-password', '/change-password',
+                 'src/features/member-profile/', 'src/app/(auth)/',
+                 'src/features/member-management/ (chi 2 man /admin/users, /admin/staff)'],
+        screens=['/login', '/signup', '/forgot-password', '/reset-password',
+                 '/change-password',
                  '/admin/profile', '/staff/profile', '/pt/profile',
-                 '/member/profile', '/member/profile/edit'],
+                 '/member/profile', '/member/profile/edit',
+                 '/admin/users', '/admin/staff'],
         nonui=[],
-        ghichu='Bao gom ca 5 man profile cua 4 role — chung API `/users/me/*`.',
+        ghichu='Gom `Auth` + `Users` ve mot moi: dang nhap/dang ky va admin tao-khoa-reset '
+               'tai khoan cung la mien **danh tinh & truy cap**, ai sua phan quyen chi dung '
+               'mot cho. 5 man profile dung chung API `/users/me/*`.\n>\n'
+               '> ⚠️ `/admin/staff` dung chung file `ManagementWorkspace.tsx` voi '
+               '`/admin/members` va `/admin/trainers` cua **N2** — bao Quang Anh truoc khi sua. '
+               'Rieng `/admin/users` co component rieng (`AdminUsersTemplateWorkspace.tsx`), '
+               'sua thoai mai.',
     ),
     dict(
         id='N2', nguoi='Quang Anh', git='anhdaijka',
@@ -82,19 +90,21 @@ NHOM = [
     ),
     dict(
         id='N5', nguoi='Minh', git='Minhdicodedao',
-        ten='Dinh dưỡng, Dashboard & Quản trị tài khoản',
-        be=['Nutrition', 'Dashboard', 'Users'],
+        ten='Dinh dưỡng, Dashboard & Trang giới thiệu',
+        be=['Nutrition', 'Dashboard'],
         specs=['007-nutrition-calorie', '008-dashboard-audit',
-               '009-image-food-recognition', '002-member-management'],
-        code_be=['Features/Nutrition/', 'Features/Dashboard/', 'Features/Users/'],
+               '009-image-food-recognition'],
+        code_be=['Features/Nutrition/', 'Features/Dashboard/'],
         code_fe=['src/features/member-nutrition/', 'src/features/admin-dashboard/'],
         screens=['/member/nutrition/meal-journal', '/member/nutrition/summary',
                  '/admin/dashboard', '/admin/audit-logs',
-                 '/admin/users', '/admin/staff',
-                 '/staff/dashboard', '/pt/dashboard', '/member/dashboard'],
+                 '/staff/dashboard', '/pt/dashboard', '/member/dashboard',
+                 '/ (landing)', '/about', '/welcome'],
         nonui=[],
         ghichu='2 endpoint `food-items/barcode/{id}` va `food-items/online-search` moi co '
-               'mock MSW, **BE chua implement** — lam not thi tinh them function.',
+               'mock MSW, **BE chua implement** — lam not thi tinh them function.\n>\n'
+               '> 3 trang tinh (`/`, `/about`, `/welcome`) khong goi API, khong dinh code ai '
+               '— de o day vi day la nhom nhe nhat sau khi chuyen `Users` sang N1.',
     ),
 ]
 
@@ -221,14 +231,36 @@ w('`member-progress-tracking` · `pt-training` · `staff-front-desk`.\n\n')
 w('Ai cần thêm hoặc đổi endpoint của `Members` thì báo N2, đừng tự sửa — đổi một chỗ\n')
 w('là 4 người khác vỡ.\n\n')
 
-w('### 3. Đặt tên function phải khớp nhau\n\n')
+w('### 3. `ManagementWorkspace.tsx` bị 2 người dùng chung\n\n')
+w('| Màn | Component | Chủ |\n|---|---|---|\n')
+w('| `/admin/users` | `AdminUsersTemplateWorkspace.tsx` | N1 — riêng, sửa thoải mái |\n')
+w('| `/admin/staff` | `ManagementWorkspace.tsx` | **N1** |\n')
+w('| `/admin/members` | `ManagementWorkspace.tsx` | **N2** |\n')
+w('| `/admin/trainers` | `ManagementWorkspace.tsx` | **N2** |\n\n')
+w('Ba màn cuối chung một file. N1 và N2 báo nhau trước khi sửa `ManagementWorkspace.tsx`.\n\n')
+
+w('### 4. Đặt tên function phải khớp nhau\n\n')
 w('Tên function ghi trong **Project Tracking**, **Issues Report** và **RDS/SDS** phải\n')
 w('giống hệt nhau. Lệch tên là thầy không dò được đóng góp cá nhân.\n\n')
 
-w('### 4. Điểm cá nhân\n\n')
+w('### 5. Điểm cá nhân\n\n')
 w('Individual Results = `LOC × Quality` theo function — 60 (đơn giản) / 120 (trung bình) /\n')
-w('240 (phức tạp), Quality 100% / 75% / 50%. Cần **≥720 cả dự án** để đạt tối đa.\n')
-w('Mỗi nhóm ở trên có 7–13 function, thừa ngưỡng nếu làm đủ.\n\n')
+w('240 (phức tạp), Quality 100% / 75% / 50%. Cần **≥720 cả dự án** để đạt tối đa.\n\n')
+w('Ước lượng độ nặng sau khi chia (**không phải điểm thật** — mức LOC và Quality do thầy\n')
+w('duyệt, bảng này chỉ để so tương đối giữa 5 người):\n\n')
+w('| Hạng | Nhóm | Người | Ước lượng | Nặng nhất ở đâu |\n|---:|---|---|---:|---|\n')
+for hang, (nh, ng, diem, vi) in enumerate([
+    ('N3', 'Lộc', '~1740', '2 wizard bán/gia hạn gói + VNPay + 3 function ngầm'),
+    ('N2', 'Quang Anh', '~1440', '5 màn CRUD/chi tiết hội viên & PT, 20 endpoint'),
+    ('N4', 'Đam', '~1380', 'Workout plan builder + check-in terminal + assign PT'),
+    ('N1', 'Như', '~1320', '`/admin/users` CRUD + 5 form auth'),
+    ('N5', 'Minh', '~1260', 'Meal journal + admin dashboard'),
+], start=1):
+    w('| %d | %s | %s | %s | %s |\n' % (hang, nh, ng, diem, vi))
+w('\n**Cả 5 người đều vượt ngưỡng ≥720 rất xa** — thấp nhất ~1260, gần gấp đôi. Nên chênh\n')
+w('lệch giữa các nhóm ảnh hưởng cảm giác công bằng nhiều hơn là ảnh hưởng điểm thật.\n')
+w('Lộc đang nặng nhất; muốn cân thêm thì gỡ bớt của Lộc (vd `/admin/payments`,\n')
+w('`/staff/payments`) chứ không phải của người nhẹ nhất.\n\n')
 w('**Git history là bằng chứng.** Ai nhận nhóm nào thì commit thật vào nhóm đó —\n')
 w('phân công trên giấy mà git không ghi nhận thì không tính được.\n')
 
