@@ -219,6 +219,9 @@ public sealed class AuthService : IAuthService
             item => item.Email == email && !item.IsDeleted,
             cancellationToken);
 
+        // Email khong ton tai -> VAN tra 200 voi message chung (giong het truong hop co that).
+        // Co y: neu bao "email chua dang ky" thi ke tan cong ban hang loat email vao day
+        // se do ra duoc danh sach hoi vien (user enumeration - OWASP). Dung sua thanh bao loi ro.
         if (user is null)
         {
             return ServiceResult<ForgotPasswordResponse>.Success(new ForgotPasswordResponse(message, null));
