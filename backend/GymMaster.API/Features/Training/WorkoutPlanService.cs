@@ -35,6 +35,12 @@ public sealed class WorkoutPlanService : IWorkoutPlanService
             return Fail<WorkoutPlanResponse>("EMPTY_PLAN", "Giao an phai co it nhat 1 bai tap.", StatusCodes.Status422UnprocessableEntity);
         }
 
+        var duplicateName = FindDuplicateExerciseName(request.Exercises);
+        if (duplicateName is not null)
+        {
+            return Fail<WorkoutPlanResponse>("DUPLICATE_EXERCISE", $"Bai tap \"{duplicateName}\" bi trung trong giao an. Moi bai tap chi them 1 lan.", StatusCodes.Status422UnprocessableEntity);
+        }
+
         var trainerProfile = await GetTrainerProfileAsync(principal, cancellationToken);
 
         if (trainerProfile is null)
@@ -73,7 +79,10 @@ public sealed class WorkoutPlanService : IWorkoutPlanService
             plan.Exercises.Add(new WorkoutExercise
             {
                 ExerciseId = exerciseId,
-                SortOrder = ex.OrderIndex > 0 ? ex.OrderIndex : (short)(i + 1),
+                // SortOrder luon theo vi tri trong list (1-based). KHONG dung ex.OrderIndex:
+                // client gui 0-based nen bai dau (0) roi vao fallback i+1=1, trung voi bai
+                // thu 2 (OrderIndex=1) -> Violation UQ_workout_exercises_Plan_Order (2627) -> 500.
+                SortOrder = (short)(i + 1),
                 Sets = ex.Sets,
                 Reps = ParseReps(ex.Reps),
                 Note = string.IsNullOrWhiteSpace(ex.Note) ? null : ex.Note.Trim()
@@ -132,6 +141,15 @@ public sealed class WorkoutPlanService : IWorkoutPlanService
             return Fail<WorkoutPlanResponse>("EMPTY_PLAN", "Giao an phai co it nhat 1 bai tap.", StatusCodes.Status422UnprocessableEntity);
         }
 
+        if (request.Exercises is not null)
+        {
+            var duplicateName = FindDuplicateExerciseName(request.Exercises);
+            if (duplicateName is not null)
+            {
+                return Fail<WorkoutPlanResponse>("DUPLICATE_EXERCISE", $"Bai tap \"{duplicateName}\" bi trung trong giao an. Moi bai tap chi them 1 lan.", StatusCodes.Status422UnprocessableEntity);
+            }
+        }
+
         if (!string.IsNullOrWhiteSpace(request.Title))
         {
             plan.Title = request.Title.Trim();
@@ -172,7 +190,8 @@ public sealed class WorkoutPlanService : IWorkoutPlanService
                 {
                     WorkoutPlanId = plan.Id,
                     ExerciseId = exerciseId,
-                    SortOrder = ex.OrderIndex > 0 ? ex.OrderIndex : (short)(i + 1),
+                    // Xem ghi chu o CreateAsync: SortOrder theo vi tri list, tranh trung key.
+                    SortOrder = (short)(i + 1),
                     Sets = ex.Sets,
                     Reps = ParseReps(ex.Reps),
                     Note = string.IsNullOrWhiteSpace(ex.Note) ? null : ex.Note.Trim()
@@ -381,6 +400,20 @@ public sealed class WorkoutPlanService : IWorkoutPlanService
                     e.Reps.HasValue ? e.Reps.Value.ToString() : null,
                     e.Note))
                 .ToList());
+    }
+
+    // Tra ve ten bai tap dau tien bi trung trong danh sach (case-insensitive, trim),
+    // khop voi cach ResolveExercisesAsync so ten -> null neu khong trung.
+    private static string? FindDuplicateExerciseName(IReadOnlyList<WorkoutExerciseRequest> exercises)
+    {
+        var seen = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        foreach (var ex in exercises)
+        {
+            var name = ex.Name?.Trim() ?? string.Empty;
+            if (name.Length == 0) continue;
+            if (!seen.Add(name)) return name;
+        }
+        return null;
     }
 
     private static short? ParseReps(string? reps)
