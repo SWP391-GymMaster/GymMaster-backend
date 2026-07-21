@@ -67,3 +67,57 @@ Theo phân công feature và độ nặng công việc hiện tại, không nên
 **Lý do:** N2 sở hữu `Features/Members` và `Features/Trainers`, là trung tâm dữ liệu được nhiều module khác sử dụng. Vì ERD và Backend Package Diagram khá nặng nên tổng số ảnh của N2 thấp hơn các nhóm khác.
 
 ---
+
+# N3 — Lộc
+
+**Miền nghiệp vụ:** Gói tập, Membership và Thanh toán
+
+## Sơ đồ — 2 ảnh
+
+1. **Staff Screen Flow**
+2. **Membership and Payment Flow**
+
+## Mockup — 8 ảnh
+
+3. **SCR-ADM-07 — Package Management**
+4. **SCR-ADM-08 — Membership Management**
+5. **SCR-ADM-09 — Payment Management**
+6. **SCR-STF-03 — Sell Package**
+7. **SCR-STF-04 — Renew Package**
+8. **SCR-STF-06 — Staff Payments**
+9. **SCR-MEM-02 — Membership and VNPay**
+10. **SCR-MEM-03 — VNPay Return**
+
+**Lý do:** N3 đang nặng nhất về code do wizard bán/gia hạn gói, VNPay và ba chức năng non-UI, nên chỉ nhận các hình trực tiếp thuộc nghiệp vụ của mình.
+
+> Trong Staff Screen Flow, Lộc chỉ cần tập trung phần bán gói, gia hạn và thanh toán. Phần check-in cần hỏi Đam để nối flow đúng.
+
+---
+
+# N4 — Đam
+
+**Miền nghiệp vụ:** Tập luyện, Tiến độ và Check-in
+
+## Sơ đồ — 3 ảnh
+
+1. **Use Case Diagram for Staff**
+2. **Use Case Diagram for PT**
+3. **PT Screen Flow**
+
+## Mockup — 9 ảnh
+
+4. **SCR-ADM-10 — PT Assignment**
+5. **SCR-STF-05 — Check-in Terminal**
+6. **SCR-PT-03 — Workout Plan Workspace**
+7. **SCR-PT-04 — Trainer Notes Workspace**
+8. **SCR-PT-05 — Member Progress**
+9. **SCR-PT-06 — PT Check-in**
+10. **SCR-MEM-04 — Workout Plans**
+11. **SCR-MEM-05 — Trainer Notes**
+12. **SCR-MEM-06 — Progress**
+
+**Lý do:** các sơ đồ Staff/PT cần thể hiện rõ check-in, assignment, workout plan, trainer note và progress — đúng miền nghiệp vụ của N4.
+
+> Use Case Staff cần lấy phần bán/gia hạn/thanh toán từ Lộc và phần tạo/tìm hội viên từ Quang Anh, nhưng Đam là người ghép sơ đồ hoàn chỉnh.
+
+---
