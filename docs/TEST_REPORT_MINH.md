@@ -51,6 +51,7 @@ White-box test biết cấu trúc xử lý bên trong service và chủ động 
 |---|---|
 | `tests/GymMaster.Api.Tests/DashboardServiceTests.cs` | Dashboard aggregate, khoảng ngày, zero state, Audit filter/sort/pagination |
 | `tests/GymMaster.Api.Tests/FoodScanServiceTests.cs` | Membership gate, file ảnh, giới hạn dung lượng, lỗi Gemini, xác nhận AI |
+| `tests/GymMaster.Api.Tests/GeminiServiceTests.cs` | JSON contract Gemini text-only, ước tính dinh dưỡng theo tên và không gửi dữ liệu ảnh |
 | `tests/GymMaster.Api.Tests/NutritionServiceTests.cs` | Meal log, calories/macro, calorie target, authorization, history |
 | `tests/GymMaster.Api.Tests/FoodItemServiceTests.cs` | Thêm món, trùng tên, validation, free limit, active membership |
 | `tests/blackbox/Connection.Tests.ps1` | Kết nối backend, SQL Server, JWT và Dashboard query |
@@ -67,14 +68,14 @@ Các report JSON sinh khi chạy được đặt trong `tests/blackbox/artifacts
 
 | Test suite | Kết quả | Trạng thái |
 |---|---:|---|
-| Unit/white-box test toàn backend | 101/101 pass | PASS |
+| Unit/white-box test toàn backend | 107/107 pass | PASS |
 | Connection test | 4/4 pass | PASS |
 | API black-box test | 12/12 pass | PASS |
 | Performance request | 200/200 thành công | PASS |
 | Performance error rate | 0% | PASS |
-| Minh selected-services line coverage | 84,99% | PASS theo mục tiêu 80% |
+| Minh selected-services line coverage | 85,55% | PASS theo mục tiêu 80% |
 
-So với baseline 71 unit test, đợt này bổ sung **30 test case** và toàn bộ đều pass.
+So với baseline 71 unit test, đợt này bổ sung **36 test case** và toàn bộ đều pass.
 
 ### 4.2. Connection test
 
@@ -140,9 +141,10 @@ Kết luận: Dashboard đạt performance baseline trên môi trường local. 
 | DashboardService | 99,44% |
 | NutritionService | 85,40% |
 | FoodItemService | 92,31% |
-| FoodScanService | 56,69% |
-| Tổng 4 service chính của Minh | **84,99%** |
-| Toàn bộ backend | 37,55% |
+| FoodScanService | 64,74% |
+| GeminiService | 47,57% |
+| Tổng 4 service chính của Minh | **85,55%** |
+| Toàn bộ backend | 39,42% |
 
 Coverage toàn backend thấp hơn vì report bao gồm các module của thành viên khác. Chỉ số dùng để đánh giá phần Minh là tổng của bốn service chính ở trên.
 
@@ -192,7 +194,7 @@ dotnet test tests\GymMaster.Api.Tests\GymMaster.Api.Tests.csproj --collect:"XPla
 - Chưa gọi Gemini thật trong test tự động để tránh quota, chi phí và test không ổn định.
 - Performance hiện là baseline local; nên chạy lại trên staging với database gần production.
 - Nên bổ sung integration test dùng SQL Server container/test database cho nhánh collation của Food Scan.
-- Frontend baseline có 257 test pass và 1 test timeout tại `admin-users-template-workspace.test.tsx`; lỗi này không thuộc phạm vi thay đổi của Minh.
+- Frontend có 261/261 unit/component test pass; 2/2 Chromium E2E mới cho focus ô khối lượng và AI ước tính theo tên cũng pass.
 - Khi merge, cần giữ các commit test tách biệt và không commit file secrets, runtime logs hoặc report JSON sinh tự động.
 
 ## 7. Kết luận
