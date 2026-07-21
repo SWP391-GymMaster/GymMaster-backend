@@ -1,21 +1,26 @@
-"""Dien cot In Charge cua Project Tracking theo CHU FEATURE (suy tu git).
+"""Dien cot In Charge cua Project Tracking theo PHAN CONG NHOM DA CHOT.
 
-Boi canh (user xac nhan 2026-07-17): ban dau chia BE cho 4 nguoi, anhdaijka lam
-FE full; sau do spec khong on nen moi nguoi tu om mot feature lam xuyen suot.
-=> 'In Charge' phai theo NGUOI CHU FEATURE, khong theo nguoi tao man hinh
-   (anhdaijka tao 41/47 man trong tuan dau -> do kieu do thi 4 nguoi kia trang).
+Nguon su that: bang NHOM trong `gen_phancong.py` (sinh ra docs/PHAN_CONG.md),
+la phan cong nhom da thong nhat 2026-07-20.
 
-Phep do: trong moi thu muc feature, ai nhieu commit nhat = chu feature.
-Loai commit tu 2026-07-12 (refactor cua Claude, thoi phong so lieu BanhMiChao).
+LICH SU: ban dau script nay UOC LUONG tu so commit git ("ai commit nhieu nhat
+trong thu muc feature = chu feature"). Cach do SAI HAN so voi phan cong that:
+    do tu git      : anhdaijka 30 · BanhMiChao 15 · Loc-LX 11 · vandam2005 2 · Minhdicodedao 1
+    nhom da chot   : BanhMiChao 12 · anhdaijka 7 · Loc-LX 8 · vandam2005 9 · Minhdicodedao 10
+Nguyen nhan: anhdaijka dung ra dung khung FE cho gan het man trong tuan dau, nen
+dem commit thi bon nguoi kia gan nhu trang — trong khi ho moi la nguoi lam
+nghiep vu cua man do. Cot nay quyet dinh Individual Results (60% diem), de nham
+la vandam2005/Minhdicodedao mat gan het diem ca nhan.
 
-DAY LA UOC LUONG, khong phai su that. Nhom phai ra soat lai.
+=> Khong doan tu git nua. Doc thang phan cong nhom.
 
 Dung: python fill_in_charge.py <tracking.xlsx> <inventory.csv> [--add-backend]
 """
 import argparse
+import ast
 import collections
 import csv
-import subprocess
+import re
 import sys
 from pathlib import Path
 
@@ -25,12 +30,60 @@ except ImportError:
     sys.exit('Thieu openpyxl. Chay: uv run --with openpyxl python ' + __file__)
 
 sys.path.insert(0, str(Path(__file__).parent))
-from who_owns import ALIAS, who, FE_FEATURE, BE_FEATURE, pick
 from fill_tracking import NAMES
 
-FE = r'D:\GymMaster\GymMaster-frontend'
-BE = r'D:\GymMaster\GymMaster-backend'
-CUT = '2026-07-12'
+
+def doc_phan_cong():
+    """Doc bang NHOM tu gen_phancong.py.
+
+    Khong `import gen_phancong` duoc: file do GHI docs/PHAN_CONG.md ngay luc
+    import (code chay o muc module). Nen parse bang AST va literal_eval —
+    NHOM chi gom dict/list/str nen an toan.
+    """
+    src = (Path(__file__).parent / 'gen_phancong.py').read_text(encoding='utf-8')
+    tree = ast.parse(src)
+    for node in tree.body:
+        if not (isinstance(node, ast.Assign) and any(
+                getattr(t, 'id', '') == 'NHOM' for t in node.targets)):
+            continue
+        # Moi phan tu la `dict(id=..., git=..., screens=[...], be=[...])` — la
+        # ast.Call chu khong phai dict literal, nen literal_eval ca cum se nem
+        # loi. Chi boc dung 3 khoa can dung, gia tri deu la literal.
+        out = []
+        for el in node.value.elts:
+            g = {}
+            for kw in el.keywords:
+                if kw.arg in ('git', 'screens', 'be', 'nonui'):
+                    g[kw.arg] = ast.literal_eval(kw.value)
+            out.append(g)
+        return out
+    sys.exit('Khong tim thay bang NHOM trong gen_phancong.py')
+
+
+# 3 function khong co man hinh trong Tracking <- muc `nonui` cua phan cong.
+# Ten trong Tracking do fill_tracking.py dat, khong trung chu voi mo ta ben
+# gen_phancong nen phai map bang tu khoa.
+NONUI_KEY = [
+    ('VNPay IPN', 'ipn'),
+    ('Auto-Cancel', 'auto-cancel'),
+    ('Lazy Expire', 'lazy-expire'),
+]
+
+
+def bang_phan_cong():
+    """-> (route -> git, feature backend -> git, ten non-UI -> git)"""
+    man, be, nonui = {}, {}, {}
+    for g in doc_phan_cong():
+        for s in g.get('screens', []):
+            man[s] = g['git']
+        for f in g.get('be', []):
+            be[f] = g['git']
+        for mo_ta in g.get('nonui', []):
+            low = mo_ta.lower()
+            for ten, khoa in NONUI_KEY:
+                if khoa in low:
+                    nonui[ten] = g['git']
+    return man, be, nonui
 
 BE_DESC = {
     'Auth': ('Authentication', 'API dang nhap, dang ky, quen mat khau (OTP), doi mat khau, '
@@ -47,20 +100,6 @@ BE_DESC = {
 }
 
 
-def owner_of(repo, path):
-    raw = subprocess.run(['git', 'log', '--format=%ae|%ad', '--date=short', '--', path],
-                         cwd=repo, capture_output=True, text=True,
-                         encoding='utf-8', errors='replace').stdout
-    c = collections.Counter()
-    for ln in raw.splitlines():
-        if '|' not in ln:
-            continue
-        e, d = ln.split('|', 1)
-        if d.strip() < CUT:
-            c[who(e)] += 1
-    return (c.most_common(1)[0][0] if c else ''), c
-
-
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument('tracking')
@@ -68,31 +107,7 @@ def main():
     ap.add_argument('--add-backend', action='store_true')
     a = ap.parse_args()
 
-    # chu feature FE
-    fe_owner = {}
-    for _, f in FE_FEATURE:
-        if f not in fe_owner:
-            fe_owner[f] = owner_of(FE, 'src/features/' + f)[0]
-
-    # chu feature BE (--follow khong chay tren thu muc; nhung Features/<X> da co
-    # commit refactor, con lich su goc nam o duong dan cu -> dung tung file)
-    be_owner = {}
-    for f in sorted(Path('backend/GymMaster.API/Features').iterdir()):
-        if not f.is_dir():
-            continue
-        c = collections.Counter()
-        for cs in f.glob('*.cs'):
-            raw = subprocess.run(
-                ['git', 'log', '--follow', '--format=%ae|%ad', '--date=short',
-                 '--', str(cs).replace('\\', '/')],
-                cwd=BE, capture_output=True, text=True,
-                encoding='utf-8', errors='replace').stdout
-            for ln in raw.splitlines():
-                if '|' in ln:
-                    e, d = ln.split('|', 1)
-                    if d.strip() < CUT:
-                        c[who(e)] += 1
-        be_owner[f.name] = c.most_common(1)[0][0] if c else ''
+    man_owner, be_owner, nonui_owner = bang_phan_cong()
 
     with open(a.inventory, encoding='utf-8-sig') as fh:
         inv = [r for r in csv.DictReader(fh) if r['kind'] == 'Screen']
@@ -119,20 +134,29 @@ def main():
     # ten man -> chu
     route_of = {NAMES.get(r['name'], r['name']): r['name'] for r in inv}
     stats = collections.Counter()
+    thieu = []          # man co trong inventory ma phan cong chua nhac toi
     last = hrow
     for row in ws.iter_rows(min_row=hrow + 1):
         nm = row[c_fn].value
         if not nm:
             continue
         last = row[0].row
-        route = route_of.get(str(nm).strip())
+        ten = str(nm).strip()
+        route = route_of.get(ten)
         if not route:
+            # Khong phai man hinh -> co the la 1 trong 3 function non-UI.
+            # Truoc day nhanh nay `continue` thang, nen 3 dong do giu nguyen gia
+            # tri mac dinh cua fill_tracking (--in-charge) va bi gan nham nguoi.
+            o = next((v for k, v in nonui_owner.items() if k.lower() in ten.lower()), '')
+            if o and c_ic is not None:
+                row[c_ic].value = o
+                stats[o] += 1
+            elif 'API' not in ten:
+                thieu.append(ten)
             continue
-        f = pick(route, FE_FEATURE)
-        o = fe_owner.get(f) if f else ''
+        o = man_owner.get(route, '')
         if not o:
-            bf = pick(route, BE_FEATURE)
-            o = be_owner.get(bf, '') if bf else ''
+            thieu.append(route)
         if o and c_ic is not None:
             row[c_ic].value = o
             stats[o] += 1
@@ -159,13 +183,16 @@ def main():
 
     wb.save(a.tracking)
     print('Da dien In Charge -> {}'.format(a.tracking))
-    print('\nSo dong moi nguoi phu trach (UOC LUONG tu git):')
+    print('Nguon: bang NHOM trong gen_phancong.py (= docs/PHAN_CONG.md).')
+    print('\nSo dong moi nguoi phu trach:')
     for k, v in stats.most_common():
         print('  {:<16} {:>2} dong'.format(k or '(khong ro)', v))
-    print('\nChu feature FE :', {k: v for k, v in fe_owner.items() if v})
-    print('Chu feature BE :', be_owner)
-    print('\nLUU Y: day la UOC LUONG tu so commit, KHONG phai su that.')
-    print('Nhom phai ra soat lai truoc khi nop — cot nay quyet dinh diem ca nhan 60%.')
+    if thieu:
+        print('\nCANH BAO: {} man co trong inventory nhung PHAN CONG CHUA NHAC TOI '
+              '-> de trong:'.format(len(thieu)))
+        for r in thieu:
+            print('  ', r)
+        print('  Sua bang NHOM trong gen_phancong.py roi chay lai.')
 
 
 if __name__ == '__main__':
