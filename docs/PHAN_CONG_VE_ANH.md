@@ -151,3 +151,43 @@ Theo phân công feature và độ nặng công việc hiện tại, không nên
 **Lý do:** N5 có khối lượng code nhẹ nhất theo bảng phân công, đồng thời phụ trách Dashboard và các trang tổng quan nên phù hợp nhận các sơ đồ toàn hệ thống.
 
 ---
+
+# Quy tắc phối hợp
+
+## Các hình cần cả nhóm review
+
+Dù có một người trực tiếp vẽ, các hình sau phải được cả năm người kiểm tra:
+
+- GymMaster Use Case Overview.
+- System Screen Flow.
+- System Architecture.
+- ERD.
+- Frontend Package Diagram.
+- Backend Package Diagram.
+- Admin Use Case Diagram.
+- Member Screen Flow.
+
+Mỗi người kiểm tra phần feature của mình trước khi chốt ảnh.
+
+## Quy trình thực hiện
+
+1. Mỗi người gửi danh sách use case, route, actor và API của feature mình cho người vẽ sơ đồ tổng.
+2. Người vẽ tạo bản nháp.
+3. Các thành viên comment đúng phần mình phụ trách.
+4. Sửa tên màn hình và use case cho khớp file RDS.
+5. Xuất ảnh PNG nền trắng, chữ rõ.
+6. Chèn đúng vị trí trống trong Word.
+7. Đánh caption và số Figure thống nhất.
+
+## Lưu ý về mockup
+
+Các mockup không bắt buộc phải vẽ lại hoàn toàn bằng Figma. Với màn hình đã hoàn thiện, có thể:
+
+- Chạy dự án.
+- Đăng nhập đúng role.
+- Chuẩn bị dữ liệu mẫu đẹp.
+- Chụp toàn màn hình.
+- Cắt bỏ thanh trình duyệt và thông tin không cần thiết.
+- Chèn ảnh vào Word.
+
+Riêng `/admin/staff`, `/admin/members` và `/admin/trainers` dùng chung `ManagementWorkspace.tsx`, nên **Như và Quang Anh phải thống nhất giao diện trước khi chụp hoặc vẽ**, tránh ba mockup không đồng nhất.
