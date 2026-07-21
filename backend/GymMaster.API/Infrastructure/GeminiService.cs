@@ -115,9 +115,88 @@ public sealed class GeminiService : IFoodImageAnalyzer
         }
     }
 
+    public async Task<FoodImageAnalysisResult<EstimatedFoodNutrition>> EstimateNutritionAsync(
+        string foodName,
+        CancellationToken cancellationToken)
+    {
+        var schema = new
+        {
+            type = "OBJECT",
+            properties = new
+            {
+                foodName = new { type = "STRING" },
+                confidence = new { type = "NUMBER" },
+                calories = new { type = "NUMBER" },
+                proteinG = new { type = "NUMBER" },
+                carbsG = new { type = "NUMBER" },
+                fatG = new { type = "NUMBER" }
+            },
+            required = new[] { "foodName", "confidence", "calories", "proteinG", "carbsG", "fatG" }
+        };
+
+        var json = await CallGeminiAsync(
+            null,
+            null,
+            $"Uoc luong dinh duong trung binh cho mot thanh phan thuc pham ten la: '{foodName}'. " +
+            "Chi xu ly dung mot ten chung nay, khong tach thanh cac bo phan hay bien the. " +
+            "Tra ve foodName (ten ngan gon tieng Viet), confidence (0..1), va gia tri cho 100 gram " +
+            "gom calories, proteinG, carbsG, fatG. Cac gia tri phai la so khong am.",
+            schema,
+            cancellationToken);
+
+        if (!json.Succeeded)
+        {
+            return FoodImageAnalysisResult<EstimatedFoodNutrition>.Failure(
+                json.ErrorCode!, json.ErrorMessage!);
+        }
+
+        try
+        {
+            using var document = json.Value!;
+            var root = document.RootElement;
+            if (root.ValueKind != JsonValueKind.Object)
+            {
+                return FoodImageAnalysisResult<EstimatedFoodNutrition>.Failure(
+                    "INVALID_AI_RESPONSE", "Dich vu AI tra ve du lieu khong hop le.");
+            }
+
+            var normalizedName = root.TryGetProperty("foodName", out var nameElement)
+                ? nameElement.GetString()?.Trim()
+                : null;
+            if (string.IsNullOrWhiteSpace(normalizedName))
+            {
+                return FoodImageAnalysisResult<EstimatedFoodNutrition>.Failure(
+                    "INVALID_AI_RESPONSE", "Dich vu AI khong tra ve ten thuc pham hop le.");
+            }
+
+            var estimate = new EstimatedFoodNutrition(
+                normalizedName,
+                ReadDecimal(root, "confidence"),
+                ReadDecimal(root, "calories"),
+                ReadDecimal(root, "proteinG"),
+                ReadDecimal(root, "carbsG"),
+                ReadDecimal(root, "fatG"));
+
+            if (estimate.Calories < 0 || estimate.ProteinG < 0 ||
+                estimate.CarbsG < 0 || estimate.FatG < 0)
+            {
+                return FoodImageAnalysisResult<EstimatedFoodNutrition>.Failure(
+                    "INVALID_AI_RESPONSE", "Dich vu AI tra ve dinh duong khong hop le.");
+            }
+
+            return FoodImageAnalysisResult<EstimatedFoodNutrition>.Success(estimate);
+        }
+        catch (Exception exception) when (exception is JsonException or InvalidOperationException or FormatException)
+        {
+            _logger.LogWarning(exception, "Invalid Gemini text nutrition response.");
+            return FoodImageAnalysisResult<EstimatedFoodNutrition>.Failure(
+                "INVALID_AI_RESPONSE", "Dich vu AI tra ve ket qua khong hop le.");
+        }
+    }
+
     private async Task<FoodImageAnalysisResult<JsonDocument>> CallGeminiAsync(
-        byte[] imageBytes,
-        string contentType,
+        byte[]? imageBytes,
+        string? contentType,
         string prompt,
         object schema,
         CancellationToken cancellationToken)
@@ -125,10 +204,23 @@ public sealed class GeminiService : IFoodImageAnalyzer
         if (string.IsNullOrWhiteSpace(_options.ApiKey))
         {
             return FoodImageAnalysisResult<JsonDocument>.Failure(
-                "AI_NOT_CONFIGURED", "Tinh nang quet anh chua duoc cau hinh API key.");
+                "AI_NOT_CONFIGURED", "Tinh nang AI chua duoc cau hinh API key.");
         }
 
         var url = $"{_options.BaseUrl.TrimEnd('/')}/models/{_options.Model}:generateContent?key={_options.ApiKey}";
+
+        var parts = new List<object> { new { text = prompt } };
+        if (imageBytes is { Length: > 0 } && !string.IsNullOrWhiteSpace(contentType))
+        {
+            parts.Add(new
+            {
+                inline_data = new
+                {
+                    mime_type = contentType,
+                    data = Convert.ToBase64String(imageBytes)
+                }
+            });
+        }
 
         using var request = new HttpRequestMessage(HttpMethod.Post, url);
         request.Content = JsonContent.Create(new
@@ -138,18 +230,7 @@ public sealed class GeminiService : IFoodImageAnalyzer
                 new
                 {
                     role = "user",
-                    parts = new object[]
-                    {
-                        new { text = prompt },
-                        new
-                        {
-                            inline_data = new
-                            {
-                                mime_type = contentType,
-                                data = Convert.ToBase64String(imageBytes)
-                            }
-                        }
-                    }
+                    parts = parts.ToArray()
                 }
             },
             generationConfig = new
@@ -171,7 +252,7 @@ public sealed class GeminiService : IFoodImageAnalyzer
             {
                 _logger.LogWarning("Gemini returned {StatusCode}.", response.StatusCode);
                 return FoodImageAnalysisResult<JsonDocument>.Failure(
-                    "RECOGNITION_UNAVAILABLE", "Dich vu nhan dien mon an dang tam thoi khong kha dung.");
+                    "RECOGNITION_UNAVAILABLE", "Dich vu AI dang tam thoi khong kha dung.");
             }
 
             using var payload = await JsonDocument.ParseAsync(
@@ -205,13 +286,13 @@ public sealed class GeminiService : IFoodImageAnalyzer
         catch (OperationCanceledException) when (!cancellationToken.IsCancellationRequested)
         {
             return FoodImageAnalysisResult<JsonDocument>.Failure(
-                "RECOGNITION_TIMEOUT", "Nhan dien anh qua thoi gian cho. Vui long thu lai.");
+                "RECOGNITION_TIMEOUT", "Xu ly AI qua thoi gian cho. Vui long thu lai.");
         }
         catch (HttpRequestException exception)
         {
             _logger.LogWarning(exception, "Gemini request failed.");
             return FoodImageAnalysisResult<JsonDocument>.Failure(
-                "RECOGNITION_UNAVAILABLE", "Khong the ket noi dich vu nhan dien mon an.");
+                "RECOGNITION_UNAVAILABLE", "Khong the ket noi dich vu AI.");
         }
         catch (JsonException exception)
         {

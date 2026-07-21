@@ -8,6 +8,13 @@ public interface IFoodImageAnalyzer
         byte[] imageBytes,
         string contentType,
         CancellationToken cancellationToken);
+
+    /// <summary>
+    /// Uoc luong dinh duong trung binh/100g tu mot ten thuc pham chung, khong can anh.
+    /// </summary>
+    Task<FoodImageAnalysisResult<EstimatedFoodNutrition>> EstimateNutritionAsync(
+        string foodName,
+        CancellationToken cancellationToken);
 }
 
 /// <summary>Mot mon an Gemini nhan dien duoc + uoc luong dinh duong cho 100g.</summary>
@@ -19,6 +26,14 @@ public sealed record DetectedFood(
     decimal CarbsG,
     decimal FatG,
     decimal EstimatedGrams);
+
+public sealed record EstimatedFoodNutrition(
+    string FoodName,
+    decimal Confidence,
+    decimal Calories,
+    decimal ProteinG,
+    decimal CarbsG,
+    decimal FatG);
 
 public sealed record FoodImageAnalysisResult<T>(
     bool Succeeded,
