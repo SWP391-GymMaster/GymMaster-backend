@@ -78,7 +78,7 @@ Member ghi nhật ký bữa ăn từ food database (nhập tay — ADR-04), hệ
 - [ ] **AC-07:** Given Member chưa có gói active, When tìm món, Then chỉ thấy/tìm được trong 20 món cố định.
 
 ## 9. Out of Scope
-- Tự định lượng calo từ ảnh (gợi ý tên + ước lượng — spec 009), quét barcode dinh dưỡng, đồng bộ app dinh dưỡng bên thứ ba.
+- Tự định lượng calo từ ảnh (gợi ý tên + ước lượng — spec 009), đồng bộ app dinh dưỡng bên thứ ba.
 
 ## 10. Ghi chú triển khai
 - Mỗi món trong `GET /meal-logs` trả kèm `proteinG/carbG/fatG` để FE tự cộng tổng macro (không có endpoint gộp).

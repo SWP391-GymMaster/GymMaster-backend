@@ -48,14 +48,12 @@
 | UC-21 | View Calorie History | Member/PT | High |
 | UC-22 | View Revenue & Payment Dashboard | Admin | High |
 | UC-23 | View Audit Logs | Admin | Medium |
-| UC-24 | Barcode Lookup | Member | Medium — Deferred (chưa làm) |
 | UC-25 | Basic In-app Reminder | System/Member | ~~Removed~~ (đã gỡ khỏi phạm vi) |
 | UC-26 | Image Food Recognition Assist (Gemini AI) | Member | Enhancement (đã làm) |
 | UC-27 | Online Payment via VNPay (sandbox, IPN auto-activate) | Member/Admin/Staff | High (đã làm — spec 010) |
 | UC-28 | Cancel Membership (đơn Pending / gói Active) | Member/Admin/Staff | Medium (đã làm — spec 003) |
 | UC-29 | Self-service hồ sơ + avatar (Cloudinary) | All | Medium (đã làm — spec 002) |
 
-> **UC-24 (Barcode Lookup)** vẫn **Deferred** — chưa làm, còn trong `specs/SECONDARY_BACKLOG.md`.
 >
 > **UC-25 (Basic In-app Reminder) đã bị GỠ khỏi phạm vi dự án** (2026-07-17). Trước đó nó chỉ là vỏ rỗng: không có bảng `notifications` trong DB, không entity, không service — `NotificationsController` trả mảng rỗng cứng để FE không bị 404, và chỉ mock MSW mới tự sinh thông báo lúc demo offline. Hệ thống thật chưa bao giờ tạo thông báo nào, nên nút chuông luôn mở ra panel trống. Đã xoá toàn bộ code liên quan (BE `c61cadc`, FE `54475f0`). SEC-02 trong `SECONDARY_BACKLOG.md` cũng đóng theo.
 
@@ -455,21 +453,6 @@
 **Acceptance Criteria:** Mọi vai trò đều sửa được hồ sơ của mình; không sửa được hồ sơ người khác; avatar mới hiển thị ngay sau khi tải lên.
 
 > Nguồn: `Features/Account/AccountController.cs:7-43`, `Features/Account/AccountService.cs`, `Infrastructure/` (Cloudinary).
-
-## UC-24 — Barcode Lookup
-| Field | Content |
-|---|---|
-| Objective | Hội viên quét mã vạch trên bao bì để tra cứu món và thêm vào nhật ký bữa ăn. |
-| Actors | Member |
-| Trigger | Hội viên chọn quét mã vạch ở màn Nhật ký bữa ăn. |
-| Pre-condition | — |
-| Post-condition | — |
-
-**Main Flow:** **[CAN BO SUNG]** — UC này **Deferred, chưa được implement** (`specs/SECONDARY_BACKLOG.md` SEC-01). Không có code để suy ra luồng, và **không được bịa**: viết luồng cho chức năng không chạy được là tự đưa mình vào thế bí khi thầy yêu cầu demo. Nhóm cần chọn một trong hai: (a) implement rồi viết luồng thật, hoặc (b) giữ nguyên là Deferred có chủ đích và trình bày lý do ưu tiên.
-**Exception Flow:** [CAN BO SUNG] — chưa có code.
-**Acceptance Criteria:** [CAN BO SUNG] — chưa có code.
-
-> Trạng thái: **Deferred**. Khác với UC-25 (đã gỡ hẳn khỏi phạm vi): UC-24 vẫn nằm trong backlog, chỉ là chưa làm.
 
 ## UC-26 — Image Food Recognition Assist (Enhancement)
 | Field | Content |

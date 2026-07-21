@@ -304,7 +304,6 @@ danh sach endpoint that cua BE.
 | Feature FE | Duong dan | Ly do |
 |---|---|---|
 | `auth` | `/api/v1/auth` | Hang base path, khong phai endpoint that — bo qua |
-| `member-nutrition` | `/api/v1/food-items/barcode/{id}` | **BE chua implement** (chi co mock MSW) |
 | `member-nutrition` | `/api/v1/food-items/online-search` | **BE chua implement** (chi co mock MSW) |
 
 **Chieu nguoc — feature backend nao bi nhieu ben dung chung** (cang nhieu

@@ -29,7 +29,6 @@ GymMaster tập trung vào **vận hành cốt lõi của phòng gym + theo dõi
 |---|---|
 | SEC-01 | Custom food do Member tự thêm |
 | SEC-02 | Calorie target/macro goal cá nhân hóa |
-| SEC-03 | Barcode lookup món ăn |
 | SEC-04 | Lọc/báo cáo nâng cao trên dashboard |
 | SEC-05 | Push notification (FCM) nhắc hết hạn gói |
 

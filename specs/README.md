@@ -16,7 +16,7 @@ Mỗi feature có `spec.md` theo cấu trúc **9 thành phần** (Context & Goal
 | 010 | [Online Payment via VNPay (Sandbox)](010-online-payment-vnpay/spec.md) | Thanh toán online VNPay + IPN auto-activate (mở rộng 003) | Yêu cầu giảng viên, override ADR-03 |
 
 ## Secondary (chưa làm vội)
-Các feature secondary (Barcode, In-app Notification, PT Booking, Group Classes, Combo Packages, PT KPI, Room Booking) được theo dõi ở [SECONDARY_BACKLOG.md](SECONDARY_BACKLOG.md) — trạng thái **Deferred**, chưa viết spec chi tiết cho tới khi core 001–008 ổn định.
+Các feature secondary (In-app Notification, PT Booking, Group Classes, Combo Packages, PT KPI, Room Booking) được theo dõi ở [SECONDARY_BACKLOG.md](SECONDARY_BACKLOG.md) — trạng thái **Deferred**, chưa viết spec chi tiết cho tới khi core 001–008 ổn định.
 
 ## Quy ước
 - ID yêu cầu (FR-*) là **nguồn truy vết**: code phải gắn tag `// FR-...`, test map theo (xem `docs/init/09_TEST_PLAN.md`).

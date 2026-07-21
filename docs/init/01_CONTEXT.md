@@ -55,7 +55,7 @@ Member lifecycle
 | SG-02 | Giảm rủi ro bằng cách không đưa external API phức tạp vào core. |
 | SG-03 | Thiết kế database quan hệ rõ, có PK/FK và map được với use cases. |
 | SG-04 | Dễ chia việc cho frontend, backend, database, testing và docs. |
-| SG-05 | Có thể mở rộng sau thành booking, notification, barcode lookup, KPI hoặc reports. |
+| SG-05 | Có thể mở rộng sau thành booking, notification, KPI hoặc reports. |
 | SG-06 | Tập trung vào tính ổn định của demo và dữ liệu thật từ workflow. |
 
 ## 5. Target Scale
@@ -146,7 +146,6 @@ Admin tạo tài khoản/hồ sơ Member
 | OQ-04 | Database dùng SQL Server, PostgreSQL/Supabase hay khác? | Resolved: SQL Server + EF Core 10 Code First |
 | OQ-05 | Member có được tự gia hạn gói không, hay chỉ Admin/Staff? | Resolved: Member được gửi yêu cầu gia hạn, Admin/Staff xác nhận thanh toán |
 | OQ-06 | Check-in giới hạn 1 lần/ngày hay cho phép nhiều lần/ngày? | Resolved: MVP cho phép nhiều lần/ngày; có thể cấu hình giới hạn sau |
-| OQ-07 | Barcode lookup có nằm trong secondary scope không? | Resolved: Secondary/Optional |
 | OQ-09 | Image Food Recognition Assist có được đưa vào enhancement sau secondary không? | Resolved: Enhancement; dùng Google Cloud Vision API nếu còn thời gian |
 | OQ-08 | Dashboard cần realtime hay chỉ cập nhật theo request? | Resolved: cập nhật theo request/MVP; realtime là optional |
 
