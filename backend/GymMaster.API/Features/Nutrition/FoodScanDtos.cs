@@ -37,6 +37,9 @@ public sealed record FoodScanItem(
 /// <summary>Quet 1 anh co the ra NHIEU mon.</summary>
 public sealed record FoodScanResponse(IReadOnlyList<FoodScanItem> Items);
 
+/// <summary>Body uoc luong dinh duong tu mot ten thuc pham chung.</summary>
+public sealed record EstimateFoodNutritionRequest(string Name);
+
 /// <summary>Body khi user xac nhan luu mon AI vao DB.</summary>
 public sealed record ConfirmAiFoodRequest(
     string Name,

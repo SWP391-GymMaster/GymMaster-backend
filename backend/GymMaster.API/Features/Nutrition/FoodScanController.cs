@@ -30,6 +30,17 @@ public sealed class FoodScanController : ApiControllerBase
         return ToActionResult(result);
     }
 
+    // AI ho tro form tu tao: uoc luong dinh duong/100g tu mot ten chung, chua luu DB.
+    [HttpPost("estimate-nutrition")]
+    [Authorize(Roles = RoleNames.Member)]
+    public async Task<IActionResult> EstimateNutrition(
+        [FromBody] EstimateFoodNutritionRequest request,
+        CancellationToken cancellationToken)
+    {
+        var result = await _foodScanService.EstimateNutritionAsync(request, User, cancellationToken);
+        return ToActionResult(result);
+    }
+
     // FR-IMG-03: luu mon AI sau khi user xac nhan.
     [HttpPost("confirm-ai-food")]
     [Authorize(Roles = RoleNames.Member)]

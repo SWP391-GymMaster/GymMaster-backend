@@ -101,6 +101,46 @@ public sealed class FoodScanService : IFoodScanService
         return ServiceResult<FoodScanResponse>.Success(new FoodScanResponse(items));
     }
 
+    public async Task<ServiceResult<FoodNutritionDraft>> EstimateNutritionAsync(
+        EstimateFoodNutritionRequest request,
+        ClaimsPrincipal principal,
+        CancellationToken cancellationToken)
+    {
+        var actorId = GetActorId(principal);
+        if (actorId is null || !principal.IsInRole(RoleNames.Member) ||
+            !await HasActivePackageAsync(actorId.Value, cancellationToken))
+        {
+            return ServiceResult<FoodNutritionDraft>.Failure(
+                "MEMBERSHIP_REQUIRED", UpgradeMessage, StatusCodes.Status403Forbidden);
+        }
+
+        var name = request.Name?.Trim() ?? string.Empty;
+        if (name.Length is < 2 or > 150)
+        {
+            return ServiceResult<FoodNutritionDraft>.Failure(
+                "VALIDATION_ERROR", "Ten thuc pham phai co tu 2 den 150 ky tu.",
+                StatusCodes.Status400BadRequest);
+        }
+
+        var estimate = await _imageAnalyzer.EstimateNutritionAsync(name, cancellationToken);
+        if (!estimate.Succeeded)
+        {
+            return ServiceResult<FoodNutritionDraft>.Failure(
+                estimate.ErrorCode!, estimate.ErrorMessage!, StatusCodes.Status502BadGateway);
+        }
+
+        var value = estimate.Value!;
+        return ServiceResult<FoodNutritionDraft>.Success(new FoodNutritionDraft(
+            value.FoodName,
+            "100g",
+            100,
+            value.Calories,
+            value.ProteinG,
+            value.CarbsG,
+            value.FatG,
+            "AI"));
+    }
+
     public async Task<ServiceResult<ScannedFood>> ConfirmAiFoodAsync(
         ConfirmAiFoodRequest request,
         ClaimsPrincipal principal,

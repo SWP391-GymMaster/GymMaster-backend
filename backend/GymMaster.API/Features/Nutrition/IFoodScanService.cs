@@ -9,6 +9,12 @@ public interface IFoodScanService
         ClaimsPrincipal principal,
         CancellationToken cancellationToken);
 
+    // AI ho tro dien form mon tu tao; chi tra draft, KHONG tu luu vao DB.
+    Task<ServiceResult<FoodNutritionDraft>> EstimateNutritionAsync(
+        EstimateFoodNutritionRequest request,
+        ClaimsPrincipal principal,
+        CancellationToken cancellationToken);
+
     // FR-IMG-03: luu mon AI sau khi user xac nhan.
     Task<ServiceResult<ScannedFood>> ConfirmAiFoodAsync(
         ConfirmAiFoodRequest request,
