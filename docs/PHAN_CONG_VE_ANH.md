@@ -121,3 +121,33 @@ Theo phân công feature và độ nặng công việc hiện tại, không nên
 > Use Case Staff cần lấy phần bán/gia hạn/thanh toán từ Lộc và phần tạo/tìm hội viên từ Quang Anh, nhưng Đam là người ghép sơ đồ hoàn chỉnh.
 
 ---
+
+# N5 — Minh
+
+**Miền nghiệp vụ:** Dinh dưỡng, Dashboard và trang giới thiệu
+
+## Sơ đồ — 7 ảnh
+
+1. **GymMaster Use Case Overview Diagram**
+2. **Use Case Diagram for Admin**
+3. **System Screen Flow**
+4. **Admin Screen Flow**
+5. **Nutrition and AI Flow**
+6. **System Architecture / Component Diagram**
+7. **Frontend Package Diagram**
+
+## Mockup — 9 ảnh
+
+8. **SCR-AUTH-01 — Welcome / Landing**
+9. **SCR-COM-01 — About**
+10. **SCR-ADM-01 — Admin Dashboard**
+11. **SCR-ADM-11 — Audit Logs**
+12. **SCR-STF-01 — Staff Dashboard**
+13. **SCR-PT-01 — PT Dashboard**
+14. **SCR-MEM-01 — Member Dashboard**
+15. **SCR-MEM-07 — Meal Journal**
+16. **SCR-MEM-08 — Calorie Summary**
+
+**Lý do:** N5 có khối lượng code nhẹ nhất theo bảng phân công, đồng thời phụ trách Dashboard và các trang tổng quan nên phù hợp nhận các sơ đồ toàn hệ thống.
+
+---
