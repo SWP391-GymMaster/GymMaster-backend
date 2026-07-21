@@ -291,7 +291,7 @@ gom *ca frontend lan backend*, de khong ai phai cho nguoi khac lam xong API moi 
 
 **Code frontend:** `src/features/member-nutrition/` · `src/features/admin-dashboard/`
 
-> 2 endpoint `food-items/barcode/{id}` va `food-items/online-search` moi co mock MSW, **BE chua implement** — lam not thi tinh them function.
+> Endpoint `food-items/online-search` moi co mock MSW, **BE chua implement** — lam not thi tinh them function.
 >
 > 3 trang tinh (`/`, `/about`, `/welcome`) khong goi API, khong dinh code ai — de o day vi day la nhom nhe nhat sau khi chuyen `Users` sang N1.
 
