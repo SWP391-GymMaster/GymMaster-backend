@@ -1,6 +1,7 @@
 using System.Security.Claims;
 using GymMaster.API.Data;
 using GymMaster.API.Entities;
+using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using Xunit;
 using GymMaster.API.Features.Billing;
@@ -532,5 +533,553 @@ public class MembershipServiceTests
             m => m.MemberId == memberId && m.Status == MembershipStatus.Active));
         Assert.Equal(2, await db.Memberships.CountAsync(
             m => m.MemberId == memberId && m.Status == MembershipStatus.Cancelled));
+    }
+
+    // =====================================================================
+    // Duong DOC: GET /members/{id}/memberships (FR-MS-09) va GET /memberships (roster).
+    // Diem mau chot: doc cung LA luc he thong dong bo trang thai (lazy expire) —
+    // he thong KHONG co cron/timer nao chay nen, moi thu tinh tai thoi diem truy van.
+    // =====================================================================
+
+    // Them mot hoi vien thu hai de kiem tra quyen "chi xem cua minh".
+    private static async Task<long> AddSecondMemberAsync(GymMasterDbContext db, long userId, long memberId)
+    {
+        db.Users.Add(new User
+        {
+            Id = userId,
+            Email = $"member{memberId}@gymmaster.local",
+            FullName = "Hoi vien khac",
+            PasswordHash = "hash",
+            Status = UserStatuses.Active,
+        });
+        db.MemberProfiles.Add(new MemberProfile { Id = memberId, UserId = userId, IsDeleted = false });
+        await db.SaveChangesAsync();
+        return memberId;
+    }
+
+    [Fact] // FR-MS-09: Given memberId khong ton tai, When xem lich su goi, Then 404 NOT_FOUND
+    public async Task GetMembershipsForMember_with_unknown_member_returns_404()
+    {
+        using var db = NewDb();
+        await SeedAsync(db);
+
+        var result = await NewService(db).GetMembershipsForMemberAsync(999, StaffRole(), default);
+
+        Assert.False(result.Succeeded);
+        Assert.Equal("NOT_FOUND", result.ErrorCode);
+        Assert.Equal(StatusCodes.Status404NotFound, result.StatusCode);
+    }
+
+    [Fact] // FR-MS-09: Given Member A dang nhap, When xem lich su goi cua Member B, Then 403 FORBIDDEN
+    public async Task GetMembershipsForMember_blocks_member_reading_someone_else()
+    {
+        using var db = NewDb();
+        await SeedAsync(db);                                  // member 1 <- user 10
+        await AddSecondMemberAsync(db, userId: 20, memberId: 2);
+
+        var result = await NewService(db).GetMembershipsForMemberAsync(2, Member(userId: 10), default);
+
+        Assert.False(result.Succeeded);
+        Assert.Equal("FORBIDDEN", result.ErrorCode);
+        Assert.Equal(StatusCodes.Status403Forbidden, result.StatusCode);
+    }
+
+    [Fact] // FR-MS-09: Given hoi vien co nhieu goi, When xem lich su, Then sap moi -> cu
+    public async Task GetMembershipsForMember_returns_newest_first()
+    {
+        using var db = NewDb();
+        var (memberId, packageId) = await SeedAsync(db);
+        var today = AppClock.Today();
+        db.Memberships.AddRange(
+            new Membership
+            {
+                Id = 1, MemberId = memberId, PackageId = packageId,
+                StartDate = today, EndDate = today.AddDays(Days),
+                Status = MembershipStatus.Cancelled, CreatedByUserId = 99,
+                CreatedAt = DateTime.UtcNow.AddDays(-10),
+            },
+            new Membership
+            {
+                Id = 2, MemberId = memberId, PackageId = packageId,
+                StartDate = today, EndDate = today.AddDays(Days),
+                Status = MembershipStatus.Active, CreatedByUserId = 99,
+                CreatedAt = DateTime.UtcNow.AddDays(-1),
+            });
+        await db.SaveChangesAsync();
+
+        var result = await NewService(db).GetMembershipsForMemberAsync(memberId, StaffRole(), default);
+
+        Assert.True(result.Succeeded);
+        Assert.Equal(new long[] { 2, 1 }, result.Value!.Select(item => item.Id).ToArray());
+    }
+
+    [Fact] // FR-MS-07(b): Given goi Active da qua EndDate, When truy van, Then tu chuyen Expired VA ghi lai vao DB
+    public async Task GetMembershipsForMember_lazily_expires_past_due_membership()
+    {
+        using var db = NewDb();
+        var (memberId, packageId) = await SeedAsync(db);
+        var today = AppClock.Today();
+        db.Memberships.Add(new Membership
+        {
+            Id = 1, MemberId = memberId, PackageId = packageId,
+            StartDate = today.AddDays(-40), EndDate = today.AddDays(-1),  // het han tu hom qua
+            Status = MembershipStatus.Active, CreatedByUserId = 99,
+            CreatedAt = DateTime.UtcNow.AddDays(-40),
+        });
+        await db.SaveChangesAsync();
+
+        var result = await NewService(db).GetMembershipsForMemberAsync(memberId, StaffRole(), default);
+
+        Assert.Equal("Expired", Assert.Single(result.Value!).Status);
+        // Khong chi doi o ban tra ve: trang thai duoc GHI xuong DB nen lan doc sau khong phai tinh lai.
+        var stored = await db.Memberships.AsNoTracking().SingleAsync(item => item.Id == 1);
+        Assert.Equal(MembershipStatus.Expired, stored.Status);
+    }
+
+    [Fact] // FR-MS-07(a) / AC-09: Given don PendingPayment tao qua 30 phut, When truy van, Then tu chuyen Cancelled
+    public async Task GetMembershipsForMember_lazily_cancels_stale_pending_order()
+    {
+        using var db = NewDb();
+        var (memberId, packageId) = await SeedAsync(db);
+        var today = AppClock.Today();
+        db.Memberships.Add(new Membership
+        {
+            Id = 1, MemberId = memberId, PackageId = packageId,
+            StartDate = today, EndDate = today.AddDays(Days),
+            Status = MembershipStatus.PendingPayment, CreatedByUserId = 99,
+            CreatedAt = DateTime.UtcNow.AddMinutes(-31),   // qua TTL 30 phut
+        });
+        await db.SaveChangesAsync();
+
+        var result = await NewService(db).GetMembershipsForMemberAsync(memberId, StaffRole(), default);
+
+        // Don treo qua han -> Cancelled (KHONG phai Expired; Expired chi danh cho goi da tung Active).
+        Assert.Equal("Cancelled", Assert.Single(result.Value!).Status);
+    }
+
+    [Fact] // FR-MS-07(a): Given don PendingPayment moi tao 5 phut, When truy van, Then VAN cho thanh toan
+    public async Task GetMembershipsForMember_keeps_pending_order_inside_the_30_minute_window()
+    {
+        using var db = NewDb();
+        var (memberId, packageId) = await SeedAsync(db);
+        var today = AppClock.Today();
+        db.Memberships.Add(new Membership
+        {
+            Id = 1, MemberId = memberId, PackageId = packageId,
+            StartDate = today, EndDate = today.AddDays(Days),
+            Status = MembershipStatus.PendingPayment, CreatedByUserId = 99,
+            CreatedAt = DateTime.UtcNow.AddMinutes(-5),
+        });
+        await db.SaveChangesAsync();
+
+        var result = await NewService(db).GetMembershipsForMemberAsync(memberId, StaffRole(), default);
+
+        // Moc 30 phut nay chinh la moc ma man hinh FE phai hien thi giong het (PAYMENT_WINDOW_MS).
+        Assert.Equal("PendingPayment", Assert.Single(result.Value!).Status);
+    }
+
+    [Fact] // §6.1: Given goi Active con 5 ngay, When xem, Then daysRemaining=5 va isExpiringSoon=true (canh bao 0..7 ngay)
+    public async Task GetMembershipsForMember_flags_membership_expiring_within_seven_days()
+    {
+        using var db = NewDb();
+        var (memberId, packageId) = await SeedAsync(db);
+        var today = AppClock.Today();
+        db.Memberships.Add(new Membership
+        {
+            Id = 1, MemberId = memberId, PackageId = packageId,
+            StartDate = today.AddDays(-25), EndDate = today.AddDays(5),
+            Status = MembershipStatus.Active, CreatedByUserId = 99,
+            CreatedAt = DateTime.UtcNow.AddDays(-25),
+        });
+        await db.SaveChangesAsync();
+
+        var result = await NewService(db).GetMembershipsForMemberAsync(memberId, StaffRole(), default);
+
+        var item = Assert.Single(result.Value!);
+        Assert.Equal(5, item.DaysRemaining);
+        Assert.True(item.IsExpiringSoon);
+    }
+
+    [Fact] // §6: Given status khong thuoc enum, When xem roster, Then 422 VALIDATION_ERROR
+    public async Task GetAll_with_unknown_status_returns_422()
+    {
+        using var db = NewDb();
+        await SeedAsync(db);
+
+        var result = await NewService(db).GetAllAsync("khong-ton-tai", 1, StaffRole(), default);
+
+        Assert.False(result.Succeeded);
+        Assert.Equal("VALIDATION_ERROR", result.ErrorCode);
+        Assert.Equal(StatusCodes.Status422UnprocessableEntity, result.StatusCode);
+    }
+
+    [Fact] // §6: Given roster co nhieu trang thai, When loc status=active, Then chi tra goi Active
+    public async Task GetAll_filters_roster_by_status()
+    {
+        using var db = NewDb();
+        var (memberId, packageId) = await SeedAsync(db);
+        var today = AppClock.Today();
+        db.Memberships.AddRange(
+            new Membership
+            {
+                Id = 1, MemberId = memberId, PackageId = packageId,
+                StartDate = today, EndDate = today.AddDays(Days),
+                Status = MembershipStatus.Active, CreatedByUserId = 99, CreatedAt = DateTime.UtcNow,
+            },
+            new Membership
+            {
+                Id = 2, MemberId = memberId, PackageId = packageId,
+                StartDate = today, EndDate = today.AddDays(Days),
+                Status = MembershipStatus.Cancelled, CreatedByUserId = 99, CreatedAt = DateTime.UtcNow,
+            });
+        await db.SaveChangesAsync();
+
+        var result = await NewService(db).GetAllAsync("active", null, StaffRole(), default);
+
+        Assert.True(result.Succeeded);
+        var item = Assert.Single(result.Value!.Items);
+        Assert.Equal("Active", item.Status);
+    }
+
+    [Fact] // §6: Given 25 hop dong, When xem roster, Then moi trang 20 dong va co 2 trang
+    public async Task GetAll_pages_roster_by_twenty()
+    {
+        using var db = NewDb();
+        var (memberId, packageId) = await SeedAsync(db);
+        var today = AppClock.Today();
+        for (var i = 1; i <= 25; i++)
+        {
+            db.Memberships.Add(new Membership
+            {
+                Id = i, MemberId = memberId, PackageId = packageId,
+                StartDate = today, EndDate = today.AddDays(Days),
+                Status = MembershipStatus.Cancelled, CreatedByUserId = 99,
+                CreatedAt = DateTime.UtcNow.AddMinutes(-i),
+            });
+        }
+        await db.SaveChangesAsync();
+        var service = NewService(db);
+
+        var first = await service.GetAllAsync(null, 1, StaffRole(), default);
+        var second = await service.GetAllAsync(null, 2, StaffRole(), default);
+
+        Assert.Equal(25, first.Value!.Total);
+        Assert.Equal(20, first.Value.PageSize);
+        Assert.Equal(2, first.Value.TotalPages);
+        Assert.Equal(20, first.Value.Items.Count);
+        Assert.Equal(5, second.Value!.Items.Count);
+    }
+
+    [Fact] // §6: Given page null hoac <= 0, When xem roster, Then coi nhu trang 1 (khong vo, khong tra rong)
+    public async Task GetAll_normalises_invalid_page_number()
+    {
+        using var db = NewDb();
+        await SeedAsync(db);
+        var service = NewService(db);
+
+        var nullPage = await service.GetAllAsync(null, null, StaffRole(), default);
+        var zeroPage = await service.GetAllAsync(null, 0, StaffRole(), default);
+
+        Assert.Equal(1, nullPage.Value!.Page);
+        Assert.Equal(1, zeroPage.Value!.Page);
+    }
+
+    // =====================================================================
+    // Cac chot chan (guard) con lai cua 5 endpoint ghi.
+    // Nhom nay kiem BAC THANG MA LOI: 403 khong xac dinh duoc nguoi thao tac ->
+    // 404 khong ton tai -> 422/409 vi pham nghiep vu. Moi endpoint deu di dung
+    // thu tu do, nen doc test theo hang la thay ngay tinh nhat quan cua API.
+    // =====================================================================
+
+    // Token khong mang claim dinh danh -> service khong biet AI dang thao tac.
+    private static ClaimsPrincipal NoActor() => new(new ClaimsIdentity());
+
+    [Fact] // §7: Given token khong co claim dinh danh, When ban goi, Then 403 FORBIDDEN
+    public async Task Sell_without_actor_identity_returns_403()
+    {
+        using var db = NewDb();
+        var (memberId, packageId) = await SeedAsync(db);
+
+        var result = await NewService(db).SellAsync(
+            new SellMembershipRequest(memberId, packageId, AppClock.Today()), NoActor(), default);
+
+        Assert.Equal("FORBIDDEN", result.ErrorCode);
+        Assert.Equal(StatusCodes.Status403Forbidden, result.StatusCode);
+    }
+
+    [Fact] // §7: Given memberId khong ton tai, When ban goi, Then 404 NOT_FOUND
+    public async Task Sell_to_unknown_member_returns_404()
+    {
+        using var db = NewDb();
+        var (_, packageId) = await SeedAsync(db);
+
+        var result = await NewService(db).SellAsync(
+            new SellMembershipRequest(999, packageId, AppClock.Today()), Staff(), default);
+
+        Assert.Equal("NOT_FOUND", result.ErrorCode);
+        Assert.Equal(StatusCodes.Status404NotFound, result.StatusCode);
+    }
+
+    [Fact] // §7: Given packageId khong ton tai, When ban goi, Then 404 NOT_FOUND
+    public async Task Sell_with_unknown_package_returns_404()
+    {
+        using var db = NewDb();
+        var (memberId, _) = await SeedAsync(db);
+
+        var result = await NewService(db).SellAsync(
+            new SellMembershipRequest(memberId, 999, AppClock.Today()), Staff(), default);
+
+        Assert.Equal("NOT_FOUND", result.ErrorCode);
+        Assert.Equal(StatusCodes.Status404NotFound, result.StatusCode);
+    }
+
+    [Fact] // FR-PKG-02 / §7: Given goi da ngung ban, When ban goi, Then 422 PACKAGE_INACTIVE
+    public async Task Sell_with_inactive_package_returns_422()
+    {
+        using var db = NewDb();
+        var (memberId, _) = await SeedAsync(db);
+        db.MembershipPackages.Add(new MembershipPackage
+        {
+            Id = 5, Name = "Goi ngung ban", DurationDays = Days, Price = Price, IsActive = false,
+        });
+        await db.SaveChangesAsync();
+
+        var result = await NewService(db).SellAsync(
+            new SellMembershipRequest(memberId, 5, AppClock.Today()), Staff(), default);
+
+        // Goi bi Admin tat qua MembershipPackageService.UpdateAsync(IsActive: false) thi den day bi chan.
+        Assert.Equal("PACKAGE_INACTIVE", result.ErrorCode);
+        Assert.Equal(StatusCodes.Status422UnprocessableEntity, result.StatusCode);
+    }
+
+    [Fact] // §7: Given token khong co claim dinh danh, When ghi thanh toan, Then 403 FORBIDDEN
+    public async Task ConfirmPayment_without_actor_identity_returns_403()
+    {
+        using var db = NewDb();
+        await SeedAsync(db);
+
+        var result = await NewService(db).ConfirmPaymentAsync(
+            1, new ConfirmPaymentRequest(Price, "cash"), NoActor(), default);
+
+        Assert.Equal("FORBIDDEN", result.ErrorCode);
+        Assert.Equal(StatusCodes.Status403Forbidden, result.StatusCode);
+    }
+
+    [Fact] // §7: Given membership khong ton tai, When ghi thanh toan, Then 404 NOT_FOUND
+    public async Task ConfirmPayment_for_unknown_membership_returns_404()
+    {
+        using var db = NewDb();
+        await SeedAsync(db);
+
+        var result = await NewService(db).ConfirmPaymentAsync(
+            999, new ConfirmPaymentRequest(Price, "cash"), Staff(), default);
+
+        Assert.Equal("NOT_FOUND", result.ErrorCode);
+        Assert.Equal(StatusCodes.Status404NotFound, result.StatusCode);
+    }
+
+    [Theory] // §7: Given phuong thuc la va / so tien <= 0, When ghi thanh toan, Then 422 VALIDATION_ERROR
+    [InlineData("bitcoin", 500_000)]  // phuong thuc khong thuoc {cash, transfer, card}
+    [InlineData("cash", 0)]           // so tien phai duong
+    [InlineData("cash", -1)]
+    public async Task ConfirmPayment_with_invalid_method_or_amount_returns_422(string method, int amount)
+    {
+        using var db = NewDb();
+        var (memberId, packageId) = await SeedAsync(db);
+        var service = NewService(db);
+        var pendingId = (await service.SellAsync(
+            new SellMembershipRequest(memberId, packageId, AppClock.Today()), Staff(), default)).Value!.Membership.Id;
+
+        var result = await service.ConfirmPaymentAsync(
+            pendingId, new ConfirmPaymentRequest(amount, method), Staff(), default);
+
+        Assert.Equal("VALIDATION_ERROR", result.ErrorCode);
+        Assert.Equal(StatusCodes.Status422UnprocessableEntity, result.StatusCode);
+        // Don van con o trang thai cho thanh toan, khong bi day sang Active.
+        Assert.Equal(MembershipStatus.PendingPayment, (await db.Memberships.FindAsync(pendingId))!.Status);
+    }
+
+    [Fact] // §7: Given token khong co claim dinh danh, When gia han, Then 403 FORBIDDEN
+    public async Task Renew_without_actor_identity_returns_403()
+    {
+        using var db = NewDb();
+        var (_, packageId) = await SeedAsync(db);
+
+        var result = await NewService(db).RenewAsync(
+            1, new RenewMembershipRequest(packageId, "cash"), NoActor(), default);
+
+        Assert.Equal("FORBIDDEN", result.ErrorCode);
+    }
+
+    [Fact] // §7: Given membership khong ton tai, When gia han, Then 404 NOT_FOUND
+    public async Task Renew_unknown_membership_returns_404()
+    {
+        using var db = NewDb();
+        var (_, packageId) = await SeedAsync(db);
+
+        var result = await NewService(db).RenewAsync(
+            999, new RenewMembershipRequest(packageId, "cash"), Staff(), default);
+
+        Assert.Equal("NOT_FOUND", result.ErrorCode);
+        Assert.Equal(StatusCodes.Status404NotFound, result.StatusCode);
+    }
+
+    [Fact] // §7: Given goi gia han khong ton tai, When gia han, Then 404 NOT_FOUND
+    public async Task Renew_with_unknown_package_returns_404()
+    {
+        using var db = NewDb();
+        var (memberId, packageId) = await SeedAsync(db);
+        var service = NewService(db);
+        var id = (await service.SellAsync(
+            new SellMembershipRequest(memberId, packageId, AppClock.Today()), Staff(), default)).Value!.Membership.Id;
+
+        var result = await service.RenewAsync(id, new RenewMembershipRequest(999, "cash"), Staff(), default);
+
+        Assert.Equal("NOT_FOUND", result.ErrorCode);
+    }
+
+    [Fact] // FR-PKG-02 / §7: Given goi gia han da ngung ban, When gia han, Then 422 PACKAGE_INACTIVE
+    public async Task Renew_with_inactive_package_returns_422()
+    {
+        using var db = NewDb();
+        var (memberId, packageId) = await SeedAsync(db);
+        db.MembershipPackages.Add(new MembershipPackage
+        {
+            Id = 5, Name = "Goi ngung ban", DurationDays = Days, Price = Price, IsActive = false,
+        });
+        await db.SaveChangesAsync();
+        var service = NewService(db);
+        var id = (await service.SellAsync(
+            new SellMembershipRequest(memberId, packageId, AppClock.Today()), Staff(), default)).Value!.Membership.Id;
+
+        var result = await service.RenewAsync(id, new RenewMembershipRequest(5, "cash"), Staff(), default);
+
+        Assert.Equal("PACKAGE_INACTIVE", result.ErrorCode);
+    }
+
+    [Fact] // §7: Given phuong thuc thanh toan la, When gia han, Then 422 VALIDATION_ERROR
+    public async Task Renew_with_invalid_payment_method_returns_422()
+    {
+        using var db = NewDb();
+        var (memberId, packageId) = await SeedAsync(db);
+        var service = NewService(db);
+        var id = (await service.SellAsync(
+            new SellMembershipRequest(memberId, packageId, AppClock.Today()), Staff(), default)).Value!.Membership.Id;
+
+        var result = await service.RenewAsync(id, new RenewMembershipRequest(packageId, "momo"), Staff(), default);
+
+        Assert.Equal("VALIDATION_ERROR", result.ErrorCode);
+        Assert.Equal(StatusCodes.Status422UnprocessableEntity, result.StatusCode);
+    }
+
+    [Fact] // §7: Given token khong co claim dinh danh, When gui yeu cau gia han, Then 403 FORBIDDEN
+    public async Task RenewalRequest_without_actor_identity_returns_403()
+    {
+        using var db = NewDb();
+        var (_, packageId) = await SeedAsync(db);
+
+        var result = await NewService(db).CreateRenewalRequestAsync(
+            new RenewalRequestRequest(packageId), NoActor(), default);
+
+        Assert.Equal("FORBIDDEN", result.ErrorCode);
+    }
+
+    [Fact] // §7: Given tai khoan chua co ho so hoi vien, When gui yeu cau gia han, Then loi tu tang Member duoc chuyen tiep nguyen ven
+    public async Task RenewalRequest_propagates_failure_from_member_profile_lookup()
+    {
+        using var db = NewDb();
+        var (_, packageId) = await SeedAsync(db);
+
+        // User 999 khong ton tai trong bang users -> MemberService khong tao noi ho so.
+        var result = await NewService(db).CreateRenewalRequestAsync(
+            new RenewalRequestRequest(packageId), Member(userId: 999), default);
+
+        Assert.False(result.Succeeded);
+        Assert.Equal("NOT_FOUND", result.ErrorCode);
+        Assert.Equal(StatusCodes.Status404NotFound, result.StatusCode);
+    }
+
+    [Fact] // §7: Given goi khong ton tai, When gui yeu cau gia han, Then 404 NOT_FOUND
+    public async Task RenewalRequest_with_unknown_package_returns_404()
+    {
+        using var db = NewDb();
+        await SeedAsync(db);
+
+        var result = await NewService(db).CreateRenewalRequestAsync(
+            new RenewalRequestRequest(999), Member(10), default);
+
+        Assert.Equal("NOT_FOUND", result.ErrorCode);
+    }
+
+    [Fact] // FR-PKG-02 / §7: Given goi da ngung ban, When gui yeu cau gia han, Then 422 PACKAGE_INACTIVE
+    public async Task RenewalRequest_with_inactive_package_returns_422()
+    {
+        using var db = NewDb();
+        await SeedAsync(db);
+        db.MembershipPackages.Add(new MembershipPackage
+        {
+            Id = 5, Name = "Goi ngung ban", DurationDays = Days, Price = Price, IsActive = false,
+        });
+        await db.SaveChangesAsync();
+
+        var result = await NewService(db).CreateRenewalRequestAsync(
+            new RenewalRequestRequest(5), Member(10), default);
+
+        Assert.Equal("PACKAGE_INACTIVE", result.ErrorCode);
+    }
+
+    [Fact] // §7: Given token khong co claim dinh danh, When huy, Then 403 FORBIDDEN
+    public async Task Cancel_without_actor_identity_returns_403()
+    {
+        using var db = NewDb();
+        await SeedAsync(db);
+
+        var result = await NewService(db).CancelAsync(1, NoActor(), default);
+
+        Assert.Equal("FORBIDDEN", result.ErrorCode);
+    }
+
+    [Fact] // §7: Given membership khong ton tai, When huy, Then 404 NOT_FOUND
+    public async Task Cancel_unknown_membership_returns_404()
+    {
+        using var db = NewDb();
+        await SeedAsync(db);
+
+        var result = await NewService(db).CancelAsync(999, StaffRole(), default);
+
+        Assert.Equal("NOT_FOUND", result.ErrorCode);
+        Assert.Equal(StatusCodes.Status404NotFound, result.StatusCode);
+    }
+
+    [Fact] // FR-MS-07: Given roster co goi qua han va don treo, When Staff mo danh sach, Then trang thai duoc dong bo TRUOC khi tra ve
+    public async Task GetAll_syncs_stale_statuses_before_listing()
+    {
+        using var db = NewDb();
+        var (memberId, packageId) = await SeedAsync(db);
+        var today = AppClock.Today();
+        db.Memberships.AddRange(
+            new Membership
+            {
+                Id = 1, MemberId = memberId, PackageId = packageId,
+                StartDate = today.AddDays(-40), EndDate = today.AddDays(-1),
+                Status = MembershipStatus.Active, CreatedByUserId = 99,
+                CreatedAt = DateTime.UtcNow.AddDays(-40),
+            },
+            new Membership
+            {
+                Id = 2, MemberId = memberId, PackageId = packageId,
+                StartDate = today, EndDate = today.AddDays(Days),
+                Status = MembershipStatus.PendingPayment, CreatedByUserId = 99,
+                CreatedAt = DateTime.UtcNow.AddMinutes(-31),
+            });
+        await db.SaveChangesAsync();
+
+        var result = await NewService(db).GetAllAsync(null, 1, StaffRole(), default);
+
+        Assert.True(result.Succeeded);
+        // Man hinh roster khong bao gio hien trang thai cu: goi qua han -> Expired, don treo -> Cancelled.
+        var byId = result.Value!.Items.ToDictionary(item => item.Id, item => item.Status);
+        Assert.Equal("Expired", byId[1]);
+        Assert.Equal("Cancelled", byId[2]);
     }
 }
