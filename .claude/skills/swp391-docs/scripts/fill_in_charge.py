@@ -1,6 +1,6 @@
 """Dien cot In Charge cua Project Tracking theo PHAN CONG NHOM DA CHOT.
 
-Nguon su that: bang NHOM trong `gen_phancong.py` (sinh ra docs/PHAN_CONG.md),
+Nguon su that: bang NHOM trong `gen_phancong.py` (sinh ra docs/06-Management/phan-cong.md),
 la phan cong nhom da thong nhat 2026-07-20.
 
 LICH SU: ban dau script nay UOC LUONG tu so commit git ("ai commit nhieu nhat
@@ -36,7 +36,7 @@ from fill_tracking import NAMES
 def doc_phan_cong():
     """Doc bang NHOM tu gen_phancong.py.
 
-    Khong `import gen_phancong` duoc: file do GHI docs/PHAN_CONG.md ngay luc
+    Khong `import gen_phancong` duoc: file do GHI docs/06-Management/phan-cong.md ngay luc
     import (code chay o muc module). Nen parse bang AST va literal_eval —
     NHOM chi gom dict/list/str nen an toan.
     """
@@ -183,7 +183,7 @@ def main():
 
     wb.save(a.tracking)
     print('Da dien In Charge -> {}'.format(a.tracking))
-    print('Nguon: bang NHOM trong gen_phancong.py (= docs/PHAN_CONG.md).')
+    print('Nguon: bang NHOM trong gen_phancong.py (= docs/06-Management/phan-cong.md).')
     print('\nSo dong moi nguoi phu trach:')
     for k, v in stats.most_common():
         print('  {:<16} {:>2} dong'.format(k or '(khong ro)', v))

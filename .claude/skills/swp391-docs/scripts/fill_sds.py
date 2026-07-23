@@ -26,7 +26,7 @@ except ImportError:
 
 API = Path('backend/GymMaster.API')
 FEATURES = API / 'Features'
-SCHEMA_MD = Path('docs/init/15_DATABASE_SCHEMA.md')
+SCHEMA_MD = Path('docs/02-SDD-Architecture/database-design/database-schema.md')
 
 sys.path.insert(0, str(Path(__file__).parent))
 # Tai su dung bo doc class cua skill swp391-diagrams thay vi viet lai

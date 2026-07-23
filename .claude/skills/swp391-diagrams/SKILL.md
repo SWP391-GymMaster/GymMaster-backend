@@ -11,7 +11,7 @@ Sinh diagram **từ code và spec thật**, không vẽ tay, không bịa. Spec/
 
 1. **Không bao giờ tự nghĩ ra nội dung diagram.** Mọi actor, use case, bảng, class, bước sequence phải đọc được từ file thật trong repo. Nếu script không tìm thấy, **báo cho user**, đừng điền bừa.
 2. **Luôn nói rõ diagram lấy từ đâu** (file nào, bao nhiêu node) để user kiểm chứng.
-3. **Đối chiếu chéo khi có thể**: ERD sinh từ `Entities/*.cs` phải khớp `docs/init/15_DATABASE_SCHEMA.md`. Lệch nhau → báo user, đó là dấu hiệu code và spec đã trôi xa nhau.
+3. **Đối chiếu chéo khi có thể**: ERD sinh từ `Entities/*.cs` phải khớp `docs/02-SDD-Architecture/database-design/database-schema.md`. Lệch nhau → báo user, đó là dấu hiệu code và spec đã trôi xa nhau.
 
 ## Chuẩn bị
 
@@ -45,7 +45,7 @@ Mọi lệnh chạy từ **gốc repo backend**.
 $PY .claude/skills/swp391-diagrams/scripts/usecase_drawio.py out/UseCase.drawio
 ```
 
-Đọc `docs/init/03_SRS_USE_CASES.md` mục "2. Use Case Overview". Sinh **một tab cho mỗi actor**
+Đọc `docs/01-SRS-Requirements/use-cases/srs-use-cases.md` mục "2. Use Case Overview". Sinh **một tab cho mỗi actor**
 (Admin/Staff/PT/Member/System) — đúng yêu cầu slide *"Use case diagram for each Role/Actor"*.
 Tự hiểu `All` → 4 role, `Admin/Staff` → tách 2 actor.
 
@@ -117,4 +117,4 @@ Xuất ảnh dán vào RDS/SDS: File → Export as → **PNG**, tick *Transparen
 - Sequence: chỉ lần helper trong **cùng** service, sâu 2 tầng. Gọi chéo service khác chỉ hiện
   ở tầng service, không đi sâu.
 - ERD: quan hệ suy từ navigation property + FK naming. Bảng nối n-n không có navigation
-  sẽ bị bỏ sót — đối chiếu `docs/init/15_DATABASE_SCHEMA.md` để chắc.
+  sẽ bị bỏ sót — đối chiếu `docs/02-SDD-Architecture/database-design/database-schema.md` để chắc.

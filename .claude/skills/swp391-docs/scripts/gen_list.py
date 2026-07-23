@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""Sinh docs/DANH_SACH_FEATURE.md tu out/inventory.csv.
+"""Sinh docs/06-Management/danh-sach-feature.md tu out/inventory.csv.
 
 Chi LIET KE, khong tu chia nhom — de nguoi doc tu cat.
 Chay tu thu muc goc GymMaster-backend:
@@ -66,7 +66,7 @@ w('## Tom tat so luong\n\n')
 w('### Backend — theo feature\n\n')
 w('| Feature | Endpoint | Spec | Thu muc code |\n|---|---:|---|---|\n')
 for f in sorted(api_by_feat, key=lambda x: -len(api_by_feat[x])):
-    specs = ' · '.join('`specs/%s/`' % s for s in SPEC_OF.get(f, []))
+    specs = ' · '.join('`docs/03-Interface-Specs/feature-specs/%s/`' % s for s in SPEC_OF.get(f, []))
     w('| **%s** | %d | %s | `Features/%s/` |\n'
       % (f, len(api_by_feat[f]), specs or '—', f))
 w('| | **%d** | | |\n\n' % len(apis))
@@ -84,7 +84,7 @@ for f in sorted(api_by_feat):
     w('### %s — %d endpoint\n\n' % (f, len(api_by_feat[f])))
     specs = SPEC_OF.get(f, [])
     if specs:
-        w('Spec: %s\n\n' % ' · '.join('`specs/%s/spec.md`' % s for s in specs))
+        w('Spec: %s\n\n' % ' · '.join('`docs/03-Interface-Specs/feature-specs/%s/spec.md`' % s for s in specs))
     w('| Method + Route | Quyen |\n|---|---|\n')
     for r in sorted(api_by_feat[f], key=lambda x: x['name']):
         w('| `%s` | %s |\n' % (r['name'], r['actor']))
@@ -215,7 +215,7 @@ w('- Diem ca nhan SWP391 = `LOC x Quality` theo function (60 don gian / 120 trun
 w('  240 phuc tap), can **>=720 ca du an** de dat toi da.\n')
 w('- Ten function khi ghi vao Project Tracking / Issues Report phai khop nhau y het.\n')
 
-open('docs/DANH_SACH_FEATURE.md', 'w', encoding='utf-8').write(o.getvalue())
-print('OK -> docs/DANH_SACH_FEATURE.md')
+open('docs/06-Management/danh-sach-feature.md', 'w', encoding='utf-8').write(o.getvalue())
+print('OK -> docs/06-Management/danh-sach-feature.md')
 print('   %d man hinh, %d endpoint, %d feature BE, %d nhom route FE'
       % (len(screens), len(apis), len(api_by_feat), len(scr_by_grp)))

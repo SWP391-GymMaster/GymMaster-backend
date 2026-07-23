@@ -1,6 +1,6 @@
 # GymMaster Backend
 
-GymMaster backend implementation for the gym management system specified in `docs/init/`.
+GymMaster backend implementation for the gym management system specified in `docs/`.
 
 This repository is backend-only: ASP.NET Core 10 Web API, EF Core 10 + SQL Server, JWT auth + RBAC, membership/billing, check-in, PT training, nutrition, dashboard/audit, VNPay payments, and Gemini-based food image recognition. The Next.js UI lives in the separate `GymMaster-frontend` repo.
 
@@ -10,11 +10,11 @@ Read in this order:
 
 1. `CONSTITUTION.md` — non-negotiable project law (stack, architecture, quality gates).
 2. `CLAUDE.md` — project memory: current structure, patterns, gotchas, lessons learned.
-3. `docs/init/` — full-system product scope, roles, use cases, requirements, roadmap, DB schema.
-4. `specs/001-010/` — per-feature specs: endpoints, error codes, acceptance criteria.
+3. `docs/` — full-system product scope, roles, use cases, requirements, roadmap, DB schema.
+4. `docs/03-Interface-Specs/feature-specs/001-010/` — per-feature specs: endpoints, error codes, acceptance criteria.
 5. Current code — what is actually implemented today.
 
-Spec kit was synced backwards from the real code on 2026-07-15, so `specs/` and `docs/init/` describe what the code actually does.
+Spec kit was synced backwards from the real code on 2026-07-15, so `docs/03-Interface-Specs/feature-specs/` and `docs/` describe what the code actually does.
 
 ## Quick Start
 
@@ -50,9 +50,9 @@ backend/GymMaster.API/
 └── Options/           strongly-typed config
 
 database/              SQL scripts (schema is managed by hand, not EF Migrations)
-docs/init/             00–15 spec kit + MANIFEST
+docs/             00–15 spec kit + MANIFEST
 docs/archive/          historical snapshots
-specs/                 001–010 feature specs
+docs/03-Interface-Specs/feature-specs/                 001–010 feature specs
 tests/                 xUnit test project
 graphify-out/          codebase knowledge graph — open graph.html in a browser
 ```
@@ -61,7 +61,7 @@ Structure mirrors the frontend repo (`src/features/` + `lib/` + `types/`).
 
 ## Deployment
 
-Google Cloud Run + Cloud SQL. See `docs/DEPLOY_GCP.md`.
+Google Cloud Run + Cloud SQL. See `docs/05-Deployment/deploy-gcp.md`.
 
 ## Important Rules
 

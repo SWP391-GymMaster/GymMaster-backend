@@ -1,6 +1,6 @@
 # CLAUDE.md — GymMaster Project Memory
 
-> Đọc `docs/init/10_AGENTS.md` (persona + rules) và `CONSTITUTION.md` (luật) trước.
+> Đọc `docs/06-Management/agents.md` (persona + rules) và `CONSTITUTION.md` (luật) trước.
 > File này là **bộ nhớ ngữ cảnh** cho AI agent: kiến trúc, patterns, lessons learned.
 
 ## TL;DR (60 giây)
@@ -23,7 +23,7 @@ Layered: **Controller → Service → Repository → DbContext** (xem `CONSTITUT
 /docs                     # 15 spec files
 ```
 
-## QUYẾT ĐỊNH KIẾN TRÚC (tóm tắt — chi tiết ở docs/init/12_DECISION_LOG.md)
+## QUYẾT ĐỊNH KIẾN TRÚC (tóm tắt — chi tiết ở docs/06-Management/decision-log.md)
 - **ADR-01:** 4 roles (Admin/Staff/PT/Member) thay vì 3 — cần tách lễ tân khỏi chủ phòng.
 - **ADR-02:** ~~MySQL~~ → **SQL Server** + EF Core Code First (đổi 2026-05-30, xem D-17) — team quen toolset Microsoft (LocalDB/SSMS), tích hợp Azure SQL.
 - **ADR-06:** ~~.NET 8~~ → **.NET 10** (ASP.NET Core 10 + EF Core 10) (đổi 2026-06-01, xem D-18) — code đã build trên `net10.0`; docs đồng bộ theo code.
@@ -50,11 +50,11 @@ Layered: **Controller → Service → Repository → DbContext** (xem `CONSTITUT
 - **4 tài khoản test:** `admin@gymmaster.local`/`Admin123!` · `staff@`/`Staff123!` · `pt@`/`Pt123!` · `member@gymmaster.local`/`Member123!`.
 
 ## TRẠNG THÁI (cập nhật 2026-07-15)
-- ✅ **Spec 001–010 đã implement hết** và deploy Cloud Run + Cloud SQL. Spec kit (`specs/` + doc 00–15) đã **đồng bộ ngược từ code** ngày 2026-07-15.
+- ✅ **Spec 001–010 đã implement hết** và deploy Cloud Run + Cloud SQL. Spec kit (`docs/03-Interface-Specs/feature-specs/` + doc 00–15) đã **đồng bộ ngược từ code** ngày 2026-07-15.
 - ✅ Path FE ↔ BE đã **khớp `/api/v1/...`** (FE gọi qua `apiRequest()` base `NEXT_PUBLIC_API_BASE_URL`). Ghi chú lệch path `/api/members` trước đây đã hết hiệu lực.
 - ⬜ **Unit test** coverage chưa đạt DoD ≥80% (một số service đã có test ở `tests/`).
 - ⚠️ Seeder thêm 4 tài khoản demo (`EnsureUserAsync`) + hồ sơ member/PT demo.
-- 📄 Chi tiết thay đổi: `docs/archive/CHANGELOG_vs_old_spec.md` · So sánh DB cũ/mới: `docs/archive/DB_DIFF_FOR_DBTEAM.md` · Schema chuẩn: `docs/init/15_DATABASE_SCHEMA.md`.
+- 📄 Chi tiết thay đổi: `docs/archive/CHANGELOG_vs_old_spec.md` · So sánh DB cũ/mới: `docs/archive/DB_DIFF_FOR_DBTEAM.md` · Schema chuẩn: `docs/02-SDD-Architecture/database-design/database-schema.md`.
 - ▶️ Chạy: backend `dotnet run` ở `backend/GymMaster.API` (cổng 5042) TRƯỚC → frontend `npm run dev` (cổng 3000). Login: `localhost:3000/login`.
 
 ## TRẠNG THÁI (cập nhật 2026-07-16)

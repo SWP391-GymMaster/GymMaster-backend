@@ -40,7 +40,8 @@ jobs:
       # NGUYEN env vars cua revision cu -> khong can nhet bi mat nao vao GitHub.
       #
       # Doi lai: them bien moi truong MOI thi van phai chay tay 1 lan trong
-      # Cloud Shell voi --env-vars-file env.yaml (xem docs/DEPLOY_GCP.md).
+      # Cloud Shell voi --env-vars-file env.yaml
+      # (xem docs/05-Deployment/deploy-gcp.md muc 6.3).
       - name: Deploy
         run: |
           gcloud run deploy gymmaster-api \

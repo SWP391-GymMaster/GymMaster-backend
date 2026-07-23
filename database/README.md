@@ -26,5 +26,5 @@ dotnet user-secrets set "Jwt:SecretKey" "<chuoi-ngau-nhien-it-nhat-32-ky-tu>"
 
 ## Ghi chú
 - Backend **không tự tạo schema** — DB phải được tạo từ file này (hoặc do team DB cung cấp) trước khi chạy.
-- Schema chi tiết từng cột: xem `../docs/init/15_DATABASE_SCHEMA.md`.
+- Schema chi tiết từng cột: xem `../docs/02-SDD-Architecture/database-design/database-schema.md`.
 - So sánh thay đổi schema (nếu sửa DB): xem `../docs/archive/DB_DIFF_FOR_DBTEAM.md`.

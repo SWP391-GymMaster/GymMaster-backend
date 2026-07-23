@@ -1,11 +1,11 @@
 # CONSTITUTION.md — GymMaster Project Law
 
-**Ratified:** 2026-05-30 | **Version:** 1.2.0 | **Status:** LOCKED
+**Ratified:** 2026-05-30 | **Version:** 1.3.0 | **Status:** LOCKED
 **Team:** GymMaster Dev Team (Admin/BA, Backend, Frontend, Database, QA)
-**RULE:** Mọi thay đổi file này cần đồng thuận toàn team + ghi vào `docs/init/12_DECISION_LOG.md`.
+**RULE:** Mọi thay đổi file này cần đồng thuận toàn team + ghi vào `docs/06-Management/decision-log.md`.
 
 > Đây là "luật bất biến" của dự án. Mọi Spec, code, và quyết định kỹ thuật đều phải tuân thủ.
-> Đọc cùng `docs/init/10_AGENTS.md` (persona) và `CLAUDE.md` (ngữ cảnh).
+> Đọc cùng `docs/06-Management/agents.md` (persona) và `CLAUDE.md` (ngữ cảnh).
 
 ---
 
@@ -36,9 +36,13 @@ THE system SHALL ghi `AuditLog` cho mọi hành động quan trọng (tạo/sử
 
 ## ═══ LAYER 2 — ARCHITECTURAL CONSTRAINTS (cần RFC + approval để bypass) ═══
 
-### ARCH-01: Layered Architecture
-THE backend SHALL theo: **Controller → Service → Repository → DbContext**.
-Controller KHÔNG chứa business logic. Service KHÔNG gọi `DbContext` trực tiếp (đi qua Repository). Repository KHÔNG chứa business logic.
+### ARCH-01: Vertical Slice Architecture
+THE backend SHALL tổ chức code theo **feature slice**: `Features/<Tên>/` — mỗi slice tự chứa Controller + Service (+ interface) + DTO của riêng nó.
+
+- Controller **mỏng**: nhận request, gọi Service, trả `ApiResponse<T>`. KHÔNG chứa business logic, KHÔNG kiểm quyền sở hữu (xem ARCH-03).
+- Service chứa toàn bộ business logic và **gọi `DbContext` trực tiếp** — KHÔNG có tầng Repository. EF Core `DbSet<T>` đã đóng vai trò repository; thêm một tầng nữa chỉ tăng số file mà không tăng khả năng test (test dùng EF InMemory).
+- Entity dùng chung đặt ở `Entities/`; tiện ích dùng chung ở `Common/`; tích hợp dịch vụ ngoài ở `Infrastructure/` sau một interface (xem SAFE-13).
+- Business rule dùng cho **nhiều slice** phải gom về **một nguồn duy nhất**, không copy (vd `Features/Billing/MembershipLifecycle.cs`).
 
 ### ARCH-02: API Contract
 - REST, base path `/api/v1/[resource]`.
@@ -49,12 +53,19 @@ Controller KHÔNG chứa business logic. Service KHÔNG gọi `DbContext` trực
 ### ARCH-03: Authorization theo Role
 THE system SHALL kiểm soát quyền theo 4 role **Admin, Staff, PT, Member** bằng `[Authorize(Roles=...)]` + ownership check (Member chỉ xem dữ liệu của chính mình; PT chỉ xem Member được phân công).
 
-### ARCH-04: Database first-class
-Mọi thay đổi schema phải qua **EF Core Migration** (Code First). KHÔNG sửa DB thủ công. Migration phải có rollback path.
+### ARCH-04: Database do team DB sở hữu (Database First)
+Schema DB **do team Database sở hữu**, không do backend sinh ra. THE backend SHALL coi mình là **bên tiêu thụ schema**:
+
+- Thay đổi schema đi qua **script SQL đánh số** trong `database/` (`004_checkin.sql` … `013_*.sql`), do team DB duyệt và chạy. KHÔNG dùng EF Core Migration, KHÔNG `EnsureCreated`, KHÔNG tự `ALTER` lúc khởi động.
+- `DatabaseSeeder` chỉ được seed **dữ liệu tối thiểu để đăng nhập** (4 role + tài khoản admin). KHÔNG đụng tới cấu trúc bảng.
+- Entity EF Core phải **khớp schema có sẵn**; lệch nhau thì sửa entity, không sửa DB.
+- **Hệ quả cần biết khi lập kế hoạch:** mọi việc cần cột mới đều **bị chặn bởi team DB** — phải đặt yêu cầu sớm (vd `meal_log_items` snapshot macro, `payments.provider_ref`).
+
+> Điều luật này mô tả đúng cách dự án vận hành từ đầu. Bản v1.2.0 trở về trước ghi "EF Core Migration (Code First)" — **chưa bao giờ khớp code**; sửa lại ở v1.3.0 (D-24).
 
 ### ARCH-05: Spec-Driven Development (Spec Kit)
 Dự án theo **GitHub Spec Kit / SDD**. THE team SHALL:
-- Tạo `specs/NNN-*/spec.md` **Approved** trước khi plan/code mỗi feature; index ở `specs/README.md`.
+- Tạo `docs/03-Interface-Specs/feature-specs/NNN-*/spec.md` **Approved** trước khi plan/code mỗi feature; index ở `docs/03-Interface-Specs/feature-specs/README.md`.
 - Giữ mỗi spec đủ **9 thành phần**: Context & Goal · Actors · Functional (EARS) · Non-functional · Data Model · API Spec · Error Handling · Acceptance (Given-When-Then) · Out of Scope.
 - Viết Functional Requirements theo **EARS** (Ubiquitous/Event/State/Optional/Unwanted) với ID `FR-*` làm khóa truy vết; code gắn tag `// FR-...`, test map theo `FR-*`/`AC-*`.
 - Theo vòng đời: specify → (clarify) → plan → (checklist/analyze) → tasks → implement. KHÔNG implement khi chưa có spec+plan+tasks.
@@ -105,10 +116,17 @@ Dự án theo **GitHub Spec Kit / SDD**. THE team SHALL:
 
 **Cấm khi chưa được người xác nhận:** xóa file; sửa `CONSTITUTION.md`; push vào `main`; thêm NuGet/npm dependency mới; chạy migration drop/destructive trên DB có dữ liệu.
 
-**Agent PHẢI:** chạy self-check theo Constitution trước khi submit code; cập nhật `CLAUDE.md` khi có quyết định kiến trúc; báo cáo khi gặp edge case không có trong spec thay vì tự đoán; tuân ARCH-05 (đọc `specs/NNN-*/spec.md` trước, gắn tag `// FR-...`, không code ngoài Out of Scope của spec).
+**Agent PHẢI:** chạy self-check theo Constitution trước khi submit code; cập nhật `CLAUDE.md` khi có quyết định kiến trúc; báo cáo khi gặp edge case không có trong spec thay vì tự đoán; tuân ARCH-05 (đọc `docs/03-Interface-Specs/feature-specs/NNN-*/spec.md` trước, gắn tag `// FR-...`, không code ngoài Out of Scope của spec).
 
 ---
 
 **Amendments:**
 - v1.1.0 (2026-05-30) — thêm ARCH-05 (Spec-Driven Development / Spec Kit); chốt Database = SQL Server (D-17). Đồng bộ `.specify/memory/constitution.md`.
 - v1.2.0 (2026-06-01) — nâng runtime **.NET 8 → .NET 10** (ASP.NET Core 10, EF Core 10) để khớp code thực tế (D-18). Đồng bộ `.specify/memory/constitution.md`.
+- v1.3.0 (2026-07-23) — **sửa 2 điều luật mô tả sai code** (D-24), phát hiện khi rà `CONSTITUTION.md` ↔ code:
+  - **ARCH-01**: "Layered + Repository" → **Vertical Slice**, service gọi thẳng `DbContext`. Code chưa bao giờ có tầng Repository.
+  - **ARCH-04**: "EF Core Migration (Code First)" → **Database First**, schema do team DB sở hữu qua script SQL trong `database/`.
+
+  Nguyên tắc áp dụng: **sửa luật cho khớp code**, không sửa code cho khớp luật — code đang chạy production và cả hai lựa chọn đều có lý do thiết kế đã ghi trong `plan.md`. Chi tiết: [`docs/01-SRS-Requirements/constraints/global.md`](docs/01-SRS-Requirements/constraints/global.md) GBL-07/GBL-08. Đồng bộ `.specify/memory/constitution.md`.
+
+> **Luật phải mô tả đúng code.** Điều luật mô tả sai thực tế thì không ai kiểm tra được, và làm hỏng giá trị của toàn bộ Constitution Check trong `plan.md`. Khi phát hiện lệch: xác định bên nào đúng, rồi sửa bên còn lại — đừng để tồn tại song song.

@@ -87,20 +87,20 @@ Tên nghiệp vụ lấy từ `../GymMaster-frontend/docs/design/08_ROUTE_MAP_NA
 
 | Mục RDS | Lấy từ |
 |---|---|
-| I.1.1 Actors | `docs/init/03_SRS_USE_CASES.md` §1 |
-| I.1.2 Use Cases + diagram | `03_SRS_USE_CASES.md` §2 → skill `swp391-diagrams` |
+| I.1.1 Actors | `docs/01-SRS-Requirements/use-cases/srs-use-cases.md` §1 |
+| I.1.2 Use Cases + diagram | `srs-use-cases.md` §2 → skill `swp391-diagrams` |
 | I.2.1 Screens Flow | `../GymMaster-frontend/docs/design/25_SCREEN_FLOW.md` |
 | I.2.2 Screen Descriptions | `../GymMaster-frontend/docs/design/08_ROUTE_MAP_NAVIGATION.md` |
 | I.2.3 Screen Authorization | cột `actor` của `inventory.csv` |
 | I.2.4 Non-UI Functions | VNPay IPN, `MembershipLifecycle` (auto-cancel 30′, lazy Expired) |
-| I.3.1 Database Design | `docs/init/15_DATABASE_SCHEMA.md` (24 bảng) + ERD |
+| I.3.1 Database Design | `docs/02-SDD-Architecture/database-design/database-schema.md` (24 bảng) + ERD |
 | I.3.2 Code Packages | `Features/` (10 package) + `graphify-out/GRAPH_REPORT.md` |
 
 ### Bước 3 — RDS phần II + III, LẶP TỪNG FUNCTION
 
 Với **mỗi** function trong Project Tracking:
 
-1. Đọc spec: `specs/00X-<ten>/spec.md` → lấy FR, error code, acceptance criteria.
+1. Đọc spec: `docs/03-Interface-Specs/feature-specs/00X-<ten>/spec.md` → lấy FR, error code, acceptance criteria.
 2. Đọc code: `Features/<Feature>/<X>Controller.cs` + `<X>Service.cs` → lấy luồng thật.
 3. Điền **II.x — Functional Description** (bảng 15 dòng):
    `UC ID and Name · Created By · Date Created · Primary/Secondary Actor · Trigger ·

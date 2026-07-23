@@ -75,13 +75,13 @@ từng màn hình và cách chúng tích hợp với nhau.
 
 | Template cần | Đã có ở |
 |---|---|
-| Actors | `docs/init/03_SRS_USE_CASES.md` §1 (5 actor) |
-| Use Cases | `docs/init/03_SRS_USE_CASES.md` §2 (30 UC) |
-| Requirements | `docs/init/04_REQUIREMENTS.md` (EARS notation) |
-| DB Schema | `docs/init/15_DATABASE_SCHEMA.md` (24 bảng) |
-| Feature specs | `specs/001-010/spec.md` (Given-When-Then, error code) |
-| Decision log | `docs/init/12_DECISION_LOG.md` (D-01→D-23) |
-| Test plan | `docs/init/09_TEST_PLAN.md` |
+| Actors | `docs/01-SRS-Requirements/use-cases/srs-use-cases.md` §1 (5 actor) |
+| Use Cases | `docs/01-SRS-Requirements/use-cases/srs-use-cases.md` §2 (30 UC) |
+| Requirements | `docs/01-SRS-Requirements/requirements.md` (EARS notation) |
+| DB Schema | `docs/02-SDD-Architecture/database-design/database-schema.md` (24 bảng) |
+| Feature specs | `docs/03-Interface-Specs/feature-specs/001-010/spec.md` (Given-When-Then, error code) |
+| Decision log | `docs/06-Management/decision-log.md` (D-01→D-23) |
+| Test plan | `docs/04-Test-Specs/test-plan.md` |
 | Package/class map | `graphify-out/graph.html` + `GRAPH_REPORT.md` |
 | Screens flow | `../GymMaster-frontend/docs/design/25_SCREEN_FLOW.md`, `26_SWIMLANE_MAIN_FLOWS.md` |
 | Route map | `../GymMaster-frontend/docs/design/08_ROUTE_MAP_NAVIGATION.md` |

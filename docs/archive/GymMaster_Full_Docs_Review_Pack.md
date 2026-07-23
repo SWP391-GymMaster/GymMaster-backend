@@ -16,21 +16,21 @@ Bộ tài liệu này dùng làm bộ SPEC chính cho dự án GymMaster. Phiên
 
 | File | Nội dung |
 |---|---|
-| `docs/init/01_CONTEXT.md` | Bối cảnh, problem statement, goals, stakeholders, assumptions |
-| `docs/init/02_PRODUCT_SCOPE.md` | MVP, core features, secondary features, out-of-scope |
-| `docs/init/03_SRS_USE_CASES.md` | Actors, use cases, use case details |
-| `docs/init/04_REQUIREMENTS.md` | Functional và non-functional requirements |
-| `docs/init/05_DATABASE_SPEC.md` | Bảng chính/phụ, relationship, database priority |
-| `docs/init/06_FEATURE_SPECS.md` | Spec ngắn cho từng module core |
-| `docs/init/07_ROADMAP_RELEASES.md` | Phase, timeline, story point, release version |
-| `docs/init/08_TASKS_BACKLOG.md` | Epic, task backlog, Definition of Ready/Done |
-| `docs/init/09_TEST_PLAN.md` | Test strategy, test cases, UAT, defect log |
-| `docs/init/10_AGENTS.md` | Quy tắc cho AI/coding agents |
-| `docs/init/11_AI_WORKFLOW.md` | Workflow dùng AI cho cả team |
-| `docs/init/12_DECISION_LOG.md` | Decision log / ADR pending |
-| `docs/init/13_TEAM_WORKFLOW.md` | Git flow, PR, meeting, review |
-| `docs/init/14_PROMPT_LIBRARY.md` | Prompt mẫu cho BA, DB, code, test, report |
-| `docs/init/15_DATABASE_SCHEMA.md` | SQL Server + Entity Framework Core schema documentation |
+| `docs/01-SRS-Requirements/01_CONTEXT.md` | Bối cảnh, problem statement, goals, stakeholders, assumptions |
+| `docs/01-SRS-Requirements/02_PRODUCT_SCOPE.md` | MVP, core features, secondary features, out-of-scope |
+| `docs/01-SRS-Requirements/use-cases/03_SRS_USE_CASES.md` | Actors, use cases, use case details |
+| `docs/01-SRS-Requirements/04_REQUIREMENTS.md` | Functional và non-functional requirements |
+| `docs/02-SDD-Architecture/05_DATABASE_SPEC.md` | Bảng chính/phụ, relationship, database priority |
+| `docs/archive/06_FEATURE_SPECS.md` | Spec ngắn cho từng module core |
+| `docs/01-SRS-Requirements/07_ROADMAP_RELEASES.md` | Phase, timeline, story point, release version |
+| `docs/archive/08_TASKS_BACKLOG.md` | Epic, task backlog, Definition of Ready/Done |
+| `docs/04-Test-Specs/09_TEST_PLAN.md` | Test strategy, test cases, UAT, defect log |
+| `docs/06-Management/10_AGENTS.md` | Quy tắc cho AI/coding agents |
+| `docs/06-Management/11_AI_WORKFLOW.md` | Workflow dùng AI cho cả team |
+| `docs/06-Management/12_DECISION_LOG.md` | Decision log / ADR pending |
+| `docs/06-Management/13_TEAM_WORKFLOW.md` | Git flow, PR, meeting, review |
+| `docs/06-Management/14_PROMPT_LIBRARY.md` | Prompt mẫu cho BA, DB, code, test, report |
+| `docs/02-SDD-Architecture/15_DATABASE_SCHEMA.md` | SQL Server + Entity Framework Core schema documentation |
 
 ---
 

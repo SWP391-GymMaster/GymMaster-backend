@@ -1,10 +1,10 @@
 """Dien RDS phan II (Requirement Specifications): moi use case 1 bang 15 dong
-+ 1 bang Business Rules, sinh tu 03_SRS_USE_CASES.md + specs/00X/spec.md.
++ 1 bang Business Rules, sinh tu srs-use-cases.md + docs/03-Interface-Specs/feature-specs/00X/spec.md.
 
 Nguon (khong bia):
-  UC list + chi tiet   <- docs/init/03_SRS_USE_CASES.md
-  Business Rules       <- specs/00X/spec.md muc "3. Functional Requirements (EARS)"
-  Exceptions           <- specs/00X/spec.md muc "7. Error Handling"
+  UC list + chi tiet   <- docs/01-SRS-Requirements/use-cases/srs-use-cases.md
+  Business Rules       <- docs/03-Interface-Specs/feature-specs/00X/spec.md muc "3. Functional Requirements (EARS)"
+  Exceptions           <- docs/03-Interface-Specs/feature-specs/00X/spec.md muc "7. Error Handling"
   Pre/Postconditions   <- muc "8. Acceptance Criteria (Given-When-Then)"
 
 Dung: python fill_rds_usecases.py <rds.docx>
@@ -20,7 +20,7 @@ try:
 except ImportError:
     sys.exit('Thieu python-docx. Chay: uv run --with python-docx python ' + __file__)
 
-UC_MD = Path('docs/init/03_SRS_USE_CASES.md')
+UC_MD = Path('docs/01-SRS-Requirements/use-cases/srs-use-cases.md')
 SPECS = Path('specs')
 
 # UC -> thu muc spec. Suy tu ten UC; cai nao khong khop thi bao ra.
@@ -82,7 +82,7 @@ def read_uc_table():
 
 
 def read_uc_details():
-    """Cac UC co muc chi tiet '## UC-01 — Login' trong 03_SRS_USE_CASES.md."""
+    """Cac UC co muc chi tiet '## UC-01 — Login' trong srs-use-cases.md."""
     t = UC_MD.read_text(encoding='utf-8')
     det = {}
     for m in re.finditer(r'^## (UC-[0-9A-Z]+)\s*[—-]\s*(.+?)$(.*?)(?=^## |\Z)',
@@ -220,11 +220,11 @@ def main():
             normal = '{}.0 {}\n'.format(n, uc['name']) + '\n'.join(
                 '{}. {}'.format(k, s) for k, s in enumerate(steps, 1))
         else:
-            normal = ('{}.0 {}\n[CAN BO SUNG] 03_SRS_USE_CASES.md chua co Main Flow '
+            normal = ('{}.0 {}\n[CAN BO SUNG] srs-use-cases.md chua co Main Flow '
                       'chi tiet cho UC nay.'.format(n, uc['name']))
 
         # Uu tien Exception Flow viet RIENG cho UC nay (suy tu code that trong
-        # 03_SRS_USE_CASES.md). errors_of() tra ve TOAN BO error code cua ca spec,
+        # srs-use-cases.md). errors_of() tra ve TOAN BO error code cua ca spec,
         # ma nhieu UC dung chung mot spec -> nhet het vao la sai: UC-02 Logout tung
         # bi gan "IF credentials sai THEN 401 INVALID_CREDENTIALS" trong khi logout
         # khong he co credentials.
@@ -267,9 +267,9 @@ def main():
             ('Exceptions:', '\n'.join(exc) if exc else 'None'),
             ('Priority:', uc['prio']),
             ('Frequency of Use:', ''),
-            ('Business Rules:', ('[CAN CAT BOT] Toan bo FR cua specs/{}: '.format(sd)
+            ('Business Rules:', ('[CAN CAT BOT] Toan bo FR cua docs/03-Interface-Specs/feature-specs/{}: '.format(sd)
                                  + ', '.join(f[0] for f in frs)) if frs else 'None'),
-            ('Other Information:', 'Spec chi tiet: specs/{}/spec.md'.format(sd) if sd else ''),
+            ('Other Information:', 'Spec chi tiet: docs/03-Interface-Specs/feature-specs/{}/spec.md'.format(sd) if sd else ''),
             ('Assumptions:', '\n'.join(acs[:3]) if acs else ''),
         ]
 

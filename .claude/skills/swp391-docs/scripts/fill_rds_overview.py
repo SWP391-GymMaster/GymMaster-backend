@@ -21,8 +21,8 @@ try:
 except ImportError:
     sys.exit('Thieu python-docx. Chay: uv run --with python-docx python ' + __file__)
 
-UC_MD = Path('docs/init/03_SRS_USE_CASES.md')
-SCHEMA_MD = Path('docs/init/15_DATABASE_SCHEMA.md')
+UC_MD = Path('docs/01-SRS-Requirements/use-cases/srs-use-cases.md')
+SCHEMA_MD = Path('docs/02-SDD-Architecture/database-design/database-schema.md')
 FEATURES = Path('backend/GymMaster.API/Features')
 API = Path('backend/GymMaster.API')
 
@@ -126,7 +126,7 @@ def _from_markdown_table(block):
 
 
 def read_tables():
-    """Bang 2.x trong 15_DATABASE_SCHEMA.md: '## 2.13 `check_ins`' + mo ta."""
+    """Bang 2.x trong database-schema.md: '## 2.13 `check_ins`' + mo ta."""
     t = SCHEMA_MD.read_text(encoding='utf-8')
     out = []
     for m in re.finditer(r'^## 2\.\d+\s+`(\w+)`\s*\n(.+?)(?=\n## |\Z)', t, re.M | re.S):

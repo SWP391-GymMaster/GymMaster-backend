@@ -60,7 +60,7 @@ ROWS = [
      'chu khong nhan ket qua.'),
 
     ('Documentation', 'Sinh 30 bang use case cho RDS', 'Claude Code (Opus 4.8)',
-     '30 bang 15 dong tu 03_SRS_USE_CASES.md + specs/00X/spec.md',
+     '30 bang 15 dong tu srs-use-cases.md + docs/03-Interface-Specs/feature-specs/00X/spec.md',
      'DOC NGUOC file .docx ra kiem tra -> gan nhu MOI O DEU RONG. Nguyen nhan: '
      'o gop trong Word dung chung mot <w:tc>, ghi cells[1] roi xoa cells[2:] la '
      'tu xoa mat chu vua ghi. Them uniq_cells() loc theo id(_tc)',

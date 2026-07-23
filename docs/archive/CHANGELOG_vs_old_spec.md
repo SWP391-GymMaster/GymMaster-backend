@@ -7,7 +7,7 @@
 ## 1. Stack: .NET 8 → **.NET 10** (D-18)
 - Đổi mọi chỗ "ASP.NET Core 8 / EF Core 8" → **"10"** trong toàn bộ docs.
 - `CONSTITUTION.md`: version **1.1.0 → 1.2.0** (+ `.specify/memory/constitution.md` đồng bộ).
-- `docs/init/12_DECISION_LOG.md`: thêm **D-18**. `CLAUDE.md`: thêm **ADR-06**.
+- `docs/06-Management/12_DECISION_LOG.md`: thêm **D-18**. `CLAUDE.md`: thêm **ADR-06**.
 - Code thực tế: `net10.0`, package `Microsoft.*` 10.0.x.
 
 ## 2. Bảo mật / project setup
@@ -22,7 +22,7 @@
 - Endpoint chuẩn hóa base path **`/api/v1/...`** (theo ARCH-02).
 - Code mới: entities (MemberProfile, TrainerProfile, AuditLog) · services (User/Member/Trainer/Audit) · controllers (Users/Members/Trainers + ApiControllerBase) · AuditLog cho mọi action mutating.
 
-## 4. `docs/init/15_DATABASE_SCHEMA.md` — SỬA KHỚP CODE (quan trọng cho team DB)
+## 4. `docs/02-SDD-Architecture/15_DATABASE_SCHEMA.md` — SỬA KHỚP CODE (quan trọng cho team DB)
 Schema cũ (RoleId / TINYINT / PascalCase) **lỗi thời**. Bản mới khớp code:
 - Tên bảng **snake_case** (`users`, `member_profiles`...).
 - `Id` = **BIGINT**.
@@ -47,7 +47,7 @@ Schema cũ (RoleId / TINYINT / PascalCase) **lỗi thời**. Bản mới khớp 
 ## Trạng thái hiện tại (TÓM TẮT)
 - ✅ Spec 001 (Auth) + Spec 002 (User/Member/PT) — code xong, build sạch.
 - ⬜ Chưa có: unit test (DoD ≥80%), Migration (đang connect-only), spec 003–008.
-- ⚠️ Cần làm tiếp: team DB làm lại DB khớp `docs/init/15_DATABASE_SCHEMA.md` mới → trỏ connection string vào → chạy.
+- ⚠️ Cần làm tiếp: team DB làm lại DB khớp `docs/02-SDD-Architecture/15_DATABASE_SCHEMA.md` mới → trỏ connection string vào → chạy.
 
 ## Việc CHƯA giải quyết (nhắc cho session sau)
 1. DB của team (`GymMaster_SQLServer_Final.sql`) còn theo schema CŨ → phải làm lại theo `docs/archive/DB_DIFF_FOR_DBTEAM.md`.

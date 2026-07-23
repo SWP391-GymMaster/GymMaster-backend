@@ -68,7 +68,7 @@ function Get-CurrentBranch {
     }
 
     # For non-git repos, try to find the latest feature directory
-    $specsDir = Join-Path $repoRoot "specs"
+    $specsDir = Join-Path $repoRoot (Join-Path "docs" (Join-Path "03-Interface-Specs" "feature-specs"))
     
     if (Test-Path $specsDir) {
         $latestFeature = ""
@@ -232,13 +232,13 @@ function Test-FeatureJsonMatchesFeatureDir {
     return [string]::Equals($normJson, $normActive, $comparison)
 }
 
-# Resolve specs/<feature-dir> by numeric/timestamp prefix (mirrors scripts/bash/common.sh find_feature_dir_by_prefix).
+# Resolve docs/03-Interface-Specs/feature-specs/<feature-dir> by numeric/timestamp prefix (mirrors scripts/bash/common.sh find_feature_dir_by_prefix).
 function Find-FeatureDirByPrefix {
     param(
         [Parameter(Mandatory = $true)][string]$RepoRoot,
         [Parameter(Mandatory = $true)][string]$Branch
     )
-    $specsDir = Join-Path $RepoRoot 'specs'
+    $specsDir = Join-Path $RepoRoot (Join-Path "docs" (Join-Path "03-Interface-Specs" "feature-specs"))
     $branchName = Get-SpecKitEffectiveBranchName $Branch
 
     $prefix = $null

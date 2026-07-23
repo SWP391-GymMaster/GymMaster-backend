@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""Sinh docs/PHAN_CONG.md — phan cong 5 nguoi theo lat cat doc (FE + BE).
+"""Sinh docs/06-Management/phan-cong.md — phan cong 5 nguoi theo lat cat doc (FE + BE).
 
 Danh sach man hinh / endpoint lay tu out/inventory.csv, KHONG go tay.
 Chay tu thu muc goc GymMaster-backend:
@@ -170,7 +170,7 @@ for n in NHOM:
         w(' + %d function non-UI' % len(n['nonui']))
     w('\n\n')
     w('**Spec phải đọc:** %s\n\n'
-      % ' · '.join('`specs/%s/spec.md`' % s for s in n['specs']))
+      % ' · '.join('`docs/03-Interface-Specs/feature-specs/%s/spec.md`' % s for s in n['specs']))
     w('**Code backend:** %s\n\n'
       % ' · '.join('`backend/GymMaster.API/%s`' % c for c in n['code_be']))
     w('**Code frontend:** %s\n\n' % ' · '.join('`%s`' % c for c in n['code_fe']))
@@ -264,8 +264,8 @@ w('`/staff/payments`) chứ không phải của người nhẹ nhất.\n\n')
 w('**Git history là bằng chứng.** Ai nhận nhóm nào thì commit thật vào nhóm đó —\n')
 w('phân công trên giấy mà git không ghi nhận thì không tính được.\n')
 
-open('docs/PHAN_CONG.md', 'w', encoding='utf-8').write(o.getvalue())
-print('OK -> docs/PHAN_CONG.md')
+open('docs/06-Management/phan-cong.md', 'w', encoding='utf-8').write(o.getvalue())
+print('OK -> docs/06-Management/phan-cong.md')
 print('   %d man / %d endpoint / %d nhom — khong sot, khong trung.'
       % (len(screens), len(apis), len(NHOM)))
 for n in NHOM:

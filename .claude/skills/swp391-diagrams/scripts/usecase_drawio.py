@@ -1,11 +1,11 @@
 """POC: sinh file .drawio (mxGraph XML) chua use case diagram cho tung actor,
-doc truc tiep tu docs/init/03_SRS_USE_CASES.md."""
+doc truc tiep tu docs/01-SRS-Requirements/use-cases/srs-use-cases.md."""
 import re
 import sys
 from pathlib import Path
 from xml.sax.saxutils import escape
 
-SRC = Path('docs/init/03_SRS_USE_CASES.md')
+SRC = Path('docs/01-SRS-Requirements/use-cases/srs-use-cases.md')
 
 ROW = re.compile(r'^\|\s*(UC-[0-9A-Z]+)\s*\|\s*([^|]+?)\s*\|\s*([^|]+?)\s*\|\s*([^|]+?)\s*\|')
 

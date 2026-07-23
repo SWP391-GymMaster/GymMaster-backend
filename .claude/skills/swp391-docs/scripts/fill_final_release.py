@@ -143,7 +143,7 @@ def main():
         (None, '4. Tai khoan demo (seeder tu tao): admin@gymmaster.local/Admin123! · '
                'staff@gymmaster.local/Staff123! · pt@gymmaster.local/Pt123! · '
                'member@gymmaster.local/Member123!'),
-        (None, '5. Deploy: Google Cloud Run + Cloud SQL — xem docs/DEPLOY_GCP.md.'),
+        (None, '5. Deploy: Google Cloud Run + Cloud SQL — xem docs/05-Deployment/deploy-gcp.md.'),
     ])
 
     # --- III. User Manual
