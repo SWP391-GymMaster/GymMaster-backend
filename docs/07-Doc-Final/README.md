@@ -11,6 +11,11 @@ Thư mục này chứa bộ tài liệu chính thức dùng để bàn giao/nộ
 | [GYM_Project Tracking.BAK-2207.xlsx](GYM_Project%20Tracking.BAK-2207.xlsx) | BAK-2207 | `87C6CBAF67ED0C401D865E9547235F61EB8CCDE51560BAD3B21243EFAB59D3F8` |
 | [GYM_Issues Report.BAK-2207.xlsx](GYM_Issues%20Report.BAK-2207.xlsx) | BAK-2207 | `FAD630AF74BFFB473D247EA501C5981DF25BAD21E638DA2E4AAD5CB2F62F6119` |
 
+## Hồ sơ quản lý dự án
+
+- **GYM_Project Tracking.BAK-2207.xlsx** — bảng theo dõi tiến độ dự án: danh sách task, người phụ trách, trạng thái và mốc thời gian theo từng iteration.
+- **GYM_Issues Report.BAK-2207.xlsx** — nhật ký issue: các vấn đề phát sinh trong quá trình phát triển, mức độ ưu tiên và hướng xử lý.
+
 ## Kiểm tra tính toàn vẹn
 
 Đối chiếu mã SHA-256 của các file với `SHA256SUMS.txt` trước khi phát hành hoặc bàn giao.
