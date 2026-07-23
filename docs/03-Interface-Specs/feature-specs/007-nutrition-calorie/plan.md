@@ -40,7 +40,7 @@ Nhật ký ăn uống nhập tay (ADR-04) + tính calo/macro theo ngày so với
 | GBL-02 — không lặp business rule | ✅ PASS | dùng lại `MembershipLifecycle` (003) cho tier free, cửa quyền PT (005) |
 | GBL-04 — kiểm quyền ở Service layer | ✅ PASS | `NutritionService` |
 | GBL-01 — ngày nghiệp vụ theo giờ VN | ✅ PASS | `AppClock` cho `LogDate` và `EffectiveDate` |
-| SAFE-03 — dữ liệu lịch sử phải snapshot | ⚠️ PARTIAL | **calo** đã snapshot; **macro** vẫn đọc live từ `food_items` — xem [Complexity Tracking](#8-complexity-tracking) |
+| SAFE-03 — chỉ số dùng để tính toán phải snapshot | ✅ PASS | `meal_log_items.Calories` snapshot đúng NFR-02 (AC-06). Macro đọc live là hành vi đã đặc tả; cải tiến ở B-01 |
 | ARCH-02 — wrapper `ApiResponse<T>` / `PagedResult<T>` | ✅ PASS | mọi action |
 
 ## 4. Project Structure

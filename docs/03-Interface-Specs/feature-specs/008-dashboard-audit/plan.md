@@ -36,7 +36,7 @@ Nguyên tắc xuyên suốt: **số liệu tính từ dữ liệu thật, không
 
 | Điều luật | Trạng thái | Bằng chứng |
 |---|---|---|
-| AUDIT-01 — mọi hành động mutating quan trọng phải ghi audit | ✅ PASS | **34 action** trên 13 service — xem [danh sách đầy đủ](#71-các-action-audit-đang-được-ghi). Ngoại lệ có chủ ý duy nhất: login/logout/refresh (spec 001, xem `001-auth-rbac/plan.md` §8) |
+| AUDIT-01 — mọi hành động mutating quan trọng phải ghi audit | ✅ PASS | **36 action** trên 15 service — xem [danh sách đầy đủ](#71-các-action-audit-đang-được-ghi). Ngoại lệ có chủ ý duy nhất: login/logout/refresh (spec 001, xem `001-auth-rbac/plan.md` §8) |
 | SAFE-01 — audit log append-only, không sửa/xoá qua API | ✅ PASS | chỉ có endpoint `GET /audit-logs`; `IAuditService` chỉ có hàm ghi (NFR-03) |
 | SAFE-02 — không ghi mật khẩu/token/PII đầy đủ vào metadata | ✅ PASS | metadata chỉ chứa id + trường nghiệp vụ (FR-AUD-03) |
 | GBL-05 — `UserId` lấy từ JWT claim | ✅ PASS | `AuditService` đọc qua `IHttpContextAccessor` |
@@ -131,7 +131,7 @@ GET /api/v1/audit-logs?userId=&action=&from=&to=&search=&page=   [Admin]
 
 ### 7.1. Các action audit đang được ghi
 
-**34 action / 13 service:**
+**36 action / 15 service:**
 
 | Slice | Service | Action |
 |---|---|---|
@@ -141,11 +141,11 @@ GET /api/v1/audit-logs?userId=&action=&from=&to=&search=&page=   [Admin]
 | | `TrainerService` | `CREATE_TRAINER` · `UPDATE_TRAINER` |
 | 003 Billing | `MembershipPackageService` | `CREATE_PACKAGE` · `UPDATE_PACKAGE` |
 | | `MembershipService` | `SELL_MEMBERSHIP` · `CONFIRM_PAYMENT` · `RENEW_MEMBERSHIP` · `REQUEST_RENEWAL` · `CANCEL_MEMBERSHIP` |
-| 004 Check-in | `CheckInService` | `CREATE_CHECKIN` |
+| 004 Check-in | `CheckInService` | `CREATE_CHECKIN` *(quầy + PT check-in hộ)* |
 | 005 PT | `AssignmentService` | `ASSIGN_PT` |
 | | `WorkoutPlanService` | `CREATE_WORKOUT_PLAN` · `UPDATE_WORKOUT_PLAN` · `DELETE_WORKOUT_PLAN` |
 | | `TrainerNoteService` | `CREATE_TRAINER_NOTE` · `UPDATE_TRAINER_NOTE` · `DELETE_TRAINER_NOTE` |
-| 006 Progress | `ProgressService` | *(có ghi — 1 lời gọi)* |
+| 006 Progress | `ProgressService` | `CREATE_PROGRESS` · `UPDATE_PROGRESS` |
 | 007 Nutrition | `NutritionService` | `CREATE_MEAL_LOG` · `SET_CALORIE_TARGET` |
 | | `FoodItemService` | `CREATE_FOOD` |
 | 009 Food AI | `FoodScanService` | `CONFIRM_AI_FOOD` |

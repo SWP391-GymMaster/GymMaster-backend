@@ -37,7 +37,7 @@ Ghi nhận lượt đến phòng tập — bảng dữ liệu đơn giản nhấ
 | GBL-02 — không lặp business rule | ✅ PASS | dùng lại `Features/Billing/MembershipLifecycle.cs` của spec 003, không tự viết lại "gói còn hạn" |
 | GBL-01 — ngày nghiệp vụ theo giờ VN | ✅ PASS | `AppClock` cho khung ngày; lưu UTC |
 | GBL-06 — quy tắc vận hành thay đổi được không cần build lại | ✅ PASS | `CheckInOptions` bind từ configuration |
-| AUDIT-01 — hành động quan trọng ghi AuditLog | ⚠️ N/A | bản thân bảng `check_ins` đã là nhật ký (có `CreatedBy`); không ghi thêm audit trùng lặp |
+| AUDIT-01 — hành động quan trọng ghi AuditLog | ✅ PASS | `CheckInService` ghi `CREATE_CHECKIN` ở cả 2 đường (quầy và PT check-in hộ) |
 
 ## 4. Project Structure
 

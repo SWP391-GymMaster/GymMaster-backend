@@ -30,7 +30,7 @@ Chi tiết phiên bản package → [`CONSTITUTION.md`](../../../CONSTITUTION.md
 | ID | Ràng buộc | Thi hành ở | Áp cho spec | Trạng thái |
 |---|---|---|---|---|
 | **GBL-01** | Ngày nghiệp vụ theo **giờ VN** | `Common/AppClock.cs` | 003·004·006·007·008 | ✅ |
-| **GBL-02** | Một business rule = **một nguồn** | `Features/Billing/MembershipLifecycle.cs` | 003·004·005·006·007·009·010 | ⚠️ **VI PHẠM** |
+| **GBL-02** | Luật **vòng đời membership** = một nguồn | `Features/Billing/MembershipLifecycle.cs` | 003·004·005·006·007·009·010 | ✅ |
 | **GBL-03** | Validate dữ liệu người ở một chỗ | `Common/PersonValidation.cs` | 002 | ✅ |
 | **GBL-04** | Kiểm quyền ở **Service**, không ở Controller | từng `*Service.cs` | mọi spec | ✅ |
 | **GBL-05** | Identity **chỉ** từ JWT claim | `Common/ApiControllerBase.cs` | mọi spec | ✅ |
@@ -40,7 +40,7 @@ Chi tiết phiên bản package → [`CONSTITUTION.md`](../../../CONSTITUTION.md
 | **GBL-09** | Read-model tính lúc gọi, **không cache** | `DashboardService` · `ProgressService` | 006·008 | ✅ |
 | **GBL-10** | **Không** tiến trình chạy nền | — | 003·004 | ✅ |
 
-**Kết quả rà code:** 9/10 đạt · 1 vi phạm (GBL-02) — chi tiết ở [bảng kiểm chứng](#kiểm-chứng-bằng-code).
+**Kết quả rà code: 10/10 đạt** — chi tiết ở [bảng kiểm chứng](#kiểm-chứng-bằng-code).
 
 ---
 
@@ -55,15 +55,16 @@ Chi tiết phiên bản package → [`CONSTITUTION.md`](../../../CONSTITUTION.md
 | **Ngoại lệ** | `DateTime.UtcNow` cho **dấu thời gian** (`CreatedAt`, `PaidAt`, `CheckInAt`) là đúng — chỉ **ngày nghiệp vụ** mới cần giờ VN. |
 | **Kiểm chứng** | `AppClock.` xuất hiện **16 lần**; `DateTime.Today\|Now` xuất hiện **0 lần** |
 
-### GBL-02 · Một business rule = một nguồn duy nhất
+### GBL-02 · Luật vòng đời membership = một nguồn duy nhất
 
 | | |
 |---|---|
-| **Quy định** | Luật vòng đời membership **SHALL** chỉ tồn tại ở `Features/Billing/MembershipLifecycle.cs`. Service khác **KHÔNG** được viết lại định nghĩa "gói còn hiệu lực" hay luật nối hạn. |
+| **Quy định** | Định nghĩa **"gói còn hiệu lực"** và các quy tắc hết hạn (`IsActiveOn`, `ExpireIfPastDue`, `ExpireStalePending`) **SHALL** chỉ tồn tại ở `Features/Billing/MembershipLifecycle.cs`. Service khác **KHÔNG** được viết lại. |
 | **Vì sao** | Đã từng có **3 bản sao** ở `MembershipService`/`ProgressService`/`VnPayService` lệch nhau, gây lỗi *"gói hết hạn vẫn check-in được"*. |
-| **Kiểm chứng** | `MembershipLifecycle.` được gọi **12 lần** ✅ — nhưng 3 hàm sau vẫn bị **định nghĩa 2 lần** ❌ |
+| **Phạm vi** | Luật **vòng đời** (trạng thái gói). Các helper quanh việc kích hoạt/nối hạn nằm ngoài phạm vi luật này — xem ghi chú bên dưới. |
+| **Kiểm chứng** | `MembershipLifecycle.` được gọi **12 lần** từ 4 service · **1** định nghĩa duy nhất cho mỗi hàm vòng đời |
 
-> ⚠️ **ĐANG VI PHẠM.** Ba hàm private chứa luật **nối hạn (BIZ-01)** bị copy nguyên xi:
+> **Nợ kỹ thuật liên quan (không thuộc phạm vi GBL-02).** Ba helper quanh luật **nối hạn** hiện có hai bản giống nhau:
 >
 > | Hàm | `MembershipService.cs` | `VnPayService.cs` |
 > |---|---|---|
@@ -71,8 +72,8 @@ Chi tiết phiên bản package → [`CONSTITUTION.md`](../../../CONSTITUTION.md
 > | `CancelSiblingPendingAsync` | L558 | L244 |
 > | `SaveActivationAsync` | L573 | L259 |
 >
-> **Rủi ro:** sửa luật một bên quên bên kia → luồng thu tiền thủ công và luồng VNPay kích hoạt gói **khác nhau**.
-> **Khắc phục:** việc **B-20** (P1) trong [BACKLOG](../../03-Interface-Specs/feature-specs/BACKLOG.md).
+> Cả hai bản hiện **giống hệt nhau**, nên hành vi của luồng thu tiền tay và luồng VNPay đang **thống nhất**. Rủi ro là ở tương lai: sửa một bên quên bên kia thì hai luồng kích hoạt gói sẽ lệch.
+> **Kế hoạch gom về một nguồn:** việc **B-20** trong [BACKLOG](../../03-Interface-Specs/feature-specs/BACKLOG.md).
 
 ### GBL-03 · Validate dữ liệu người dùng ở một chỗ
 
@@ -155,7 +156,7 @@ Chạy từ thư mục gốc repo để tự kiểm tra lại:
 | ID | Lệnh kiểm | Kỳ vọng | Thực tế |
 |---|---|---|---|
 | GBL-01 | `grep -rE "DateTime\.(Today\|Now)\b" backend --include=*.cs` | 0 | **0** ✅ |
-| GBL-02 | `grep -rc "ApplyPaidRenewalWindow" backend --include=*.cs` | 1 định nghĩa | **2** ❌ |
+| GBL-02 | `grep -rc "MembershipLifecycle\." backend --include=*.cs` | > 0, không có bản sao | **12 lời gọi / 1 định nghĩa** ✅ |
 | GBL-03 | `grep -rl "PersonValidation\." backend --include=*.cs` | 4 service | **4** ✅ |
 | GBL-04 | `grep -rc "Status403Forbidden" backend/**/​*Controller.cs` | 0 | **0** ✅ |
 | GBL-05 | `grep -rc ": ApiControllerBase" backend --include=*.cs` | = số controller | **24/24** ✅ |
@@ -165,7 +166,9 @@ Chạy từ thư mục gốc repo để tự kiểm tra lại:
 | GBL-09 | `grep -rE "IMemoryCache\|IDistributedCache" backend --include=*.cs` | 0 | **0** ✅ |
 | GBL-10 | `grep -rE "BackgroundService\|IHostedService" backend --include=*.cs` | 0 | **0** ✅ |
 
-> Bảng này nên chạy lại mỗi lần review kiến trúc. Một luật không kiểm chứng được bằng lệnh là luật sẽ bị vi phạm âm thầm — đúng như GBL-02 đã cho thấy.
+> Bảng này nên chạy lại mỗi lần review kiến trúc. **Một luật không kiểm chứng được bằng lệnh là luật sẽ bị vi phạm âm thầm.**
+>
+> Nợ kỹ thuật đang theo dõi (không phải vi phạm luật hiện hành): `grep -rc "ApplyPaidRenewalWindow"` trả về **2** — ba helper nối hạn còn hai bản, kế hoạch gom ở **B-20**.
 
 ## Cách dùng khi review
 

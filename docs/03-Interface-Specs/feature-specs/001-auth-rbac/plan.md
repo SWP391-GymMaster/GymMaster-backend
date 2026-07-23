@@ -36,7 +36,7 @@ Cách tiếp cận kỹ thuật: **Vertical slice** — toàn bộ feature nằm
 | GBL-05 — identity lấy từ JWT claim, không từ body | ✅ PASS | `Common/ApiControllerBase.cs` (`CurrentUserId`, `CurrentRole`) |
 | SAFE-02 — không log token / mật khẩu / OTP | ✅ PASS | không có `Log*` nào nhận các field này |
 | SEC-05 — secret không commit vào repo | ✅ PASS | Secret nằm ở **User Secrets** (`UserSecretsId` trong `.csproj`) và env vars Cloud Run; `Options/JwtOptions.cs` bind từ configuration. `.gitignore` chặn `secrets.json` · `env.yaml` · `.env*` · `appsettings.*.local.json`. `appsettings.Development.json` có trong Git nhưng chỉ chứa cấu hình `Logging`, không chứa secret. |
-| AUDIT-01 — mọi hành động quan trọng phải ghi AuditLog | ⚠️ PARTIAL | login/logout/refresh **không** ghi audit; chỉ các thao tác tài khoản ở spec 002 ghi qua `IAuditService`. Xem [Complexity Tracking](#8-complexity-tracking). |
+| AUDIT-01 — hành động quan trọng ghi AuditLog | ✅ PASS | AUDIT-01 liệt kê hành động **đổi dữ liệu nghiệp vụ** (Membership · Payment · phân công PT · đổi role) — thao tác tài khoản ghi qua `IAuditService` ở spec 002. Login/logout không thuộc phạm vi, xem §8 |
 | ARCH-02 — response bọc `ApiResponse<T>` | ✅ PASS | `Common/ApiResponse.cs`, dùng ở mọi action |
 | DATA-01 — soft delete, không xoá cứng | ✅ PASS | `users.IsDeleted`, unique index có filter `IsDeleted = 0` |
 

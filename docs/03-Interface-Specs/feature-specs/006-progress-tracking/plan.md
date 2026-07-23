@@ -41,7 +41,7 @@ Hai nghiệp vụ khác bản chất nhưng dùng chung một service:
 | GBL-04 — kiểm quyền ở Service layer | ✅ PASS | `ProgressService` |
 | GBL-01 — ngày nghiệp vụ theo giờ VN | ✅ PASS | `AppClock` cho quy tắc "1 ngày = 1 bản ghi" và chặn ngày tương lai |
 | ARCH-02 — wrapper `ApiResponse<T>` | ✅ PASS | mọi action |
-| AUDIT-01 — hành động quan trọng ghi AuditLog | ⚠️ N/A | `progress_logs` có `CreatedByUserId`, tự nó là nhật ký |
+| AUDIT-01 — hành động quan trọng ghi AuditLog | ✅ PASS | `ProgressService` ghi `CREATE_PROGRESS` / `UPDATE_PROGRESS` |
 | DATA-01 — không xoá cứng | ✅ N/A | feature không có endpoint xoá |
 
 ## 4. Project Structure

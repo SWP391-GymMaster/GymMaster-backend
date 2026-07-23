@@ -38,7 +38,7 @@ Nguồn doanh thu chính của hệ thống: quản lý gói tập mẫu → bá
 | BIZ-06 — mọi giao dịch có người thực hiện | ✅ PASS | `CreatedByUserId` lấy từ JWT claim |
 | AUDIT-01 — hành động quan trọng ghi AuditLog | ✅ PASS | `IAuditService` trong `MembershipService`, `PaymentService` |
 | ARCH-02 — wrapper `ApiResponse<T>` / `PagedResult<T>` | ✅ PASS | mọi action |
-| GBL-02 — không lặp business rule ở nhiều service | ⚠️ **PARTIAL** | `MembershipLifecycle.cs` đã gom luật vòng đời ✅ — nhưng `ApplyPaidRenewalWindow` / `CancelSiblingPendingAsync` / `SaveActivationAsync` vẫn **trùng với `VnPayService.cs`** → việc **B-20** |
+| GBL-02 — luật vòng đời membership một nguồn | ✅ PASS | `MembershipLifecycle.cs` — 1 định nghĩa, 12 lời gọi. *(Helper nối hạn còn 2 bản giống hệt nhau, kế hoạch gom ở B-20.)* |
 | GBL-01 — nghiệp vụ theo ngày dùng giờ VN | ✅ PASS | `AppClock` |
 | DATA-01 — không xoá cứng | ✅ PASS | huỷ = đổi `Status` sang `Cancelled`, không DELETE |
 

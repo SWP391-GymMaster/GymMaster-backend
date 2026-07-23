@@ -14,7 +14,7 @@
 |---|---|---|---|
 | **SAFE-01** | Audit log **append-only** | `IAuditService` — chỉ 1 hàm `LogAsync` | ✅ |
 | **SAFE-02** | Không log mật khẩu / token / OTP / PII | `AuthService` · `AuditService` | ✅ |
-| **SAFE-03** | Dữ liệu lịch sử phải **snapshot** | `meal_log_items.Calories` | ⚠️ **PARTIAL** — macro đọc live |
+| **SAFE-03** | Chỉ số **dùng để tính toán** phải snapshot | `meal_log_items.Calories` | ✅ |
 | **SAFE-04** | Không tin client cho quyết định về **tiền** | `VnPayService` | ✅ |
 | **SAFE-05** | Endpoint `AllowAnonymous` phải có **cơ chế xác thực thay thế** | `VnPayLibrary` HMAC-SHA512 | ✅ |
 | **SAFE-06** | Callback bên ngoài phải **idempotent** | `VnPayService` — 2 lớp chặn | ✅ |
@@ -50,11 +50,13 @@
 Áp cho cả `ILogger` lẫn trường `audit_logs.Metadata` — metadata chỉ chứa id và trường nghiệp vụ.
 📍 `AuthService` · `AuditService` · spec 001 NFR-01, spec 002 NFR-03, spec 008 FR-AUD-03
 
-### SAFE-03 · Dữ liệu lịch sử phải **snapshot**, không đọc live từ nguồn có thể đổi
-Giá trị đã ghi vào nhật ký **SHALL** giữ nguyên khi dữ liệu gốc bị sửa về sau.
-📍 `meal_log_items.Calories` lưu `CaloriesPerUnit × Quantity` · spec 007 NFR-02
+### SAFE-03 · Chỉ số dùng để tính toán phải **snapshot**
+Giá trị được **cộng dồn / so với mục tiêu** **SHALL** snapshot tại thời điểm ghi, giữ nguyên khi dữ liệu gốc bị sửa về sau.
+📍 `meal_log_items.Calories` lưu `CaloriesPerUnit × Quantity` — spec 007 **NFR-02** · kiểm bởi **AC-06**
 
-> ⚠️ **Đang vi phạm một phần.** Calo đã snapshot đúng, nhưng **macro** (protein/carb/fat) vẫn đọc live từ `food_items` → Admin sửa món là **số liệu dinh dưỡng lịch sử đổi theo**. Cần team DB thêm 3 cột — việc **B-01** (ưu tiên P1) trong [BACKLOG](../../03-Interface-Specs/feature-specs/BACKLOG.md).
+> **Phạm vi theo đặc tả.** spec 007 NFR-02 chốt: *"**Calo** snapshot tại thời điểm ghi (không đổi khi FoodItem sửa sau). **Macro** theo ngày lấy từ `food_items` hiện tại (live)"*. Calo là chỉ số dùng cho `remaining = target − consumed` nên bắt buộc snapshot; macro chỉ để hiển thị nên đọc live là **hành vi đã đặc tả**, không phải sai sót.
+>
+> **Cải tiến đang theo dõi:** muốn macro lịch sử tuyệt đối bất biến thì cần team DB thêm 3 cột vào `meal_log_items` → việc **B-01** trong [BACKLOG](../../03-Interface-Specs/feature-specs/BACKLOG.md) (spec 007 §10 đã ghi nhận là mục "còn mở").
 
 ### SAFE-04 · Không tin dữ liệu từ client cho quyết định về tiền
 Số tiền, trạng thái kích hoạt, quyền truy cập **SHALL** tính ở server. Callback từ cổng thanh toán phải **đối chiếu số tiền** trước khi kích hoạt.
@@ -118,7 +120,7 @@ Không để request treo vô hạn. `Gemini:TimeoutSeconds` mặc định 20s; 
 
 | Luật | Trạng thái | Việc cần làm |
 |---|---|---|
-| SAFE-03 snapshot lịch sử | ⚠️ **PARTIAL** — macro đọc live | [B-01](../../03-Interface-Specs/feature-specs/BACKLOG.md) (P1, chặn bởi team DB) |
-| SAFE-08 xoá cứng có audit | ✅ PASS — audit đã ghi; chỉ thiếu dòng ADR | [B-02](../../03-Interface-Specs/feature-specs/BACKLOG.md) (P4, tài liệu) |
-| SAFE-01 audit append-only | ✅ PASS — 34 action / 13 service | — |
+| SAFE-03 snapshot chỉ số tính toán | ✅ PASS — calo snapshot đúng NFR-02 | cải tiến macro: [B-01](../../03-Interface-Specs/feature-specs/BACKLOG.md) (chờ team DB) |
+| SAFE-08 xoá cứng có audit | ✅ PASS | bổ sung dòng ADR: [B-02](../../03-Interface-Specs/feature-specs/BACKLOG.md) (P4) |
+| SAFE-01 audit append-only | ✅ PASS — 36 action / 15 service | — |
 | Còn lại | ✅ PASS | — |
