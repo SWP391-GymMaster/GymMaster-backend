@@ -1,6 +1,6 @@
 # 07 — Doc Final
 
-Thư mục này chứa bộ tài liệu Word chính thức dùng để bàn giao/nộp môn của dự án GymMaster.
+Thư mục này chứa bộ tài liệu chính thức dùng để bàn giao/nộp môn của dự án GymMaster: đặc tả dạng Word (RDS/SRS, SDS) và hồ sơ quản lý dự án dạng Excel (theo dõi tiến độ, báo cáo issue).
 
 ## Danh mục
 
