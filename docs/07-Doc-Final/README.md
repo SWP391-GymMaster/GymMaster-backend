@@ -6,6 +6,7 @@ Thư mục này chứa bộ tài liệu Word chính thức dùng để bàn giao
 
 | Tài liệu | Phiên bản | SHA-256 |
 |---|---|---|
+| [GymMaster_RDS_SRS.docx](GymMaster_RDS_SRS.docx) | Final | `AD7FEC345AF5F19B589A7037A77F6484B1348FA1838B1B41AA62A6E6118EA8F0` |
 
 ## Kiểm tra tính toàn vẹn
 
