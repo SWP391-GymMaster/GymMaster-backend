@@ -44,7 +44,7 @@ description: "Task list — Operations Dashboard & Audit Log"
 - [X] T011 [US1] Cắm vào `FoodScanService` (spec 009) và `VnPayService` (spec 010)
 - [X] T012 [US1] Quy ước dựng metadata: **chỉ id + trường nghiệp vụ**, không mật khẩu/token/PII đầy đủ → **FR-AUD-03**
 - [X] T013 [US1] `UserId = null` cho hành động do hệ thống thực hiện (VNPay IPN, member tự check-in) → D-807
-- [X] T014 [US1] Cắm audit cho **giáo án + ghi chú** (spec 005) — `WorkoutPlanService` và `TrainerNoteService` đều inject `IAuditService`, ghi đủ 6 action `CREATE/UPDATE/DELETE`. **AUDIT-01 phủ đủ: 34 action / 13 service** (xem `plan.md` §7.1)
+- [X] T014 [US1] Cắm audit cho **giáo án + ghi chú** (spec 005) — `WorkoutPlanService` và `TrainerNoteService` đều inject `IAuditService`, ghi đủ 6 action `CREATE/UPDATE/DELETE`. AUDIT-01 phủ đủ **34 action / 13 service** (xem `plan.md` §7.1)
 
 ---
 

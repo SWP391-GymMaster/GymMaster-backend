@@ -1,8 +1,7 @@
 # GymMaster — Backlog kỹ thuật (agent-executable)
 
-**Lập ngày**: 2026-07-23 · **Nguồn**: rút từ các task `[ ]` trong `docs/03-Interface-Specs/feature-specs/*/tasks.md` khi đối chiếu spec ↔ code
+**Phiên bản**: 1.0 · **Nguồn**: các task `[ ]` trong `feature-specs/*/tasks.md`
 **Tổng**: 18 mục còn mở · **Trạng thái code**: đang chạy production, không mục nào là blocker
-**Cập nhật 2026-07-23 (lần 2):** rà lại code phát hiện **B-02 và B-19 không còn hiệu lực như mô tả ban đầu** — xem [mục Đã đóng](#đã-đóng).
 
 > **File này dùng để làm gì.** `tasks.md` của mỗi feature là **bản ghi as-built** (hầu hết `[X]`), không chạy `/speckit-implement` được. File này gom **phần còn nợ** — mỗi mục có đủ file path, lý do và điều kiện hoàn thành để giao thẳng cho agent theo vòng B3 Implement trong [`docs/06-Management/ai-workflow.md`](../../06-Management/ai-workflow.md).
 >
@@ -12,15 +11,10 @@
 
 ## Đã đóng
 
-### ✅ B-19 · `CONSTITUTION.md` ARCH-01 / ARCH-04 mô tả sai code — **xong 2026-07-23**
-Hai điều luật Layer 2 chưa bao giờ khớp code: ARCH-01 đòi tầng Repository (không tồn tại), ARCH-04 đòi EF Core Migration (dự án dùng SQL script do team DB sở hữu).
-**Đã xử lý theo hướng sửa luật cho khớp code:** `CONSTITUTION.md` → **v1.3.0** (ARCH-01 = Vertical Slice, ARCH-04 = Database First) · ADR **D-24** trong [decision-log.md](../../06-Management/decision-log.md) · đồng bộ `.specify/memory/constitution.md` · gỡ cảnh báo ở [global.md](../../01-SRS-Requirements/constraints/global.md) GBL-07/GBL-08.
-> ⚠️ `CONSTITUTION.md` quy định thay đổi cần **đồng thuận toàn team** — bản sửa này cần được team xác nhận lại trong buổi họp gần nhất.
-
-### ✅ B-02 · "Giáo án + ghi chú chưa ghi AuditLog" — **là lỗi tài liệu, không phải lỗi code**
-Rà code 2026-07-23: `WorkoutPlanService` **đã ghi** `CREATE/UPDATE/DELETE_WORKOUT_PLAN`, `TrainerNoteService` **đã ghi** `CREATE/UPDATE/DELETE_TRAINER_NOTE`. Tổng cộng **34 action audit / 13 service** — AUDIT-01 phủ đủ.
-Bản tài liệu đầu tiên (2026-07-23) khẳng định nhầm là thiếu; đã đính chính ở `005-pt-training/{plan,tasks}.md`, `008-dashboard-audit/{plan,tasks}.md` (thêm §7.1 liệt kê đủ 34 action), và `constraints/safety.md` SAFE-08.
-Phần **thực sự** còn thiếu chỉ là một dòng ADR ghi nhận ngoại lệ DATA-01 → đã hạ xuống **P4 (B-02)**.
+### ✅ B-19 · `CONSTITUTION.md` ARCH-01 / ARCH-04 mô tả sai code
+Hai điều luật Layer 2 không khớp code: ARCH-01 đòi tầng Repository (không tồn tại), ARCH-04 đòi EF Core Migration (dự án dùng SQL script do team DB sở hữu).
+**Xử lý theo hướng sửa luật cho khớp code:** `CONSTITUTION.md` → **v1.3.0** (ARCH-01 = Vertical Slice, ARCH-04 = Database First) · ADR **D-24** trong [decision-log.md](../../06-Management/decision-log.md) · đồng bộ `.specify/memory/constitution.md`.
+> ⚠️ `CONSTITUTION.md` quy định thay đổi cần **đồng thuận toàn team** — bản sửa này cần được team xác nhận trong buổi họp gần nhất.
 
 ---
 
@@ -40,7 +34,7 @@ Phần **thực sự** còn thiếu chỉ là một dòng ADR ghi nhận ngoại
 - **Chặn bởi**: team DB (không tự làm được ở tầng backend).
 
 ### B-20 · Ba hàm nghiệp vụ bị **copy nguyên xi** giữa `MembershipService` và `VnPayService`
-- **Nguồn**: [feat_flow/membership_billing_feature_analysis.md §8](../../02-SDD-Architecture/feat_flow/membership_billing_feature_analysis.md) (phát hiện 2026-07-23 khi đọc code)
+- **Nguồn**: [feat_flow/membership_billing_feature_analysis.md §8](../../02-SDD-Architecture/feat_flow/membership_billing_feature_analysis.md) 
 - **Vấn đề**: 3 hàm private **giống hệt nhau từng dòng**, chứa luật **nối hạn (BIZ-01)**:
 
   | Hàm | `MembershipService.cs` | `VnPayService.cs` |

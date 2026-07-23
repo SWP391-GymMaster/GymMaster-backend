@@ -61,7 +61,7 @@ Schema DB **do team Database sở hữu**, không do backend sinh ra. THE backen
 - Entity EF Core phải **khớp schema có sẵn**; lệch nhau thì sửa entity, không sửa DB.
 - **Hệ quả cần biết khi lập kế hoạch:** mọi việc cần cột mới đều **bị chặn bởi team DB** — phải đặt yêu cầu sớm (vd `meal_log_items` snapshot macro, `payments.provider_ref`).
 
-> Điều luật này mô tả đúng cách dự án vận hành từ đầu. Bản v1.2.0 trở về trước ghi "EF Core Migration (Code First)" — **chưa bao giờ khớp code**; sửa lại ở v1.3.0 (D-24).
+> Điều luật này mô tả đúng cách dự án vận hành từ đầu; bản trước v1.3.0 ghi "EF Core Migration (Code First)" không khớp thực tế (D-24).
 
 ### ARCH-05: Spec-Driven Development (Spec Kit)
 Dự án theo **GitHub Spec Kit / SDD**. THE team SHALL:

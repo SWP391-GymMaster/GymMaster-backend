@@ -1,10 +1,8 @@
 # Implementation Plan: User, Staff, PT & Member Management
 
 **Feature Branch**: `002-member-management` | **Date**: 2026-07-23 | **Spec**: [spec.md](spec.md)
-**Status**: `Implemented` — **as-built plan** (đồng bộ ngược từ code đang chạy)
+**Status**: `Implemented`
 **Input**: `docs/03-Interface-Specs/feature-specs/002-member-management/spec.md`
-
-> Tài liệu mô tả kiến trúc **đã triển khai**, không phải thiết kế dự kiến. Mọi đường dẫn là file có thật.
 
 ---
 

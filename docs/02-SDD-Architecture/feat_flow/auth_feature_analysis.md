@@ -1,6 +1,6 @@
 # Phân tích luồng: Authentication & RBAC (spec 001)
 
-**Ngày phân tích:** 2026-07-23 · **Nguồn:** đọc trực tiếp `Features/Auth/AuthService.cs` (~760 dòng)
+**Phiên bản:** 1.0 · **Phạm vi:** `backend/GymMaster.API/Features/Auth/`
 **Spec:** [001-auth-rbac](../../03-Interface-Specs/feature-specs/001-auth-rbac/spec.md) · [plan](../../03-Interface-Specs/feature-specs/001-auth-rbac/plan.md)
 
 > Feature nền tảng: **9/10 feature còn lại** phụ thuộc identity và role lấy từ đây.

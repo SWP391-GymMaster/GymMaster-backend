@@ -1,10 +1,8 @@
 # Implementation Plan: Membership Packages, Sell, Renew & Payment
 
 **Feature Branch**: `003-membership-billing` | **Date**: 2026-07-23 | **Spec**: [spec.md](spec.md)
-**Status**: `Implemented` — **as-built plan** (đồng bộ ngược từ code đang chạy)
+**Status**: `Implemented`
 **Input**: `docs/03-Interface-Specs/feature-specs/003-membership-billing/spec.md`
-
-> Tài liệu mô tả kiến trúc **đã triển khai**. Thanh toán online VNPay là phần mở rộng ở [spec 010](../010-online-payment-vnpay/plan.md), không thay thế luồng thủ công ở đây.
 
 ---
 

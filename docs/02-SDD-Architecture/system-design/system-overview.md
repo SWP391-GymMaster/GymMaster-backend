@@ -1,6 +1,6 @@
 # Kiến trúc tổng thể — GymMaster Backend
 
-**Cập nhật:** 2026-07-23 · **Nguồn:** rà từ code thật (`backend/GymMaster.API/`)
+**Phiên bản:** 1.0 · **Phạm vi:** `backend/GymMaster.API/`
 **Quy mô:** 10 slice · 24 controller · 19 service · 23 entity · ~85 endpoint
 
 > Tài liệu này trả lời: *hệ thống gồm những mảnh nào, mảnh nào phụ thuộc mảnh nào, một request đi qua đâu.*

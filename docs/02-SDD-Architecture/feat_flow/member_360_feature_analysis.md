@@ -1,6 +1,6 @@
 # Phân tích luồng: Member 360° (spec 006)
 
-**Ngày phân tích:** 2026-07-23 · **Nguồn:** đọc trực tiếp `Features/Training/ProgressService.cs`
+**Phiên bản:** 1.0 · **Phạm vi:** `backend/GymMaster.API/Features/Training/`
 **Spec:** [006-progress-tracking](../../03-Interface-Specs/feature-specs/006-progress-tracking/spec.md) · [plan](../../03-Interface-Specs/feature-specs/006-progress-tracking/plan.md)
 
 > **Điểm tích hợp lớn nhất hệ thống** — một request gom dữ liệu từ **5 spec khác**. Sửa contract ở bất kỳ spec nào trong đó đều có thể làm hỏng màn hình này.

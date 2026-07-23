@@ -1,7 +1,7 @@
 # Implementation Plan: Online Payment via VNPay (Sandbox)
 
 **Feature Branch**: `010-online-payment-vnpay` | **Date**: 2026-07-23 | **Spec**: [spec.md](spec.md)
-**Status**: `Implemented` — **as-built plan** (đồng bộ ngược từ code đang chạy)
+**Status**: `Implemented`
 **Input**: `docs/03-Interface-Specs/feature-specs/010-online-payment-vnpay/spec.md`
 
 > **Bổ sung** cho [spec 003](../003-membership-billing/plan.md), **không thay thế** luồng thanh toán thủ công (vẫn giữ làm fallback). Override ADR-03.

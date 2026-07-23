@@ -1,7 +1,7 @@
 # Implementation Plan: Operations Dashboard & Audit Log
 
 **Feature Branch**: `008-dashboard-audit` | **Date**: 2026-07-23 | **Spec**: [spec.md](spec.md)
-**Status**: `Implemented` — **as-built plan** (đồng bộ ngược từ code đang chạy)
+**Status**: `Implemented`
 **Input**: `docs/03-Interface-Specs/feature-specs/008-dashboard-audit/spec.md`
 
 ---
@@ -131,7 +131,7 @@ GET /api/v1/audit-logs?userId=&action=&from=&to=&search=&page=   [Admin]
 
 ### 7.1. Các action audit đang được ghi
 
-**34 action / 13 service** (rà từ code 2026-07-23):
+**34 action / 13 service:**
 
 | Slice | Service | Action |
 |---|---|---|

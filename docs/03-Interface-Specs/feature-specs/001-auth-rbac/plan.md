@@ -1,10 +1,8 @@
 # Implementation Plan: Authentication & Role-Based Access Control
 
 **Feature Branch**: `001-auth-rbac` | **Date**: 2026-07-23 | **Spec**: [spec.md](spec.md)
-**Status**: `Implemented` — **as-built plan** (đồng bộ ngược từ code đang chạy)
+**Status**: `Implemented`
 **Input**: `docs/03-Interface-Specs/feature-specs/001-auth-rbac/spec.md`
-
-> **Lưu ý về loại tài liệu.** Feature này đã hoàn thành và đang chạy production. Đây **không phải** bản thiết kế trước khi code, mà là bản ghi lại kiến trúc **thực tế đã triển khai** — dùng để review, bảo trì và làm nguồn cho RDS/SDS. Mọi đường dẫn file đều là file có thật trong repo.
 
 ---
 
@@ -37,7 +35,7 @@ Cách tiếp cận kỹ thuật: **Vertical slice** — toàn bộ feature nằm
 | SEC-01 — mật khẩu phải hash BCrypt cost ≥ 12 | ✅ PASS | `Features/Auth/AuthService.cs` |
 | GBL-05 — identity lấy từ JWT claim, không từ body | ✅ PASS | `Common/ApiControllerBase.cs` (`CurrentUserId`, `CurrentRole`) |
 | SAFE-02 — không log token / mật khẩu / OTP | ✅ PASS | không có `Log*` nào nhận các field này |
-| SEC-05 — secret không commit vào repo | ✅ PASS | Secret nằm ở **User Secrets** (`UserSecretsId` trong `.csproj`) và env vars Cloud Run; `Options/JwtOptions.cs` bind từ configuration. `.gitignore` chặn `secrets.json` · `env.yaml` · `.env*` · `appsettings.*.local.json`. *(`appsettings.Development.json` **có** trong Git nhưng chỉ chứa cấu hình `Logging`, không có secret — đã kiểm 2026-07-23.)* |
+| SEC-05 — secret không commit vào repo | ✅ PASS | Secret nằm ở **User Secrets** (`UserSecretsId` trong `.csproj`) và env vars Cloud Run; `Options/JwtOptions.cs` bind từ configuration. `.gitignore` chặn `secrets.json` · `env.yaml` · `.env*` · `appsettings.*.local.json`. `appsettings.Development.json` có trong Git nhưng chỉ chứa cấu hình `Logging`, không chứa secret. |
 | AUDIT-01 — mọi hành động quan trọng phải ghi AuditLog | ⚠️ PARTIAL | login/logout/refresh **không** ghi audit; chỉ các thao tác tài khoản ở spec 002 ghi qua `IAuditService`. Xem [Complexity Tracking](#8-complexity-tracking). |
 | ARCH-02 — response bọc `ApiResponse<T>` | ✅ PASS | `Common/ApiResponse.cs`, dùng ở mọi action |
 | DATA-01 — soft delete, không xoá cứng | ✅ PASS | `users.IsDeleted`, unique index có filter `IsDeleted = 0` |

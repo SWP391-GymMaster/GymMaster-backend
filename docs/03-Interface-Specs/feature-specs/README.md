@@ -96,4 +96,4 @@ Vì code đã chạy production trước khi bộ `plan.md`/`tasks.md` được 
 
 Mục đáng ưu tiên nhất: **007 T031** — macro lịch sử hiện **sẽ đổi** nếu Admin sửa món (lệch [`SAFE-03`](../../01-SRS-Requirements/constraints/safety.md)), và bị chặn bởi team DB nên phải đặt yêu cầu sớm.
 
-**Đã đóng 2026-07-23:** *005 T040 / 008 T014* — audit cho giáo án + ghi chú **đã có sẵn trong code** (34 action / 13 service), bản tài liệu đầu tiên ghi nhầm là thiếu. *B-19* — `CONSTITUTION.md` ARCH-01/ARCH-04 đã sửa cho khớp code (v1.3.0, ADR D-24).
+**Đã đóng:** *005 T040 / 008 T014* — AUDIT-01 phủ đủ 34 action / 13 service. *B-19* — `CONSTITUTION.md` ARCH-01/ARCH-04 sửa cho khớp code (v1.3.0, ADR D-24).

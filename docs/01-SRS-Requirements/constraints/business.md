@@ -1,6 +1,6 @@
 # Business Constraints — GymMaster
 
-**Cập nhật:** 2026-07-23 · **Nguồn:** rút từ code thật + `feature-specs/*/spec.md`
+**Phiên bản:** 1.0
 
 > Các **luật nghiệp vụ bất biến** của hệ thống. Khác với ràng buộc kỹ thuật ([global.md](global.md)): vi phạm luật ở đây làm **sai dữ liệu kinh doanh** (sai doanh thu, sai hạn gói, sai quyền), không chỉ xấu code.
 >

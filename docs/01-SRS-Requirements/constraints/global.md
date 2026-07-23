@@ -1,6 +1,6 @@
 # Global Technical Constraints — GymMaster
 
-**Cập nhật:** 2026-07-23 · **Trạng thái:** đối chiếu với code thật (backend .NET 10 đang chạy production)
+**Phiên bản:** 1.0 · **Áp dụng cho:** backend .NET 10
 
 > **Quan hệ với `CONSTITUTION.md`.** File đó là **luật gốc** (Layer 1 Hard Rules · Layer 2 Architectural · Layer 3 Engineering) — sửa cần đồng thuận toàn team. File này **không lặp lại** luật đó, mà bổ sung các **ràng buộc kỹ thuật đang thực sự có hiệu lực trong code** nhưng chưa được viết thành luật, cộng với việc ghi nhận **2 chỗ luật và code đang mâu thuẫn**.
 >
@@ -44,12 +44,12 @@ Ngưỡng vận hành có thể đổi theo phòng gym **SHALL** nằm trong `Op
 Code tổ chức theo **`Features/<Tên>/`**, mỗi slice tự chứa controller + service + DTO. Service gọi **thẳng `DbContext`**, **không có tầng Repository**.
 *Lý do:* EF Core `DbSet` đã đóng vai trò repository; thêm tầng nữa chỉ tăng số file mà không tăng khả năng test (test dùng EF InMemory) — xem [`001-auth-rbac/plan.md`](../../03-Interface-Specs/feature-specs/001-auth-rbac/plan.md) D-002.
 
-> ✅ **Đã đồng bộ luật** (2026-07-23, ADR **D-24**): `CONSTITUTION.md` **ARCH-01** trước đây ghi "Controller → Service → Repository → DbContext" — mô tả sai code và chưa bao giờ khớp. Nay ARCH-01 đã sửa thành Vertical Slice, `CONSTITUTION.md` lên **v1.3.0**.
+> Đồng bộ với `CONSTITUTION.md` **ARCH-01** (v1.3.0, ADR **D-24**).
 
 ### GBL-08 · Schema DB do team DB sở hữu (Database First)
 Thay đổi schema đi qua file SQL đánh số trong `database/` (`004_checkin.sql` … `013_*.sql`). Backend **KHÔNG** tự tạo/sửa schema — `Program.cs` ghi rõ điều này; `DatabaseSeeder` chỉ seed 4 role + tài khoản admin.
 
-> ✅ **Đã đồng bộ luật** (2026-07-23, ADR **D-24**): `CONSTITUTION.md` **ARCH-04** trước đây ghi "Mọi thay đổi schema phải qua EF Core Migration (Code First)" — code làm ngược lại. Nay ARCH-04 đã sửa thành Database First.
+> Đồng bộ với `CONSTITUTION.md` **ARCH-04** (v1.3.0, ADR **D-24**).
 >
 > ⚠️ **Hệ quả cần nhớ khi lập kế hoạch:** mọi việc cần **cột DB mới** đều **bị chặn bởi team DB**, không tự làm được ở tầng backend — vd **B-01** (snapshot macro) và **B-17** (`provider_ref`) trong [BACKLOG](../../03-Interface-Specs/feature-specs/BACKLOG.md). Đặt yêu cầu với team DB sớm.
 

@@ -4,7 +4,9 @@
 **Phương pháp:** Hybrid **SDD + ADD** (Spec-Driven & Agent-Driven Development)
 **Trạng thái:** 10/10 feature `Implemented` — backend .NET 10 + FE Next.js đang chạy trên Google Cloud Run
 
-> **Nguyên tắc số một: tài liệu phải khớp code.** Toàn bộ spec đã được **đồng bộ ngược từ code thật** (2026-07-15) và `plan.md`/`tasks.md` viết theo kiểu **as-built** (2026-07-23) — mọi đường dẫn file là file có thật, kiểm chứng được. Khi tài liệu và code lệch nhau, **code đúng** → sửa tài liệu, đừng sửa code cho khớp tài liệu.
+> **Nguyên tắc số một: tài liệu phải khớp code.** Mọi đường dẫn file, tên hàm và số dòng trong bộ tài liệu này đều tham chiếu code có thật, kiểm chứng được. Khi tài liệu và code lệch nhau, **code đúng** → sửa tài liệu, đừng sửa code cho khớp tài liệu.
+>
+> **Phương pháp lập tài liệu.** Dự án áp dụng Hybrid SDD + ADD (xem [`ai-workflow.md`](06-Management/ai-workflow.md)). Bộ `spec.md` được đồng bộ với code hiện hành ở mốc 2026-07-15; `plan.md`/`tasks.md` ghi lại kiến trúc **as-built** của phần đã triển khai. Việc sử dụng AI trong quá trình làm tài liệu và code được ghi nhận theo AI Interaction Log (`ai-workflow.md` §4) và AI Usage Report của môn học.
 
 ---
 

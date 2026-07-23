@@ -1,9 +1,9 @@
 # Phân tích luồng: Membership & Billing (spec 003)
 
-**Ngày phân tích:** 2026-07-23 · **Nguồn:** đọc trực tiếp `backend/GymMaster.API/Features/Billing/`
+**Phiên bản:** 1.0 · **Phạm vi:** `backend/GymMaster.API/Features/Billing/`
 **Spec:** [003-membership-billing](../../03-Interface-Specs/feature-specs/003-membership-billing/spec.md) · [plan](../../03-Interface-Specs/feature-specs/003-membership-billing/plan.md)
 
-> Feature này được **7 feature khác phụ thuộc**. Mọi số dòng trong tài liệu là số dòng thật tại thời điểm phân tích.
+> Feature này được **7 feature khác phụ thuộc**. Số dòng trích dẫn theo bản code hiện hành.
 
 ---
 

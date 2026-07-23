@@ -1,6 +1,6 @@
 # Phân tích luồng: Thanh toán online VNPay (spec 010)
 
-**Ngày phân tích:** 2026-07-23 · **Nguồn:** đọc trực tiếp `Features/Billing/VnPayService.cs` (~440 dòng) + `Infrastructure/VnPayLibrary.cs`
+**Phiên bản:** 1.0 · **Phạm vi:** `Features/Billing/VnPay*.cs` · `Infrastructure/VnPayLibrary.cs`
 **Spec:** [010-online-payment-vnpay](../../03-Interface-Specs/feature-specs/010-online-payment-vnpay/spec.md) · [plan](../../03-Interface-Specs/feature-specs/010-online-payment-vnpay/plan.md)
 
 > Feature nhạy cảm nhất về bảo mật: sai là sai doanh thu hoặc thủng lỗ hổng giả mạo callback. **Hai đường** cùng kích hoạt được gói → bắt buộc idempotent.

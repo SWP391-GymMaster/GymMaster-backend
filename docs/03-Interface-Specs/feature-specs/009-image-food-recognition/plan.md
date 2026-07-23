@@ -1,7 +1,7 @@
 # Implementation Plan: Image Food Recognition Assist (AI — Gemini)
 
 **Feature Branch**: `009-image-food-recognition` | **Date**: 2026-07-23 | **Spec**: [spec.md](spec.md)
-**Status**: `Implemented` — **as-built plan** (đồng bộ ngược từ code đang chạy)
+**Status**: `Implemented`
 **Input**: `docs/03-Interface-Specs/feature-specs/009-image-food-recognition/spec.md`
 
 > **Enhancement** cho [spec 007](../007-nutrition-calorie/plan.md) — bổ sung, **không thay thế** luồng nhập tay.

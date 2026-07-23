@@ -1,6 +1,6 @@
 # Safety Constraints — GymMaster
 
-**Cập nhật:** 2026-07-23 · **Phạm vi:** an toàn dữ liệu · an toàn khi dùng AI · an toàn khi phụ thuộc dịch vụ ngoài
+**Phiên bản:** 1.0 · **Phạm vi:** an toàn dữ liệu · an toàn khi dùng AI · an toàn khi phụ thuộc dịch vụ ngoài
 
 > Luật ở đây bảo vệ thứ **không sửa lại được**: dữ liệu đã mất, thông tin đã rò rỉ, tiền đã trừ sai. Vi phạm luật ở [business.md](business.md) làm sai số liệu; vi phạm luật ở đây làm **hỏng không hồi phục**.
 >
@@ -83,7 +83,7 @@ Không để request treo vô hạn. `Gemini:TimeoutSeconds` mặc định 20s; 
 
 ---
 
-## Tình trạng tuân thủ (2026-07-23)
+## Tình trạng tuân thủ
 
 | Luật | Trạng thái | Việc cần làm |
 |---|---|---|
