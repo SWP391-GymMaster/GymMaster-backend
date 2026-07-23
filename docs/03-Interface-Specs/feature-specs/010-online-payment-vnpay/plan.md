@@ -46,7 +46,7 @@ Feature này khả thi ở mức **thêm 3 endpoint, không đổi schema DB** �
 | SAFE-05 — endpoint public phải có cơ chế xác thực thay thế | ✅ PASS | `ipn`/`return` là `AllowAnonymous` nhưng **bảo vệ bằng chữ ký HMAC-SHA512** |
 | BIZ-05 — tiền dùng DECIMAL, không float | ✅ PASS | `Payment.Amount` DECIMAL(12,2); `vnp_Amount` là số nguyên ×100 (NFR-03) |
 | AUDIT-01 — kích hoạt có audit | ✅ PASS | AuditLog `VNPAY_PAYMENT` (NFR-04) |
-| GBL-02 — không lặp business rule | ✅ PASS | kích hoạt membership dùng lại `MembershipLifecycle` (spec 003) |
+| GBL-02 — không lặp business rule | ⚠️ **PARTIAL** | dùng lại `MembershipLifecycle` ✅ — nhưng 3 hàm nối hạn trùng với `MembershipService.cs` → việc **B-20** |
 | GBL-06 — đổi môi trường không cần sửa code | ✅ PASS | sandbox ↔ live chỉ đổi `BaseUrl`/`TmnCode`/`HashSecret`/`ReturnUrl` (NFR-05) |
 
 ## 4. Project Structure

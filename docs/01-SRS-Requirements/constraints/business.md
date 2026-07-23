@@ -1,10 +1,42 @@
 # Business Constraints — GymMaster
 
-**Phiên bản:** 1.0
+**Phiên bản:** 1.1
 
 > Các **luật nghiệp vụ bất biến** của hệ thống. Khác với ràng buộc kỹ thuật ([global.md](global.md)): vi phạm luật ở đây làm **sai dữ liệu kinh doanh** (sai doanh thu, sai hạn gói, sai quyền), không chỉ xấu code.
->
-> Mỗi luật ghi rõ **thi hành ở đâu trong code** — kiểm chứng được, không phải lời hứa suông.
+
+---
+
+## Bảng tra nhanh
+
+| ID | Luật | Giá trị chốt | Thi hành ở | Spec |
+|---|---|---|---|---|
+| **BIZ-01** | Tối đa **1 Membership Active**/hội viên | — | `MembershipService` | 003 |
+| **BIZ-02** | Bán gói ≠ thu tiền (qua `PendingPayment`) | — | `MembershipService` · `VnPayService` | 003·010 |
+| **BIZ-03** | Đơn Pending tự huỷ sau | **30 phút** | `MembershipLifecycle.PendingPaymentTtl` | 003 |
+| **BIZ-04** | "Gói hiệu lực" = `Active` AND `EndDate ≥ hôm nay (VN)` | — | `MembershipLifecycle.IsActiveOn` | 003 |
+| **BIZ-05** | Tiền dùng | `DECIMAL(12,2)` | `Payment` · `MembershipPackage` | 003·010 |
+| **BIZ-06** | Mọi giao dịch truy được người thực hiện | `CreatedByUserId` | `Features/Billing/*` | 003 |
+| **BIZ-07** | Số tiền online **lấy từ server** | `Package.Price × 100` | `VnPayService` | 010 |
+| **BIZ-08** | **Role bất biến** sau khi tạo | 422 `ROLE_TRANSITION_NOT_ALLOWED` | `UserService` | 002 |
+| **BIZ-09** | Tối đa **1 PT Active**/hội viên | — | `AssignmentService` | 005 |
+| **BIZ-10** | Quyền PT suy động từ gói | `Package.SupportsPT` | `AssignmentService` | 003·005 |
+| **BIZ-11** | Giới hạn check-in/ngày | **2** *(cấu hình được)* | `CheckInOptions.MaxPerDay` | 004 |
+| **BIZ-12** | Bắt buộc có gói khi check-in | **`false`** *(mặc định tắt)* | `CheckInOptions.EnforceMembership` | 004 |
+| **BIZ-13** | Tier miễn phí — số món tra được | **20 món đầu A→Z** | `FoodItemService` | 007 |
+| **BIZ-14** | Quét ảnh AI chỉ cho hội viên có gói | 403 `MEMBERSHIP_REQUIRED` | `FoodScanController` | 009 |
+| **BIZ-15** | Tiến độ: **1 ngày = 1 bản ghi** | ghi lại cùng ngày → đè | `ProgressService` | 006 |
+| **BIZ-16** | Số liệu dashboard từ **dữ liệu thật** | kỳ trống → trả `0` | `DashboardService` | 008 |
+| **BIZ-17** | `currentMembership` không bao giờ là đơn đã chết | `Active` → `Pending` → `null` | `ProgressService` | 006 |
+
+**Giá trị đã kiểm chứng trong code:**
+
+| Hằng số | Nơi khai báo | Giá trị |
+|---|---|---|
+| `PendingPaymentTtl` | `MembershipLifecycle.cs:10` | `TimeSpan.FromMinutes(30)` |
+| `MaxPerDay` | `CheckInOptions.cs:18` | `2` |
+| `EnforceMembership` | `CheckInOptions.cs:10` | `false` (mặc định của `bool`) |
+| `DefaultPageSize` (tier free) | `FoodItemService.cs:12` | `20` |
+| Precision tiền | `GymMasterDbContext` | `HasPrecision(12, 2)` ×2 · **0** float/double trong `Entities/` |
 
 ---
 

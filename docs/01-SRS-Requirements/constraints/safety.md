@@ -1,10 +1,41 @@
 # Safety Constraints — GymMaster
 
-**Phiên bản:** 1.0 · **Phạm vi:** an toàn dữ liệu · an toàn khi dùng AI · an toàn khi phụ thuộc dịch vụ ngoài
+**Phiên bản:** 1.1 · **Phạm vi:** an toàn dữ liệu · an toàn khi dùng AI · an toàn khi phụ thuộc dịch vụ ngoài
 
 > Luật ở đây bảo vệ thứ **không sửa lại được**: dữ liệu đã mất, thông tin đã rò rỉ, tiền đã trừ sai. Vi phạm luật ở [business.md](business.md) làm sai số liệu; vi phạm luật ở đây làm **hỏng không hồi phục**.
 >
 > Luật gốc về bảo mật (`SEC-01`…`SEC-05`, `DATA-01`, `AUDIT-01`) nằm ở [`CONSTITUTION.md`](../../../CONSTITUTION.md) Layer 1. File này bổ sung phần chưa được viết thành luật.
+
+---
+
+## Bảng tra nhanh
+
+| ID | Luật | Thi hành ở | Trạng thái |
+|---|---|---|---|
+| **SAFE-01** | Audit log **append-only** | `IAuditService` — chỉ 1 hàm `LogAsync` | ✅ |
+| **SAFE-02** | Không log mật khẩu / token / OTP / PII | `AuthService` · `AuditService` | ✅ |
+| **SAFE-03** | Dữ liệu lịch sử phải **snapshot** | `meal_log_items.Calories` | ⚠️ **PARTIAL** — macro đọc live |
+| **SAFE-04** | Không tin client cho quyết định về **tiền** | `VnPayService` | ✅ |
+| **SAFE-05** | Endpoint `AllowAnonymous` phải có **cơ chế xác thực thay thế** | `VnPayLibrary` HMAC-SHA512 | ✅ |
+| **SAFE-06** | Callback bên ngoài phải **idempotent** | `VnPayService` — 2 lớp chặn | ✅ |
+| **SAFE-07** | Không lưu dữ liệu cá nhân không cần thiết | `FoodScanService` · `CloudinaryAvatarStorage` | ✅ |
+| **SAFE-08** | Xoá cứng phải có **audit log** | `WorkoutPlanService` · `TrainerNoteService` | ✅ |
+| **SAFE-09** | AI **hỗ trợ**, không tự quyết thay người dùng | `FoodScanService` — `requiresConfirmation` | ✅ |
+| **SAFE-10** | Không cam kết độ chính xác định lượng của AI | Out of Scope spec 009 | ✅ |
+| **SAFE-11** | Ranh giới khi dùng AI trong phát triển | `ai-workflow.md` §5 | ✅ |
+| **SAFE-12** | Dịch vụ ngoài lỗi **không chặn** luồng chính | `GeminiService` · `VnPayService` | ✅ |
+| **SAFE-13** | Cô lập nhà cung cấp sau **cổng trừu tượng** | `IFoodImageAnalyzer` · `IAvatarStorage` · `IEmailSender` | ✅ |
+| **SAFE-14** | Gọi dịch vụ ngoài phải có **timeout** | `GeminiOptions.TimeoutSeconds` | ✅ |
+
+**Giá trị đã kiểm chứng trong code:**
+
+| Hằng số | Nơi khai báo | Giá trị |
+|---|---|---|
+| Timeout Gemini | `GeminiOptions.cs:19` | `20` giây |
+| Giới hạn ảnh | `GeminiOptions.cs:17` | `5 MB` |
+| Hạn link VNPay | `VnPayService` | **15 phút** (ngắn hơn TTL đơn 30 phút) |
+| `IAuditService` | `IAuditService.cs` | **1 hàm duy nhất** `LogAsync` — không có sửa/xoá |
+| `AllowAnonymous` | `VnPayController.cs:31, 41` | **2 chỗ duy nhất**, đều verify HMAC-SHA512 |
 
 ---
 
