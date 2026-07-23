@@ -27,6 +27,7 @@ docs/
 ├── 04-Test-Specs/            test-plan.md · test-report-minh.md
 ├── 05-Deployment/            deploy-gcp.md
 ├── 06-Management/            agents · ai-workflow · decision-log · team-workflow · prompt-library
+├── 07-Doc-Final/             RDS/SRS · SDS v1.1 · SHA-256 checksums
 └── archive/                  bản cũ đã bị thay thế (giữ làm lịch sử)
 ```
 
@@ -117,6 +118,15 @@ docs/
 | [danh-sach-feature.md](06-Management/danh-sach-feature.md) | *(sinh tự động)* 46 màn hình FE · 85 endpoint BE · 10 feature |
 | [phan-cong.md](06-Management/phan-cong.md) · [phan-cong-ve-anh.md](06-Management/phan-cong-ve-anh.md) | *(sinh tự động)* Phân công 5 người |
 | [phan-cong-sds.md](06-Management/phan-cong-sds.md) | Phân công viết SDS |
+
+## 07 — Doc Final
+
+| File | Nội dung |
+|---|---|
+| [README.md](07-Doc-Final/README.md) | Danh mục bộ tài liệu bàn giao chính thức |
+| [GymMaster_RDS_SRS.docx](07-Doc-Final/GymMaster_RDS_SRS.docx) | Bản RDS/SRS cuối cùng |
+| [GymMaster_SDS_v1.1.docx](07-Doc-Final/GymMaster_SDS_v1.1.docx) | Bản SDS v1.1 cuối cùng |
+| [SHA256SUMS.txt](07-Doc-Final/SHA256SUMS.txt) | Mã kiểm tra tính toàn vẹn của hai file Word |
 
 ## archive/
 
