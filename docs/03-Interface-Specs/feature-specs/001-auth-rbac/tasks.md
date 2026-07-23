@@ -50,7 +50,7 @@ description: "Task list — Authentication & Role-Based Access Control"
 - [X] T017 [US1] `Features/Auth/AuthController.cs` — action `login` / `refresh` / `me` / `logout`, tính `redirectPath` theo role
 - [X] T018 [US1] Bật `[Authorize]` mặc định + `[AllowAnonymous]` cho endpoint auth public trong `Program.cs` → **FR-RBAC-03**
 - [X] T019 [US1] Black-box test luồng login/refresh/logout trong `tests/blackbox/Api.BlackBox.Tests.ps1`
-- [ ] T020 [US1] **Còn nợ** — unit test `tests/GymMaster.Api.Tests/AuthServiceTests.cs` cho khoá tài khoản + rotate refresh token (13/13 service khác đã có test, riêng `AuthService` chưa)
+- [ ] T020 [US1] **Còn nợ** — unit test `tests/GymMaster.Api.Tests/AuthServiceTests.cs` cho khoá tài khoản + rotate refresh token (14/14 service khác đã có test, riêng `AuthService` chưa)
 
 **Checkpoint**: đăng nhập được, phiên duy trì được → mọi role dùng được hệ thống.
 

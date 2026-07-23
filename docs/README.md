@@ -59,6 +59,7 @@ docs/
 | [system-design/system-overview.md](02-SDD-Architecture/system-design/system-overview.md) | **Kiến trúc tổng thể** — 10 slice, bản đồ phụ thuộc, vòng đời request, 2 điểm chạm nguy hiểm, kỷ luật ranh giới slice |
 | [database-design/database-spec.md](02-SDD-Architecture/database-design/database-spec.md) | Bảng, quan hệ, ưu tiên dữ liệu |
 | [database-design/database-schema.md](02-SDD-Architecture/database-design/database-schema.md) | Schema SQL Server + EF Core chi tiết (24 bảng) — **nguồn sinh ERD + SDS** |
+| [deliverables/GymMaster_SDS_v1.1.docx](02-SDD-Architecture/deliverables/GymMaster_SDS_v1.1.docx) | Bản SDS nộp môn (.docx) |
 | [feat_flow/](02-SDD-Architecture/feat_flow/README.md) | Phân tích luồng từng feature — *đang trống có chủ ý*, `README` giải thích khi nào mới nên tạo (tránh trùng `plan.md` §6) |
 
 > **Ba mức kiến trúc, đừng lẫn:** *tổng thể* → `system-design/` · *từng feature* → `plan.md` của feature trong `03-Interface-Specs/` · *triển khai* → [`05-Deployment/deploy-diagram.md`](05-Deployment/deploy-diagram.md).
@@ -90,7 +91,7 @@ docs/
 | [test-plan.md](04-Test-Specs/test-plan.md) | Chiến lược test, test case, UAT, defect log, **Validation Gate** |
 | [test-report-minh.md](04-Test-Specs/test-report-minh.md) | Báo cáo test |
 
-> Test tự động: 13 file xUnit ở `tests/GymMaster.Api.Tests/` + black-box PowerShell ở `tests/blackbox/`. Độ phủ theo từng acceptance criteria xem mục "Truy vết AC" cuối mỗi `tasks.md`.
+> Test tự động: **15 file xUnit** ở `tests/GymMaster.Api.Tests/` + black-box PowerShell ở `tests/blackbox/`. Độ phủ theo từng acceptance criteria xem mục "Truy vết AC" cuối mỗi `tasks.md`.
 
 ## 05 — Deployment
 
@@ -113,6 +114,7 @@ docs/
 | [prompt-library.md](06-Management/prompt-library.md) | Prompt mẫu cho BA, DB, code, test |
 | [danh-sach-feature.md](06-Management/danh-sach-feature.md) | *(sinh tự động)* 46 màn hình FE · 85 endpoint BE · 10 feature |
 | [phan-cong.md](06-Management/phan-cong.md) · [phan-cong-ve-anh.md](06-Management/phan-cong-ve-anh.md) | *(sinh tự động)* Phân công 5 người |
+| [phan-cong-sds.md](06-Management/phan-cong-sds.md) | Phân công viết SDS |
 
 ## archive/
 

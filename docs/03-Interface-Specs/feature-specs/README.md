@@ -85,7 +85,7 @@ Vì code đã chạy production trước khi bộ `plan.md`/`tasks.md` được 
 |---|---|---|
 | 001 | `AuthServiceTests.cs` (T020) · ghi lý do chọn HS256 vào D-05 (T038) | test · tài liệu |
 | 002 | `MemberServiceTests.cs` (T042) · đo NFR-01 tìm kiếm (T043) | test · đo lường |
-| 003 | `PaymentServiceTests.cs` (T042) · test `ExpireStalePending` (T043) | test |
+| 003 | test `ExpireStalePending` (T043) — *`PaymentServiceTests.cs` đã xong, PR #10* | test |
 | 004 | đo NFR-01/NFR-03 check-in (T025) | đo lường |
 | 005 | test WorkoutPlan/TrainerNote (T038, T039) | test |
 | 006 | đo NFR-01 360° (T028) · test `currentMembership = null` (T029) | đo lường · test |

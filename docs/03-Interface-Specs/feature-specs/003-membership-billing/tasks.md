@@ -104,7 +104,7 @@ description: "Task list — Membership Packages, Sell, Renew & Payment"
 
 - [X] T040 [P] Kiểm tra mọi so sánh ngày đều qua `AppClock`, không còn `DateTime.Today` → **D-209**
 - [X] T041 [P] Đồng bộ ngược `spec.md` theo code thật (2026-07-15)
-- [ ] T042 **Còn nợ** — unit test `tests/GymMaster.Api.Tests/PaymentServiceTests.cs` cho `PaymentSummaryResponse` (gom `byMethod`/`byDay` theo giờ VN là chỗ dễ sai nhất, hiện chưa có test)
+- [X] T042 Unit test `tests/GymMaster.Api.Tests/PaymentServiceTests.cs` — **25 test**, phủ cả `Summary_groups_daily_revenue_by_vietnam_date_not_utc` (đúng chỗ rủi ro nhất về múi giờ). Thêm `MembershipPackageServiceTests.cs`. *(Loc-LX, PR #10 — 78 test cho billing, 2026-07-23)*
 - [ ] T043 **Còn nợ** — bổ sung test cho `MembershipLifecycle.ExpireStalePending` (TTL 30 phút, AC-09) — logic thuần, test rất rẻ nhưng chưa có
 
 ---

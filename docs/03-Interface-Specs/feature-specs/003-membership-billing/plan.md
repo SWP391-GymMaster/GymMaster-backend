@@ -24,7 +24,7 @@ Nguồn doanh thu chính của hệ thống: quản lý gói tập mẫu → bá
 | **Storage** | SQL Server — `membership_packages`, `memberships`, `payments` |
 | **Kiểu tiền** | `DECIMAL(12,2)` — **không dùng float** (NFR-02) |
 | **Đồng hồ** | `Common/AppClock.cs` — "hôm nay" theo **giờ VN (GMT+7)** (NFR-04) |
-| **Testing** | xUnit — `tests/GymMaster.Api.Tests/MembershipServiceTests.cs` |
+| **Testing** | xUnit — `MembershipServiceTests` · `MembershipPackageServiceTests` · `PaymentServiceTests` (78 test, PR #10) |
 | **Target Platform** | Cloud Run + Cloud SQL |
 | **Performance Goals** | Bán gói < 500ms (NFR-01) |
 | **Constraints** | Bất biến **tối đa 1 Membership Active/member**; đơn Pending TTL 30 phút |
@@ -76,7 +76,9 @@ database/
 └── 008_package_supports_pt.sql      # thêm cột SupportsPT
 
 tests/GymMaster.Api.Tests/
-└── MembershipServiceTests.cs        # (chưa có PaymentServiceTests — xem tasks.md T-042)
+├── MembershipServiceTests.cs
+├── MembershipPackageServiceTests.cs
+└── PaymentServiceTests.cs           # 25 test, gồm gom doanh thu theo ngày VN
 ```
 
 **Structure Decision**: một slice `Billing/` nhưng **5 controller** thay vì 1. Lý do: cùng một nghiệp vụ nhưng lộ ra dưới hai gốc route khác nhau (`/memberships`, `/payments` cho nghiệp vụ; `/members/{id}/…` cho góc nhìn hội viên). ASP.NET Core chỉ cho một `[Route]` gốc mỗi controller, nên phải tách — đây là ràng buộc framework, không phải lựa chọn thiết kế.
@@ -160,4 +162,4 @@ Gác quyền PT (dùng ở spec 005):
 | Lazy expire thay vì job định kỳ (D-204) | Cloud Run scale-to-zero, không có worker thường trú | Hosted service → container phải chạy 24/7, tăng chi phí ngoài phạm vi đồ án |
 | Gia hạn không tạo bản ghi membership mới (D-205) | Giữ bất biến 1 Active/member đơn giản hơn nhiều | Mỗi lần gia hạn 1 bản ghi → phải xử lý chồng lấn khoảng ngày, phức tạp gấp bội |
 | `MembershipLifecycle` là static, khó mock | Logic thuần không I/O nên test trực tiếp được | Interface + DI → thêm 2 file cho một class 40 dòng |
-| Chưa có `PaymentServiceTests.cs` | `PaymentService` chứa logic tổng hợp doanh thu (`byMethod`/`byDay`) chưa được unit test | Bỏ qua → không chấp nhận; xem T-042 |
+| `MembershipLifecycle` là static, khó mock | Logic thuần không I/O nên test trực tiếp được | Interface + DI → thêm 2 file cho một class 40 dòng |

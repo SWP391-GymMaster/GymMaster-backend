@@ -60,7 +60,7 @@ Phần **thực sự** còn thiếu chỉ là một dòng ADR ghi nhận ngoại
 
 ### B-03 · Unit test `AuthService`
 - **Nguồn**: [001 T020](001-auth-rbac/tasks.md)
-- **Vấn đề**: 13 service khác đều có unit test, riêng `AuthService` — service nhạy cảm nhất — chỉ được phủ black-box.
+- **Vấn đề**: 14 service khác đều có unit test, riêng `AuthService` — service nhạy cảm nhất — chỉ được phủ black-box.
 - **Việc cần làm**: tạo `tests/GymMaster.Api.Tests/AuthServiceTests.cs` (xUnit + EF Core InMemory, theo mẫu `VnPayServiceTests.cs`), phủ tối thiểu:
   - khoá tạm sau 5 lần sai trong 15 phút (`LockedUntil`) → AC-03
   - rotate refresh token: token cũ bị `RevokedAt` → AC-04
@@ -77,7 +77,7 @@ Phần **thực sự** còn thiếu chỉ là một dòng ADR ghi nhận ngoại
 ### B-05 · Unit test `PaymentService` + `MembershipLifecycle`
 - **Nguồn**: [003 T042, T043](003-membership-billing/tasks.md)
 - **Vấn đề**: `PaymentSummaryResponse` gom `byMethod`/`byDay` **theo giờ VN** — chỗ dễ sai nhất về múi giờ, chưa có test. `MembershipLifecycle.ExpireStalePending` (TTL 30 phút, AC-09) là logic thuần, test rất rẻ nhưng cũng chưa có.
-- **Việc cần làm**: `PaymentServiceTests.cs` cho summary; thêm test `ExpireStalePending` / `ExpireIfPastDue` / `IsActiveOn` vào `MembershipServiceTests.cs`.
+- **Việc cần làm**: ~~`PaymentServiceTests.cs` cho summary~~ ✅ **xong 2026-07-23** (PR #10, 25 test gồm gom doanh thu theo ngày VN). **Còn lại:** thêm test `ExpireStalePending` / `ExpireIfPastDue` / `IsActiveOn` vào `MembershipServiceTests.cs`.
 - **Ưu tiên phụ**: `MembershipLifecycle` được **7 feature** dùng chung — test ở đây bảo vệ nhiều nhất trên một đơn vị công sức.
 
 ---
