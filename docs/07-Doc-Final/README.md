@@ -20,4 +20,8 @@ Thư mục này chứa bộ tài liệu chính thức dùng để bàn giao/nộ
 
 ## Kiểm tra tính toàn vẹn
 
-Đối chiếu mã SHA-256 của các file với `SHA256SUMS.txt` trước khi phát hành hoặc bàn giao.
+Đối chiếu mã SHA-256 của **tất cả** file (cả Word lẫn Excel) với `SHA256SUMS.txt` trước khi phát hành hoặc bàn giao:
+
+```bash
+sha256sum -c SHA256SUMS.txt
+```
