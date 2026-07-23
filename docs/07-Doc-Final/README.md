@@ -25,3 +25,6 @@ Thư mục này chứa bộ tài liệu chính thức dùng để bàn giao/nộ
 ```bash
 sha256sum -c SHA256SUMS.txt
 ```
+
+---
+_Cập nhật lần cuối: 24/07/2026 — bổ sung hồ sơ Project Tracking & Issues Report (BAK-2207)._
