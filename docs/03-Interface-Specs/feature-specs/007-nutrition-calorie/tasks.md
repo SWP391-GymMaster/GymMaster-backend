@@ -4,7 +4,7 @@ description: "Task list — Meal Journal & Daily Calorie Summary"
 
 # Tasks: Meal Journal & Daily Calorie Summary
 
-**Feature**: `007-nutrition-calorie` | **Ngày lập**: 2026-07-23
+**Feature**: `007-nutrition-calorie`
 **Input**: [spec.md](spec.md) · [plan.md](plan.md)
 **Trạng thái tổng**: 29/31 hoàn thành
 
@@ -77,7 +77,6 @@ description: "Task list — Meal Journal & Daily Calorie Summary"
 
 ## Phase 6: Polish & Cross-cutting
 
-- [X] T030 [P] Đồng bộ ngược `spec.md` theo code thật (2026-07-15)
 - [ ] T031 **Còn nợ (nợ kỹ thuật đã ghi nhận)** — snapshot **macro** vào `meal_log_items`: cần team DB thêm 3 cột (`ProteinG`, `CarbG`, `FatG`), sau đó sửa `NutritionService` ghi snapshot và đọc từ đó. Hiện macro lịch sử đọc live từ `food_items` nên **sẽ đổi nếu Admin sửa món** → lệch DATA-02 (spec §10, D-706)
 - [ ] T032 **Còn nợ** — test cho AC-07 (tier free 20 món): logic giới hạn universe trước khi lọc là chỗ dễ sai nhất nhưng chưa có unit test
 

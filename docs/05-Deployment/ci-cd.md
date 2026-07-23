@@ -1,6 +1,6 @@
 # CI/CD — GitHub Actions
 
-**Cập nhật:** 2026-07-23 · **File thật:** [`.github/workflows/ci.yml`](../../.github/workflows/ci.yml) · [`.github/workflows/deploy.yml`](../../.github/workflows/deploy.yml)
+**File thật:** [`.github/workflows/ci.yml`](../../.github/workflows/ci.yml) · [`.github/workflows/deploy.yml`](../../.github/workflows/deploy.yml)
 
 Hai workflow, quan hệ **`deploy.yml` gọi lại `ci.yml`** — không chép bước build/test sang hai nơi nên hai file không bao giờ lệch nhau.
 

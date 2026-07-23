@@ -1,6 +1,6 @@
 # Implementation Plan: Progress Tracking & Member 360° Profile
 
-**Feature Branch**: `006-progress-tracking` | **Date**: 2026-07-23 | **Spec**: [spec.md](spec.md)
+**Feature Branch**: `006-progress-tracking` | **Spec**: [spec.md](spec.md)
 **Status**: `Implemented`
 **Input**: `docs/03-Interface-Specs/feature-specs/006-progress-tracking/spec.md`
 

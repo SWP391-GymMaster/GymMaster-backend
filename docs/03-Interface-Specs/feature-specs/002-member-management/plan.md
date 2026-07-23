@@ -1,6 +1,6 @@
 # Implementation Plan: User, Staff, PT & Member Management
 
-**Feature Branch**: `002-member-management` | **Date**: 2026-07-23 | **Spec**: [spec.md](spec.md)
+**Feature Branch**: `002-member-management` | **Spec**: [spec.md](spec.md)
 **Status**: `Implemented`
 **Input**: `docs/03-Interface-Specs/feature-specs/002-member-management/spec.md`
 

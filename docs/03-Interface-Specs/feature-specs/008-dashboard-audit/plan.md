@@ -1,6 +1,6 @@
 # Implementation Plan: Operations Dashboard & Audit Log
 
-**Feature Branch**: `008-dashboard-audit` | **Date**: 2026-07-23 | **Spec**: [spec.md](spec.md)
+**Feature Branch**: `008-dashboard-audit` | **Spec**: [spec.md](spec.md)
 **Status**: `Implemented`
 **Input**: `docs/03-Interface-Specs/feature-specs/008-dashboard-audit/spec.md`
 

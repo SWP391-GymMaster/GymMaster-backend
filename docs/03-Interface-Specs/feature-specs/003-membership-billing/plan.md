@@ -1,6 +1,6 @@
 # Implementation Plan: Membership Packages, Sell, Renew & Payment
 
-**Feature Branch**: `003-membership-billing` | **Date**: 2026-07-23 | **Spec**: [spec.md](spec.md)
+**Feature Branch**: `003-membership-billing` | **Spec**: [spec.md](spec.md)
 **Status**: `Implemented`
 **Input**: `docs/03-Interface-Specs/feature-specs/003-membership-billing/spec.md`
 
@@ -22,7 +22,7 @@ Nguồn doanh thu chính của hệ thống: quản lý gói tập mẫu → bá
 | **Storage** | SQL Server — `membership_packages`, `memberships`, `payments` |
 | **Kiểu tiền** | `DECIMAL(12,2)` — **không dùng float** (NFR-02) |
 | **Đồng hồ** | `Common/AppClock.cs` — "hôm nay" theo **giờ VN (GMT+7)** (NFR-04) |
-| **Testing** | xUnit — `MembershipServiceTests` · `MembershipPackageServiceTests` · `PaymentServiceTests` (78 test, PR #10) |
+| **Testing** | xUnit — `MembershipServiceTests` · `MembershipPackageServiceTests` · `PaymentServiceTests` |
 | **Target Platform** | Cloud Run + Cloud SQL |
 | **Performance Goals** | Bán gói < 500ms (NFR-01) |
 | **Constraints** | Bất biến **tối đa 1 Membership Active/member**; đơn Pending TTL 30 phút |

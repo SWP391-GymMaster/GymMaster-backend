@@ -4,7 +4,7 @@ description: "Task list — PT Assignment, Workout Plan & Trainer Notes"
 
 # Tasks: PT Assignment, Workout Plan & Trainer Notes
 
-**Feature**: `005-pt-training` | **Ngày lập**: 2026-07-23
+**Feature**: `005-pt-training`
 **Input**: [spec.md](spec.md) · [plan.md](plan.md)
 **Trạng thái tổng**: 38/41 hoàn thành
 
@@ -96,7 +96,6 @@ description: "Task list — PT Assignment, Workout Plan & Trainer Notes"
 
 ## Phase 7: Polish & Cross-cutting
 
-- [X] T037 [P] Đồng bộ ngược `spec.md` theo code thật (2026-07-15)
 - [ ] T038 **Còn nợ** — unit test `tests/GymMaster.Api.Tests/WorkoutPlanServiceTests.cs` cho luồng tra/tạo `exercise_catalog` theo tên và cho `UpdateAsync` thay toàn bộ exercises (D-506, D-507 là hai chỗ rủi ro nhất)
 - [ ] T039 **Còn nợ** — unit test `tests/GymMaster.Api.Tests/TrainerNoteServiceTests.cs` cho kiểm chủ sở hữu note
 - [X] T040 AuditLog cho giáo án + ghi chú: `WorkoutPlanService` ghi `CREATE/UPDATE/DELETE_WORKOUT_PLAN`, `TrainerNoteService` ghi `CREATE/UPDATE/DELETE_TRAINER_NOTE` → AUDIT-01 phủ đủ

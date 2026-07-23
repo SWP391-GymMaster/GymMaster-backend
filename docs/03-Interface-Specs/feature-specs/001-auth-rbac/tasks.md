@@ -4,7 +4,7 @@ description: "Task list — Authentication & Role-Based Access Control"
 
 # Tasks: Authentication & Role-Based Access Control
 
-**Feature**: `001-auth-rbac` | **Ngày lập**: 2026-07-23
+**Feature**: `001-auth-rbac`
 **Input**: [spec.md](spec.md) · [plan.md](plan.md)
 **Trạng thái tổng**: 20/22 hoàn thành — feature đang chạy production
 
@@ -99,9 +99,8 @@ description: "Task list — Authentication & Role-Based Access Control"
 
 - [X] T034 Chuẩn hoá catalog mã lỗi (`VALIDATION_ERROR`, `INVALID_CREDENTIALS`, `ACCOUNT_LOCKED`, `TOO_MANY_ATTEMPTS`, …)
 - [X] T035 [P] CORS policy `Frontend` + chỉ ép HTTPS ở Development (TLS đã terminate ở Cloud Run) — `Program.cs`
-- [X] T036 [P] Đồng bộ ngược `spec.md` theo code thật (2026-07-15)
 - [X] T037 ADR cho OTP 6 số đã có trong `docs/06-Management/decision-log.md` → **D-23**; JWT Bearer + BCrypt → **D-05**
-- [ ] T038 **Còn nợ** — D-05 chỉ ghi "JWT Bearer", chưa ghi lý do chọn **HS256 thay vì RS256** (plan.md D-001). Bổ sung vào D-05 hoặc thêm dòng ADR mới
+- [X] T038 Lý do chọn **HS256 thay vì RS256** đã ghi vào **D-05** trong `decision-log.md` (một service vừa phát hành vừa verify, không có bên thứ ba cần verify độc lập)
 
 ---
 

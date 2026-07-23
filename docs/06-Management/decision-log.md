@@ -8,7 +8,7 @@
 | D-02 | 2026-05 | Backend **C#/ASP.NET Core 8 Web API** | Phù hợp môn học SWP391, team quen | Layered architecture |
 | D-03 | 2026-05 | Database **MySQL** | ~~Free, phổ biến~~ | **Superseded by D-17** |
 | D-04 | 2026-05 | ORM **EF Core 8 Code-First** | Migration versioned, đồng bộ team | Không sửa DB bằng tay |
-| D-05 | 2026-05 | Auth **JWT Bearer + BCrypt** | Stateless, chuẩn ngành | Access 15', Refresh 7d; bảng refresh_tokens |
+| D-05 | 2026-05 | Auth **JWT Bearer + BCrypt**; ký bằng **HS256** (đối xứng), không dùng RS256 | Stateless, chuẩn ngành. Chọn HS256 vì chỉ có **một** service phát hành **và** verify token — không có bên thứ ba nào cần verify độc lập, nên không cần tách khoá ký/khoá công khai của RS256. HS256 cũng nhẹ hơn và bớt một việc vận hành (quản lý cặp khoá) | Access 15', Refresh 7d; bảng refresh_tokens. **Hệ quả:** `Jwt:SecretKey` là bí mật chung — đổi khoá phải deploy lại; nếu sau này có service khác cần verify token thì phải chuyển sang RS256 |
 | D-06 | 2026-05 | Frontend **Next.js + TypeScript** | SSR, type-safe, deploy Vercel dễ | — |
 | D-07 | 2026-05 | File storage **Azure Blob** | Lưu ảnh tiến độ/meal ngoài DB | — |
 | D-08 | 2026-05 | **AI Vision = enhancement only** | Tránh scope creep; độ chính xác chưa đủ tin | UC-26 ngoài MVP, người xác nhận |
@@ -27,13 +27,15 @@
 | D-21 | 2026-06-26 | **AI quét ảnh món ăn → Google Gemini Vision** (`gemini-2.5-flash`, thay Google Cloud Vision — OQ-09) | Gemini nhận nhiều món + ước lượng dinh dưỡng/gram trong 1 call, phù hợp hơn Vision (chỉ nhãn) | `GeminiService`/`IFoodImageAnalyzer`; spec 009 |
 | D-22 | 2026-06-26 | **Thanh toán online VNPay sandbox** (override ADR-03 thủ công) | Yêu cầu giảng viên phải có luồng online thực | HMAC-SHA512 + IPN auto-activate; spec 010 |
 | D-23 | 2026-06 | **Reset mật khẩu bằng OTP 6 số qua email** (SMTP Gmail) — thay token link dài | UX quen thuộc + gửi email thật | `password_reset_tokens.AttemptCount`; spec 001 |
+| D-25 | 2026-07 | **Xoá cứng giáo án + ghi chú PT** — ngoại lệ có chủ ý của **DATA-01** (soft delete). Áp cho `DELETE /workout-plans/{id}` (cascade `workout_exercises`) và `DELETE /trainer-notes/{id}` | DATA-01 bảo vệ dữ liệu **nghiệp vụ/chứng từ** (Member, Membership, Payment). Giáo án và ghi chú là **bản nháp huấn luyện** — PT sửa/xoá liên tục trong quá trình kèm; soft delete sẽ buộc mọi truy vấn lọc thêm `IsDeleted` mà gần như không mang lại giá trị truy vết | Bù bằng **audit log**: `DELETE_WORKOUT_PLAN`, `DELETE_TRAINER_NOTE` ghi ai xoá, lúc nào, bản ghi nào — xem `constraints/safety.md` SAFE-08. Đây là **2 chỗ xoá cứng duy nhất** trong hệ thống; thêm chỗ mới phải có ADR riêng |
+| D-26 | 2026-07 | **Gom luật nối hạn membership về một nguồn** — `ApplyPaidRenewalWindow` → `MembershipLifecycle.cs`; `CancelSiblingPendingAsync` + `SaveActivationAsync` → `MembershipActivation.cs` | `MembershipService` và `VnPayService` mỗi bên giữ một bản sao giống hệt nhau của 3 hàm này. Sửa một bên quên bên kia → luồng thu tiền tay và luồng VNPay kích hoạt gói khác nhau (sai hạn gói, sai doanh thu). Đợt gom `MembershipLifecycle` trước đó đã bỏ sót 3 hàm này | `grep ApplyPaidRenewalWindow` còn **1** định nghĩa. Thêm `InternalsVisibleTo` cho project test + 18 unit test cho `MembershipLifecycle`. Thi hành [`GBL-02`](../01-SRS-Requirements/constraints/global.md) |
 | D-24 | 2026-07-23 | **Sửa CONSTITUTION ARCH-01 + ARCH-04 cho khớp code** (v1.2.0 → **v1.3.0**). ARCH-01: "Layered + Repository" → **Vertical Slice**, service gọi thẳng `DbContext`. ARCH-04: "EF Core Migration (Code First)" → **Database First**, schema do team DB sở hữu qua script SQL. | Rà `CONSTITUTION.md` ↔ code phát hiện 2 điều luật **chưa bao giờ khớp code**: không có tầng Repository nào tồn tại, và `Program.cs` ghi rõ backend không tạo/sửa schema. Luật mô tả sai thực tế thì không ai kiểm tra được, làm hỏng giá trị của Constitution Check trong 10 `plan.md`. **Sửa luật cho khớp code** (code đang chạy production, cả hai lựa chọn đều có lý do thiết kế đã ghi). | Đồng bộ `.specify/memory/constitution.md`; chi tiết ở `constraints/global.md` GBL-07/GBL-08. **Hệ quả cần nhớ khi lập kế hoạch:** việc cần cột DB mới bị chặn bởi team DB (B-01 snapshot macro, B-17 `provider_ref`). |
 
 > Khi đổi một quyết định: thêm dòng mới với ID mới, đánh dấu dòng cũ "Superseded by D-xx", KHÔNG xóa lịch sử. (D-06 phần deploy Vercel & D-07 Azure Blob → superseded bởi D-19/D-20.)
 
 ---
 
-# Bản đồ ADR → quyết định cấp feature (cập nhật 2026-07-23)
+# Bản đồ ADR → quyết định cấp feature
 
 Mỗi `docs/03-Interface-Specs/feature-specs/*/plan.md` có bảng **Design Decisions** riêng, đánh số theo feature (`D-001…D-1012`). Đó là **chi tiết hoá** của các ADR cấp dự án bên trên, **không phải hệ đánh số thay thế**. Đọc từ trên xuống: ADR nói *chọn cái gì*, plan nói *cài đặt ra sao và đánh đổi gì*.
 

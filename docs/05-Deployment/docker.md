@@ -1,6 +1,6 @@
 # Docker — GymMaster Backend
 
-**Cập nhật:** 2026-07-23 · **File thật:** [`backend/Dockerfile`](../../backend/Dockerfile) · [`backend/.dockerignore`](../../backend/.dockerignore)
+**File thật:** [`backend/Dockerfile`](../../backend/Dockerfile) · [`backend/.dockerignore`](../../backend/.dockerignore)
 
 > **Docker được dùng ở đâu trong dự án này?** Chỉ một chỗ: **đóng gói backend để chạy trên Cloud Run**. Bình thường bạn **không cần cài Docker ở máy** — lệnh `gcloud run deploy --source ./backend` gửi source lên **Cloud Build**, Google build image hộ rồi đẩy vào Artifact Registry.
 >
@@ -51,7 +51,7 @@ Dockerfile  .dockerignore           ← không cần chính nó bên trong image
 
 Dòng quan trọng nhất là **`appsettings.Development.json`**. Docker build đọc từ **đĩa**, không đọc từ Git — nên dù file có bị `.gitignore` chặn hay không, thiếu dòng này là cấu hình máy dev đi thẳng vào image.
 
-> ⚠️ **Lưu ý về file này trong repo GymMaster:** `.gitignore` hiện chỉ chặn `appsettings.*.local.json`, **không chặn** `appsettings.Development.json` — file này **đang được Git theo dõi**. Kiểm tra 2026-07-23: nội dung chỉ có cấu hình `Logging`, **không có secret**, nên an toàn. Nhưng đây là chỗ dễ vô tình thêm connection string vào rồi commit — nếu bắt đầu để secret ở đó thì phải `git rm --cached` và bổ sung vào `.gitignore` **trước**. Secret hiện nằm ở **User Secrets** (local) và **env vars Cloud Run** (production).
+> ⚠️ **Lưu ý về file này trong repo GymMaster:** `.gitignore` hiện chỉ chặn `appsettings.*.local.json`, **không chặn** `appsettings.Development.json` — file này **đang được Git theo dõi**. Nội dung chỉ có cấu hình `Logging`, **không có secret**, nên an toàn. Nhưng đây là chỗ dễ vô tình thêm connection string vào rồi commit — nếu bắt đầu để secret ở đó thì phải `git rm --cached` và bổ sung vào `.gitignore` **trước**. Secret hiện nằm ở **User Secrets** (local) và **env vars Cloud Run** (production).
 
 ## 3. Chạy Docker ở máy (khi cần debug đúng môi trường production)
 

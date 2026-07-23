@@ -1,6 +1,6 @@
 # Sơ đồ triển khai — GymMaster
 
-**Cập nhật:** 2026-07-23 · **Môi trường:** Google Cloud, region `asia-southeast1` (Singapore), project `gymmaster-500004`
+**Môi trường:** Google Cloud, region `asia-southeast1` (Singapore), project `gymmaster-500004`
 
 ---
 

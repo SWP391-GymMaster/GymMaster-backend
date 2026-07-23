@@ -4,7 +4,7 @@ description: "Task list — Online Payment via VNPay (Sandbox)"
 
 # Tasks: Online Payment via VNPay (Sandbox)
 
-**Feature**: `010-online-payment-vnpay` | **Ngày lập**: 2026-07-23
+**Feature**: `010-online-payment-vnpay`
 **Input**: [spec.md](spec.md) · [plan.md](plan.md)
 **Trạng thái tổng**: 25/28 hoàn thành
 

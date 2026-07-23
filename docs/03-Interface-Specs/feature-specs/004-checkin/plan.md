@@ -1,6 +1,6 @@
 # Implementation Plan: Member Check-in
 
-**Feature Branch**: `004-checkin` | **Date**: 2026-07-23 | **Spec**: [spec.md](spec.md)
+**Feature Branch**: `004-checkin` | **Spec**: [spec.md](spec.md)
 **Status**: `Implemented`
 **Input**: `docs/03-Interface-Specs/feature-specs/004-checkin/spec.md`
 

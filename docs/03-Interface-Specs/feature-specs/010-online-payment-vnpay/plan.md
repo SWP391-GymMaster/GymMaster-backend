@@ -1,6 +1,6 @@
 # Implementation Plan: Online Payment via VNPay (Sandbox)
 
-**Feature Branch**: `010-online-payment-vnpay` | **Date**: 2026-07-23 | **Spec**: [spec.md](spec.md)
+**Feature Branch**: `010-online-payment-vnpay` | **Spec**: [spec.md](spec.md)
 **Status**: `Implemented`
 **Input**: `docs/03-Interface-Specs/feature-specs/010-online-payment-vnpay/spec.md`
 

@@ -4,7 +4,7 @@ description: "Task list — Membership Packages, Sell, Renew & Payment"
 
 # Tasks: Membership Packages, Sell, Renew & Payment
 
-**Feature**: `003-membership-billing` | **Ngày lập**: 2026-07-23
+**Feature**: `003-membership-billing`
 **Input**: [spec.md](spec.md) · [plan.md](plan.md)
 **Trạng thái tổng**: 41/43 hoàn thành
 
@@ -103,9 +103,8 @@ description: "Task list — Membership Packages, Sell, Renew & Payment"
 ## Phase 7: Polish & Cross-cutting
 
 - [X] T040 [P] Kiểm tra mọi so sánh ngày đều qua `AppClock`, không còn `DateTime.Today` → **D-209**
-- [X] T041 [P] Đồng bộ ngược `spec.md` theo code thật (2026-07-15)
-- [X] T042 Unit test `tests/GymMaster.Api.Tests/PaymentServiceTests.cs` — **25 test**, phủ cả `Summary_groups_daily_revenue_by_vietnam_date_not_utc` (đúng chỗ rủi ro nhất về múi giờ). Thêm `MembershipPackageServiceTests.cs`. *(Loc-LX, PR #10 — 78 test cho billing, 2026-07-23)*
-- [ ] T043 **Còn nợ** — bổ sung test cho `MembershipLifecycle.ExpireStalePending` (TTL 30 phút, AC-09) — logic thuần, test rất rẻ nhưng chưa có
+- [X] T042 Unit test `tests/GymMaster.Api.Tests/PaymentServiceTests.cs` — **25 test**, phủ cả `Summary_groups_daily_revenue_by_vietnam_date_not_utc` (đúng chỗ rủi ro nhất về múi giờ). Thêm `MembershipPackageServiceTests.cs`.
+- [X] T043 Test cho `MembershipLifecycle` — `MembershipLifecycleTests.cs`, 18 test: `IsActiveOn` · `ExpireIfPastDue` · `ExpireStalePending` (TTL 30 phút, AC-09) · `ApplyPaidRenewalWindow`
 
 ---
 

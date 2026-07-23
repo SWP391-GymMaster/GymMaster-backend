@@ -1,6 +1,6 @@
 # Implementation Plan: Meal Journal & Daily Calorie Summary
 
-**Feature Branch**: `007-nutrition-calorie` | **Date**: 2026-07-23 | **Spec**: [spec.md](spec.md)
+**Feature Branch**: `007-nutrition-calorie` | **Spec**: [spec.md](spec.md)
 **Status**: `Implemented`
 **Input**: `docs/03-Interface-Specs/feature-specs/007-nutrition-calorie/spec.md`
 

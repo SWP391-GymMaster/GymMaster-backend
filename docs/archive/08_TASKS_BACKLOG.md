@@ -1,4 +1,4 @@
-> ⚠️ **TÀI LIỆU ĐÃ BỊ THAY THẾ — KHÔNG DÙNG LÀM NGUỒN THAM CHIẾU** *(đưa vào archive 2026-07-23)*
+> ⚠️ **TÀI LIỆU ĐÃ BỊ THAY THẾ — KHÔNG DÙNG LÀM NGUỒN THAM CHIẾU**
 >
 > Backlog lập ở Phase 0 (2026-05). Trạng thái trong file **đã lỗi thời** — nhiều task còn ghi `Todo` nhưng thực tế đã hoàn thành từ lâu (ví dụ T-004 "Finalize use case list" trong khi 10 feature đã `Implemented`).
 >

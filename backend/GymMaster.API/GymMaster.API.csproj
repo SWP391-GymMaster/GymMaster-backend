@@ -8,6 +8,12 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <!-- Cho project test thay cac kieu internal (vd MembershipLifecycle, MembershipActivation)
+         de test truc tiep logic nghiep vu ma khong phai noi rong public API. -->
+    <InternalsVisibleTo Include="GymMaster.Api.Tests" />
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="BCrypt.Net-Next" Version="4.2.0" />
     <PackageReference Include="CloudinaryDotNet" Version="1.29.2" />
     <PackageReference Include="Google.Apis.Auth" Version="1.74.0" />

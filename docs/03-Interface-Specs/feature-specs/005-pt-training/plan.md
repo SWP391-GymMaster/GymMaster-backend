@@ -1,6 +1,6 @@
 # Implementation Plan: PT Assignment, Workout Plan & Trainer Notes
 
-**Feature Branch**: `005-pt-training` | **Date**: 2026-07-23 | **Spec**: [spec.md](spec.md)
+**Feature Branch**: `005-pt-training` | **Spec**: [spec.md](spec.md)
 **Status**: `Implemented`
 **Input**: `docs/03-Interface-Specs/feature-specs/005-pt-training/spec.md`
 

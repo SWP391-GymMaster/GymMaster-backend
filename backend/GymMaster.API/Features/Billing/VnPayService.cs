@@ -228,9 +228,9 @@ public sealed class VnPayService : IVnPayService
                 stale.UpdatedAt = DateTime.UtcNow;
             }
 
-            var replacedActive = ApplyPaidRenewalWindow(membership, others, todayVn);
-            await CancelSiblingPendingAsync(membership.MemberId, membership.Id, cancellationToken);
-            await SaveActivationAsync(membership, replacedActive, cancellationToken);
+            var replacedActive = MembershipLifecycle.ApplyPaidRenewalWindow(membership, others, todayVn);
+            await MembershipActivation.CancelSiblingPendingAsync(_dbContext, membership.MemberId, membership.Id, cancellationToken);
+            await MembershipActivation.SaveActivationAsync(_dbContext, membership, replacedActive, cancellationToken);
             await LogVnPayPaymentAsync(payment, cancellationToken);
             return ServiceResult<bool>.Success(true);
         }
@@ -241,44 +241,6 @@ public sealed class VnPayService : IVnPayService
         return ServiceResult<bool>.Success(true);
     }
 
-    private async Task CancelSiblingPendingAsync(long memberId, long keepId, CancellationToken cancellationToken)
-    {
-        var siblings = await _dbContext.Memberships
-            .Where(item => item.MemberId == memberId &&
-                item.Id != keepId &&
-                item.Status == MembershipStatus.PendingPayment)
-            .ToListAsync(cancellationToken);
-
-        foreach (var sibling in siblings)
-        {
-            sibling.Status = MembershipStatus.Cancelled;
-            sibling.UpdatedAt = DateTime.UtcNow;
-        }
-    }
-
-    private async Task SaveActivationAsync(
-        Membership membership,
-        Membership? replacedActive,
-        CancellationToken cancellationToken)
-    {
-        if (replacedActive is null || !_dbContext.Database.IsRelational())
-        {
-            await _dbContext.SaveChangesAsync(cancellationToken);
-            return;
-        }
-
-        var finalStatus = membership.Status;
-        membership.Status = MembershipStatus.PendingPayment;
-
-        await using var transaction = await _dbContext.Database.BeginTransactionAsync(cancellationToken);
-        await _dbContext.SaveChangesAsync(cancellationToken);
-
-        membership.Status = finalStatus;
-        membership.UpdatedAt = DateTime.UtcNow;
-        await _dbContext.SaveChangesAsync(cancellationToken);
-        await transaction.CommitAsync(cancellationToken);
-    }
-
     private async Task LogVnPayPaymentAsync(Payment payment, CancellationToken cancellationToken)
     {
         await _auditService.LogAsync(
@@ -287,30 +249,6 @@ public sealed class VnPayService : IVnPayService
             payment.Id,
             new { membershipId = payment.MembershipId },
             cancellationToken);
-    }
-
-    private static Membership? ApplyPaidRenewalWindow(
-        Membership membership,
-        IEnumerable<Membership> otherMemberships,
-        DateOnly today)
-    {
-        var now = DateTime.UtcNow;
-        var activeMembership = otherMemberships.FirstOrDefault(item => MembershipLifecycle.IsActiveOn(item, today));
-
-        membership.EndDate = activeMembership is null
-            ? today.AddDays(membership.Package.DurationDays)
-            : activeMembership.EndDate.AddDays(membership.Package.DurationDays);
-
-        membership.Status = MembershipStatus.Active;
-        membership.UpdatedAt = now;
-
-        if (activeMembership is not null)
-        {
-            activeMembership.Status = MembershipStatus.Cancelled;
-            activeMembership.UpdatedAt = now;
-        }
-
-        return activeMembership;
     }
 
     private string BuildPayUrl(Payment payment, Membership membership, string ipAddress)

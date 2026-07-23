@@ -44,4 +44,35 @@ internal static class MembershipLifecycle
 
         return changed;
     }
+
+    // Noi han khi kich hoat mot don da thanh toan (BIZ-01: toi da 1 Active/member).
+    // Con goi Active khac -> EndDate moi = EndDate cu + DurationDays, goi cu chuyen Cancelled.
+    // Khong con -> tinh tu hom nay. Tra ve goi Active bi thay the (null neu khong co).
+    //
+    // Dung CHUNG cho ca hai duong kich hoat: thu tien tay (MembershipService.ConfirmPaymentAsync)
+    // va thanh toan online (VnPayService.FinalizeSuccessfulPaymentAsync) — hai luong PHAI
+    // cho ra cung ket qua, nen luat chi duoc ton tai o day.
+    public static Membership? ApplyPaidRenewalWindow(
+        Membership membership,
+        IEnumerable<Membership> otherMemberships,
+        DateOnly today)
+    {
+        var now = DateTime.UtcNow;
+        var activeMembership = otherMemberships.FirstOrDefault(item => IsActiveOn(item, today));
+
+        membership.EndDate = activeMembership is null
+            ? today.AddDays(membership.Package.DurationDays)
+            : activeMembership.EndDate.AddDays(membership.Package.DurationDays);
+
+        membership.Status = MembershipStatus.Active;
+        membership.UpdatedAt = now;
+
+        if (activeMembership is not null)
+        {
+            activeMembership.Status = MembershipStatus.Cancelled;
+            activeMembership.UpdatedAt = now;
+        }
+
+        return activeMembership;
+    }
 }

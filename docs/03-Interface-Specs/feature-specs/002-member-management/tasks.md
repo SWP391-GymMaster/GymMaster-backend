@@ -4,7 +4,7 @@ description: "Task list — User, Staff, PT & Member Management"
 
 # Tasks: User, Staff, PT & Member Management
 
-**Feature**: `002-member-management` | **Ngày lập**: 2026-07-23
+**Feature**: `002-member-management`
 **Input**: [spec.md](spec.md) · [plan.md](plan.md)
 **Trạng thái tổng**: 33/35 hoàn thành
 
@@ -100,7 +100,6 @@ description: "Task list — User, Staff, PT & Member Management"
 ## Phase 7: Polish & Cross-cutting
 
 - [X] T040 [P] Đảm bảo PII (email/SĐT) không xuất hiện trong log → **NFR-03**
-- [X] T041 [P] Đồng bộ ngược `spec.md` theo code thật (2026-07-15)
 - [ ] T042 **Còn nợ** — unit test `tests/GymMaster.Api.Tests/MemberServiceTests.cs` cho 3 nhánh email của `CreateAsync` (đây là logic phức tạp nhất feature, hiện chỉ phủ black-box)
 - [ ] T043 **Còn nợ** — đo lại NFR-01 (tìm kiếm < 1s với 1000 hội viên) bằng `tests/blackbox/Performance.Tests.ps1` và ghi số đo vào `docs/04-Test-Specs/test-plan.md`
 

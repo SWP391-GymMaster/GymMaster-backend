@@ -1,7 +1,7 @@
 # GymMaster — Backlog kỹ thuật (agent-executable)
 
 **Phiên bản**: 1.0 · **Nguồn**: các task `[ ]` trong `feature-specs/*/tasks.md`
-**Tổng**: 18 mục còn mở · **Trạng thái code**: đang chạy production, không mục nào là blocker
+**Tổng**: 14 mục còn mở · **Trạng thái code**: đang chạy production, không mục nào là blocker
 
 > **File này dùng để làm gì.** `tasks.md` của mỗi feature là **bản ghi as-built** (hầu hết `[X]`), không chạy `/speckit-implement` được. File này gom **phần còn nợ** — mỗi mục có đủ file path, lý do và điều kiện hoàn thành để giao thẳng cho agent theo vòng B3 Implement trong [`docs/06-Management/ai-workflow.md`](../../06-Management/ai-workflow.md).
 >
@@ -15,6 +15,17 @@
 Hai điều luật Layer 2 không khớp code: ARCH-01 đòi tầng Repository (không tồn tại), ARCH-04 đòi EF Core Migration (dự án dùng SQL script do team DB sở hữu).
 **Xử lý theo hướng sửa luật cho khớp code:** `CONSTITUTION.md` → **v1.3.0** (ARCH-01 = Vertical Slice, ARCH-04 = Database First) · ADR **D-24** trong [decision-log.md](../../06-Management/decision-log.md) · đồng bộ `.specify/memory/constitution.md`.
 > ⚠️ `CONSTITUTION.md` quy định thay đổi cần **đồng thuận toàn team** — bản sửa này cần được team xác nhận trong buổi họp gần nhất.
+
+### ✅ B-20 · Ba hàm nghiệp vụ bị copy nguyên xi giữa `MembershipService` và `VnPayService` — **xong**
+Đã gom về một nguồn (ADR **D-26**): `ApplyPaidRenewalWindow` → `MembershipLifecycle.cs`; `CancelSiblingPendingAsync` + `SaveActivationAsync` → `MembershipActivation.cs` mới. Gỡ hết wrapper, hai service gọi thẳng nguồn chung.
+`grep ApplyPaidRenewalWindow` còn **1** định nghĩa · `activeMembership.EndDate.AddDays` còn **1** · `BeginTransactionAsync` còn **1**. Thêm 18 test cho `MembershipLifecycle`. **212/212 test xanh.**
+
+### ✅ B-02 · ADR cho ngoại lệ DATA-01 (xoá cứng giáo án/ghi chú) — **xong**
+Thêm **D-25** vào `decision-log.md`: nêu rõ phạm vi DATA-01 (dữ liệu nghiệp vụ/chứng từ), lý do giáo án + ghi chú là bản nháp huấn luyện, và audit log bù (`DELETE_WORKOUT_PLAN`, `DELETE_TRAINER_NOTE`). Ghi rõ đây là 2 chỗ xoá cứng duy nhất; thêm chỗ mới phải có ADR riêng.
+
+### ✅ B-15 · Lý do chọn HS256 — **xong**
+Bổ sung vào **D-05**: một service vừa phát hành vừa verify token, không có bên thứ ba cần verify độc lập nên không cần tách khoá của RS256. Kèm hệ quả: `Jwt:SecretKey` là bí mật chung, đổi khoá phải deploy lại.
+
 
 ---
 
@@ -33,24 +44,6 @@ Hai điều luật Layer 2 không khớp code: ARCH-01 đòi tầng Repository (
 - **Xong khi**: sửa macro của một `FoodItem` → `GET /members/{id}/calorie-summary` của ngày cũ **không đổi**.
 - **Chặn bởi**: team DB (không tự làm được ở tầng backend).
 
-### B-20 · Ba hàm nghiệp vụ bị **copy nguyên xi** giữa `MembershipService` và `VnPayService`
-- **Nguồn**: [feat_flow/membership_billing_feature_analysis.md §8](../../02-SDD-Architecture/feat_flow/membership_billing_feature_analysis.md) 
-- **Vấn đề**: 3 hàm private **giống hệt nhau từng dòng**, chứa luật **nối hạn (BIZ-01)**:
-
-  | Hàm | `MembershipService.cs` | `VnPayService.cs` |
-  |---|---|---|
-  | `CancelSiblingPendingAsync` | L558–571 | L244–257 |
-  | `SaveActivationAsync` | L573–594 | L259–280 |
-  | `ApplyPaidRenewalWindow` | L596–618 | L292–314 |
-
-  Đây đúng loại lỗi mà [`GBL-02`](../../01-SRS-Requirements/constraints/global.md) cấm. `MembershipLifecycle.cs` sinh ra chính vì vấn đề này (gom 3 bản sao lệch nhau ở `MembershipService`/`ProgressService`/`VnPayService`) — nhưng **đợt gom đó bỏ sót 3 hàm này**.
-- **Rủi ro**: sửa luật nối hạn ở một file mà quên file kia → **luồng thu tiền thủ công và luồng VNPay kích hoạt gói khác nhau**. Chính là kiểu bug đã từng xảy ra.
-- **Việc cần làm**:
-  1. Chuyển `ApplyPaidRenewalWindow` (thuần, không I/O) vào `MembershipLifecycle.cs`.
-  2. Gom `CancelSiblingPendingAsync` + `SaveActivationAsync` (có chạm `DbContext`) vào một helper dùng chung trong slice `Billing/`.
-  3. Thêm test khẳng định hai luồng cho ra **cùng** `EndDate` và **cùng** trạng thái gói cũ.
-- **Xong khi**: `grep ApplyPaidRenewalWindow` chỉ ra **một** kết quả.
-- **Vì sao P1**: đụng tiền và hạn gói của hội viên; hai đường kích hoạt phải giống hệt nhau.
 
 ### B-03 · Unit test `AuthService`
 - **Nguồn**: [001 T020](001-auth-rbac/tasks.md)
@@ -68,10 +61,10 @@ Hai điều luật Layer 2 không khớp code: ARCH-01 đòi tầng Repository (
 - **Việc cần làm**: `tests/GymMaster.Api.Tests/MemberServiceTests.cs`, mỗi nhánh một test + test `GET /members/me` tự tạo hồ sơ (AC-08).
 - **Xong khi**: 3 nhánh + AC-08 đều có test.
 
-### B-05 · Unit test `PaymentService` + `MembershipLifecycle`
+### ✅ B-05 · Unit test `PaymentService` + `MembershipLifecycle` — **xong**
 - **Nguồn**: [003 T042, T043](003-membership-billing/tasks.md)
 - **Vấn đề**: `PaymentSummaryResponse` gom `byMethod`/`byDay` **theo giờ VN** — chỗ dễ sai nhất về múi giờ, chưa có test. `MembershipLifecycle.ExpireStalePending` (TTL 30 phút, AC-09) là logic thuần, test rất rẻ nhưng cũng chưa có.
-- **Việc cần làm**: ~~`PaymentServiceTests.cs` cho summary~~ ✅ **xong 2026-07-23** (PR #10, 25 test gồm gom doanh thu theo ngày VN). **Còn lại:** thêm test `ExpireStalePending` / `ExpireIfPastDue` / `IsActiveOn` vào `MembershipServiceTests.cs`.
+- ✅ **Xong**: `tests/GymMaster.Api.Tests/MembershipLifecycleTests.cs` — **18 test** phủ `IsActiveOn` (kể cả biên EndDate == hôm nay), `ExpireIfPastDue`, `ExpireStalePending` (TTL 30 phút), `ApplyPaidRenewalWindow`, và một test khẳng định hai luật hết hạn **cùng chạy** trong một lượt (chống ai đó đổi toán tử `|` thành `||`).
 - **Ưu tiên phụ**: `MembershipLifecycle` được **7 feature** dùng chung — test ở đây bảo vệ nhiều nhất trên một đơn vị công sức.
 
 ---
@@ -103,8 +96,6 @@ Hai điều luật Layer 2 không khớp code: ARCH-01 đòi tầng Repository (
 
 ## P4 — Tài liệu & kiến trúc (không gấp)
 
-- [ ] **B-02** · Thêm dòng ADR ghi nhận **ngoại lệ của DATA-01**: giáo án + ghi chú xoá cứng (2 chỗ duy nhất trong hệ thống), lý do ở [`005-pt-training/plan.md`](005-pt-training/plan.md) D-509. Audit **đã có** (`DELETE_WORKOUT_PLAN`, `DELETE_TRAINER_NOTE`) nên chỉ còn thiếu tài liệu · [safety.md SAFE-08](../../01-SRS-Requirements/constraints/safety.md)
-- [ ] **B-15** · Bổ sung lý do chọn **HS256 thay vì RS256** vào D-05 trong `docs/06-Management/decision-log.md` (hiện D-05 chỉ ghi "JWT Bearer + BCrypt") · [001 T038](001-auth-rbac/tasks.md)
 - [ ] **B-16** · Cân nhắc chuyển `IAuditService` từ `Features/Dashboard/` sang `Infrastructure/` — **chỉ làm khi** xuất hiện nơi tiêu thụ audit thứ hai; hiện 5 slice phải `using Features.Dashboard` chỉ để ghi log · [008 T036](008-dashboard-audit/tasks.md)
 
 ## P5 — Chỉ làm khi chuyển VNPay sang live
@@ -119,17 +110,15 @@ Không phải nợ của bản sandbox — sandbox đã đúng và đủ.
 ## Thứ tự đề xuất
 
 ```text
-B-02 (chốt audit — quyết định, không phải code)
+B-01 (chờ team DB — đặt yêu cầu ngay, có phụ thuộc ngoài)
   ↓
-B-05 (MembershipLifecycle: 7 feature hưởng lợi)  →  B-03  →  B-04
-  ↓
-B-01 (chờ team DB, khởi động sớm vì có phụ thuộc ngoài)
+B-03 (AuthService — service nhạy cảm nhất, chưa có test)  →  B-04
   ↓
 B-06…B-10 (test, làm song song được)
   ↓
-B-11…B-14 (đo NFR một đợt)
+B-11…B-14 (đo NFR một đợt, cần seed ~1000 hội viên)
   ↓
-B-15, B-16 · B-17, B-18 (khi live)
+B-16 · B-17, B-18 (khi live)
 ```
 
 **Bắt đầu bằng B-02** vì nó là *quyết định* chứ không phải code — chốt xong mới biết có phải viết code hay chỉ viết ADR. **B-01 nên đặt yêu cầu với team DB ngay** dù chưa làm, vì đó là mục duy nhất bị chặn bởi bên ngoài.

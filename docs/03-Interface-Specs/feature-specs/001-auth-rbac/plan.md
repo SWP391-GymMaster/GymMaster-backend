@@ -1,6 +1,6 @@
 # Implementation Plan: Authentication & Role-Based Access Control
 
-**Feature Branch**: `001-auth-rbac` | **Date**: 2026-07-23 | **Spec**: [spec.md](spec.md)
+**Feature Branch**: `001-auth-rbac` | **Spec**: [spec.md](spec.md)
 **Status**: `Implemented`
 **Input**: `docs/03-Interface-Specs/feature-specs/001-auth-rbac/spec.md`
 

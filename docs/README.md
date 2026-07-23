@@ -1,6 +1,6 @@
 # GymMaster — Documentation
 
-**Phiên bản:** v2.0 · **Ngôn ngữ:** Tiếng Việt · **Cập nhật:** 2026-07-23
+**Phiên bản:** 2.0 · **Ngôn ngữ:** Tiếng Việt
 **Phương pháp:** Hybrid **SDD + ADD** (Spec-Driven & Agent-Driven Development)
 **Trạng thái:** 10/10 feature `Implemented` — backend .NET 10 + FE Next.js đang chạy trên Google Cloud Run
 
@@ -191,7 +191,7 @@ Skill tương ứng: `/swp391-docs` (tài liệu môn học) · `/swp391-diagram
 
 ## Bảng đối chiếu tên file cũ ↔ mới
 
-Tái cấu trúc 2026-07-23: bỏ `docs/init/`, bỏ số thứ tự phẳng, chuyển `specs/` vào `docs/`.
+Tái cấu trúc: bỏ `docs/init/`, bỏ số thứ tự phẳng, chuyển `specs/` vào `docs/`.
 
 | Tên cũ | Vị trí mới |
 |---|---|

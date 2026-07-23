@@ -4,7 +4,7 @@ description: "Task list — Progress Tracking & Member 360° Profile"
 
 # Tasks: Progress Tracking & Member 360° Profile
 
-**Feature**: `006-progress-tracking` | **Ngày lập**: 2026-07-23
+**Feature**: `006-progress-tracking`
 **Input**: [spec.md](spec.md) · [plan.md](plan.md)
 **Trạng thái tổng**: 26/28 hoàn thành
 
@@ -68,7 +68,6 @@ description: "Task list — Progress Tracking & Member 360° Profile"
 
 ## Phase 5: Polish & Cross-cutting
 
-- [X] T027 [P] Đồng bộ ngược `spec.md` theo code thật (2026-07-15)
 - [ ] T028 **Còn nợ** — đo NFR-01 (360° < 1.5s) khi member có nhiều dữ liệu; nếu vượt thì cân nhắc gộp truy vấn (hiện là ~6 query/lần gọi, chưa có số đo thực tế)
 - [ ] T029 **Còn nợ** — unit test riêng cho `GetProfile360Async` ở nhánh `currentMembership = null` (AC-06); hiện `ProgressServiceTests.cs` mới phủ phần ghi tiến độ
 

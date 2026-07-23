@@ -1,6 +1,6 @@
 # Implementation Plan: Image Food Recognition Assist (AI — Gemini)
 
-**Feature Branch**: `009-image-food-recognition` | **Date**: 2026-07-23 | **Spec**: [spec.md](spec.md)
+**Feature Branch**: `009-image-food-recognition` | **Spec**: [spec.md](spec.md)
 **Status**: `Implemented`
 **Input**: `docs/03-Interface-Specs/feature-specs/009-image-food-recognition/spec.md`
 

@@ -4,7 +4,7 @@ description: "Task list — Operations Dashboard & Audit Log"
 
 # Tasks: Operations Dashboard & Audit Log
 
-**Feature**: `008-dashboard-audit` | **Ngày lập**: 2026-07-23
+**Feature**: `008-dashboard-audit`
 **Input**: [spec.md](spec.md) · [plan.md](plan.md)
 **Trạng thái tổng**: 24/27 hoàn thành
 
@@ -93,7 +93,6 @@ description: "Task list — Operations Dashboard & Audit Log"
 
 ## Phase 6: Polish & Cross-cutting
 
-- [X] T034 [P] Đồng bộ ngược `spec.md` theo code thật (2026-07-15)
 - [ ] T035 **Còn nợ** — đo NFR-01 (dashboard < 2s với ~1000 hội viên). Đây là endpoint nặng nhất hệ thống (15 chỉ số, không cache — D-801) nhưng chưa có số đo thực tế
 - [ ] T036 **Còn nợ** — cân nhắc chuyển `IAuditService` sang `Infrastructure/` nếu xuất hiện nơi tiêu thụ audit thứ hai (hiện 7 slice phải `using Features.Dashboard` chỉ để ghi log)
 

@@ -4,7 +4,7 @@ description: "Task list — Member Check-in"
 
 # Tasks: Member Check-in
 
-**Feature**: `004-checkin` | **Ngày lập**: 2026-07-23
+**Feature**: `004-checkin`
 **Input**: [spec.md](spec.md) · [plan.md](plan.md)
 **Trạng thái tổng**: 22/23 hoàn thành
 
@@ -75,7 +75,6 @@ description: "Task list — Member Check-in"
 
 ## Phase 6: Polish & Cross-cutting
 
-- [X] T024 [P] Đồng bộ ngược `spec.md` theo code thật (2026-07-15)
 - [ ] T025 **Còn nợ** — đo NFR-01 (< 300ms P95) và NFR-03 (~50 check-in/phút) bằng `tests/blackbox/Performance.Tests.ps1`, ghi số đo vào `docs/04-Test-Specs/test-plan.md`
 
 ---

@@ -168,7 +168,7 @@ public sealed class MembershipService : IMembershipService
             .ToListAsync(cancellationToken);
 
         MembershipLifecycle.ExpireIfPastDue(otherMemberships, today);
-        var replacedActive = ApplyPaidRenewalWindow(membership, otherMemberships, today);
+        var replacedActive = MembershipLifecycle.ApplyPaidRenewalWindow(membership, otherMemberships, today);
 
         // Nguon su that DUY NHAT cho tien cua don = 1 Payment.
         // Tai dung payment Pending neu da co (vd member da khoi tao VNPay) thay vi tao dong moi
@@ -195,9 +195,9 @@ public sealed class MembershipService : IMembershipService
         payment.PaidAt = DateTime.UtcNow;
         payment.UpdatedAt = DateTime.UtcNow;
 
-        await CancelSiblingPendingAsync(membership.MemberId, membership.Id, cancellationToken);
+        await MembershipActivation.CancelSiblingPendingAsync(_dbContext, membership.MemberId, membership.Id, cancellationToken);
 
-        await SaveActivationAsync(membership, replacedActive, cancellationToken);
+        await MembershipActivation.SaveActivationAsync(_dbContext, membership, replacedActive, cancellationToken);
 
         await _auditService.LogAsync(
             "CONFIRM_PAYMENT",
@@ -281,7 +281,7 @@ public sealed class MembershipService : IMembershipService
         membership.EndDate = baseDate.AddDays(package.DurationDays);
         membership.Status = MembershipStatus.Active;
         membership.UpdatedAt = DateTime.UtcNow;
-        await CancelSiblingPendingAsync(membership.MemberId, membership.Id, cancellationToken);
+        await MembershipActivation.CancelSiblingPendingAsync(_dbContext, membership.MemberId, membership.Id, cancellationToken);
 
         _dbContext.Payments.Add(new Payment
         {
@@ -553,68 +553,6 @@ public sealed class MembershipService : IMembershipService
             totalPages);
 
         return ServiceResult<PagedResult<MembershipResponse>>.Success(result);
-    }
-
-    private async Task CancelSiblingPendingAsync(long memberId, long keepId, CancellationToken cancellationToken)
-    {
-        var siblings = await _dbContext.Memberships
-            .Where(item => item.MemberId == memberId &&
-                item.Id != keepId &&
-                item.Status == MembershipStatus.PendingPayment)
-            .ToListAsync(cancellationToken);
-
-        foreach (var sibling in siblings)
-        {
-            sibling.Status = MembershipStatus.Cancelled;
-            sibling.UpdatedAt = DateTime.UtcNow;
-        }
-    }
-
-    private async Task SaveActivationAsync(
-        Membership membership,
-        Membership? replacedActive,
-        CancellationToken cancellationToken)
-    {
-        if (replacedActive is null || !_dbContext.Database.IsRelational())
-        {
-            await _dbContext.SaveChangesAsync(cancellationToken);
-            return;
-        }
-
-        var finalStatus = membership.Status;
-        membership.Status = MembershipStatus.PendingPayment;
-
-        await using var transaction = await _dbContext.Database.BeginTransactionAsync(cancellationToken);
-        await _dbContext.SaveChangesAsync(cancellationToken);
-
-        membership.Status = finalStatus;
-        membership.UpdatedAt = DateTime.UtcNow;
-        await _dbContext.SaveChangesAsync(cancellationToken);
-        await transaction.CommitAsync(cancellationToken);
-    }
-
-    private static Membership? ApplyPaidRenewalWindow(
-        Membership membership,
-        IEnumerable<Membership> otherMemberships,
-        DateOnly today)
-    {
-        var now = DateTime.UtcNow;
-        var activeMembership = otherMemberships.FirstOrDefault(item => MembershipLifecycle.IsActiveOn(item, today));
-
-        membership.EndDate = activeMembership is null
-            ? today.AddDays(membership.Package.DurationDays)
-            : activeMembership.EndDate.AddDays(membership.Package.DurationDays);
-
-        membership.Status = MembershipStatus.Active;
-        membership.UpdatedAt = now;
-
-        if (activeMembership is not null)
-        {
-            activeMembership.Status = MembershipStatus.Cancelled;
-            activeMembership.UpdatedAt = now;
-        }
-
-        return activeMembership;
     }
 
     private static bool CanAccess(ClaimsPrincipal principal, MemberProfile profile)
