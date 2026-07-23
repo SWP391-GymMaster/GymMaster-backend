@@ -66,7 +66,7 @@ description: "Task list — Image Food Recognition Assist (AI — Gemini)"
 ## Phase 5: Polish & Cross-cutting
 
 - [X] T024 [P] **Refactor đã thực hiện**: đổi nhà cung cấp từ Google Cloud Vision → **Gemini Vision**, chỉ viết lại `GeminiService.cs`, không đụng `FoodScanService`/controller (minh chứng giá trị của T004)
-- [ ] T026 **Còn nợ** — test cho AC-06 (Gemini timeout → 502 và luồng nhập tay spec 007 vẫn chạy). `GeminiServiceTests.cs` có phủ xử lý lỗi ở tầng analyzer, nhưng chưa có test đầu-cuối chứng minh fallback không bị chặn
+- [X] T026 Test AC-06 — `FoodScanFallbackTests.cs`, 3 test đầu-cuối: Gemini hỏng → 502, không ghi gì vào DB, và luồng nhập tay spec 007 vẫn cho ra đúng số calo
 
 ---
 

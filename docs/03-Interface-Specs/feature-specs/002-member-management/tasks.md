@@ -100,7 +100,7 @@ description: "Task list — User, Staff, PT & Member Management"
 ## Phase 7: Polish & Cross-cutting
 
 - [X] T040 [P] Đảm bảo PII (email/SĐT) không xuất hiện trong log → **NFR-03**
-- [ ] T042 **Còn nợ** — unit test `tests/GymMaster.Api.Tests/MemberServiceTests.cs` cho 3 nhánh email của `CreateAsync` (đây là logic phức tạp nhất feature, hiện chỉ phủ black-box)
+- [X] T042 Unit test `tests/GymMaster.Api.Tests/MemberServiceTests.cs` — 14 test phủ đủ 3 nhánh email của `CreateAsync` + tự tạo hồ sơ ở `/members/me` + soft delete
 - [ ] T043 **Còn nợ** — đo lại NFR-01 (tìm kiếm < 1s với 1000 hội viên) bằng `tests/blackbox/Performance.Tests.ps1` và ghi số đo vào `docs/04-Test-Specs/test-plan.md`
 
 ---

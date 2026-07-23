@@ -78,7 +78,7 @@ description: "Task list — Meal Journal & Daily Calorie Summary"
 ## Phase 6: Polish & Cross-cutting
 
 - [ ] T031 **Còn nợ (nợ kỹ thuật đã ghi nhận)** — snapshot **macro** vào `meal_log_items`: cần team DB thêm 3 cột (`ProteinG`, `CarbG`, `FatG`), sau đó sửa `NutritionService` ghi snapshot và đọc từ đó. Hiện macro lịch sử đọc live từ `food_items` nên **sẽ đổi nếu Admin sửa món** → lệch DATA-02 (spec §10, D-706)
-- [ ] T032 **Còn nợ** — test cho AC-07 (tier free 20 món): logic giới hạn universe trước khi lọc là chỗ dễ sai nhất nhưng chưa có unit test
+- [X] T032 Test AC-07 tier free — `FoodItemTierTests.cs`, 6 test: giới hạn 20 món đầu A→Z, gói hết hạn rơi về tier free, Staff không bị giới hạn, trả danh sách rỗng thay vì 403
 
 ---
 

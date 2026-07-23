@@ -69,7 +69,7 @@ description: "Task list — Progress Tracking & Member 360° Profile"
 ## Phase 5: Polish & Cross-cutting
 
 - [ ] T028 **Còn nợ** — đo NFR-01 (360° < 1.5s) khi member có nhiều dữ liệu; nếu vượt thì cân nhắc gộp truy vấn (hiện là ~6 query/lần gọi, chưa có số đo thực tế)
-- [ ] T029 **Còn nợ** — unit test riêng cho `GetProfile360Async` ở nhánh `currentMembership = null` (AC-06); hiện `ProgressServiceTests.cs` mới phủ phần ghi tiến độ
+- [X] T029 Unit test `Profile360Tests.cs` — 8 test cho quy tắc suy `currentMembership` (Active → Pending → null) + lazy expire trước khi trả
 
 ---
 

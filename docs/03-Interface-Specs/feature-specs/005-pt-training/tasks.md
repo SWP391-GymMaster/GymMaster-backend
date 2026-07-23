@@ -96,8 +96,8 @@ description: "Task list — PT Assignment, Workout Plan & Trainer Notes"
 
 ## Phase 7: Polish & Cross-cutting
 
-- [ ] T038 **Còn nợ** — unit test `tests/GymMaster.Api.Tests/WorkoutPlanServiceTests.cs` cho luồng tra/tạo `exercise_catalog` theo tên và cho `UpdateAsync` thay toàn bộ exercises (D-506, D-507 là hai chỗ rủi ro nhất)
-- [ ] T039 **Còn nợ** — unit test `tests/GymMaster.Api.Tests/TrainerNoteServiceTests.cs` cho kiểm chủ sở hữu note
+- [X] T038 Unit test `PtTrainingServiceTests.cs` — catalog theo tên, `UpdateAsync` thay toàn bộ exercises, `SortOrder` 1-based, chặn trùng tên bài tập
+- [X] T039 Unit test `PtTrainingServiceTests.cs` — chỉ chủ note mới sửa/xoá được, PT chưa phân công → 403
 - [X] T040 AuditLog cho giáo án + ghi chú: `WorkoutPlanService` ghi `CREATE/UPDATE/DELETE_WORKOUT_PLAN`, `TrainerNoteService` ghi `CREATE/UPDATE/DELETE_TRAINER_NOTE` → AUDIT-01 phủ đủ
 
 ---
