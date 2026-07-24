@@ -6,7 +6,7 @@ description: "Task list — User, Staff, PT & Member Management"
 
 **Feature**: `002-member-management`
 **Input**: [spec.md](spec.md) · [plan.md](plan.md)
-**Trạng thái tổng**: 33/35 hoàn thành
+**Trạng thái tổng**: 42/45 hoàn thành
 
 > Bảng công việc **as-built**: `[X]` = đã có trong code (đường dẫn kiểm chứng được), `[ ]` = còn nợ, phát hiện khi đối chiếu spec ↔ code.
 
@@ -103,6 +103,12 @@ description: "Task list — User, Staff, PT & Member Management"
 - [X] T042 Unit test `tests/GymMaster.Api.Tests/MemberServiceTests.cs` — 14 test phủ đủ 3 nhánh email của `CreateAsync` + tự tạo hồ sơ ở `/members/me` + soft delete
 - [ ] T043 **Còn nợ** — đo lại NFR-01 (tìm kiếm < 1s với 1000 hội viên) bằng `tests/blackbox/Performance.Tests.ps1` và ghi số đo vào `docs/04-Test-Specs/test-plan.md`
 
+## Phase 8: Change — khôi phục MemberProfile đã soft-delete
+
+- [X] T044 Cập nhật FR-MEM-01/06, AC-11 và D-109: restore đúng profile cũ, không insert row trùng `UserId`
+- [ ] T045 Sửa `MemberService.CreateAsync` và `GetOrCreateCurrentProfileAsync` để restore tại chỗ + audit `RESTORE_MEMBER`
+- [ ] T046 Bổ sung unit test giữ nguyên `MemberId`, chỉ có một profile và bảo toàn quan hệ sau restore
+
 ---
 
 ## Dependencies & Execution Order
@@ -130,3 +136,4 @@ description: "Task list — User, Staff, PT & Member Management"
 | AC-08 | T027 | black-box (chưa có unit test — T042) |
 | AC-09 | T036 | thủ công (cần Cloudinary thật) |
 | AC-10 | T030 | `TrainerServiceTests.cs` |
+| AC-11 | T044–T046 | `MemberServiceTests.cs` |
