@@ -113,6 +113,7 @@ tests/GymMaster.Api.Tests/
 | D-106 | Tự sinh mật khẩu tạm khi Admin không nhập | Admin tạo hàng loạt tài khoản không phải nghĩ mật khẩu | `initialPassword` xuất hiện trong response 201 — chỉ hiện đúng một lần |
 | D-107 | Ảnh đại diện đẩy Cloudinary, DB chỉ giữ URL | Không phình DB, có CDN sẵn | Phụ thuộc dịch vụ ngoài; chưa cấu hình → 500 `CLOUDINARY_NOT_CONFIGURED` |
 | D-108 | Unique index **có filter** `IsDeleted = 0` | Soft-delete xong vẫn tái dùng lại được email/phone đó | Index có điều kiện, khó port sang DBMS khác |
+| D-109 | MemberProfile đã soft-delete được **khôi phục tại chỗ** khi relink/self-service | `member_profiles.UserId` là unique không filter; chèn profile thứ hai vừa mất lịch sử `MemberId` vừa lỗi trên SQL Server. Khôi phục giữ nguyên membership/payment/progress/assignment | Delete profile trở thành trạng thái lưu trữ có thể đảo ngược khi account Member còn hoạt động; audit phải phân biệt `RESTORE_MEMBER` |
 
 ## 6. Data Flow
 
@@ -167,5 +168,6 @@ Self-service:
 |---|---|---|
 | 4 slice cho một spec | 4 nhóm endpoint khác chủ thể + khác quyền; gộp lại sẽ thành một `UserService` khổng lồ rẽ nhánh theo role | Gộp 1 slice → controller đầy `if (role == …)`, khó test từng luồng |
 | `GET /members/me` có side-effect (D-103) | Bù cho việc `/auth/register` không tạo profile; sửa ở tầng register sẽ đụng spec 001 đang chạy | Trả 404 bắt FE gọi thêm POST → thêm một vòng request cho mọi hội viên mới |
+| Khôi phục profile từ một GET (D-109) | FR-MEM-06 đã cho phép GET tự tạo; restore là mutation ít phá hủy hơn insert và bảo toàn ID lịch sử | Chèn row mới vi phạm unique `UserId`; trả 404 chặn self-service; endpoint restore riêng mở rộng API không cần thiết |
 | 3 bảng profile gần giống nhau | Thuộc tính thực sự khác nhau theo role | Một bảng `profiles` + cột `Type` → cột null tuỳ role, mất ràng buộc NOT NULL |
 | Chưa có `MemberServiceTests.cs` | `MemberService` là service phức tạp nhất slice (3 nhánh email) nhưng hiện chỉ được phủ black-box | Bỏ qua → không chấp nhận; xem T-034 |

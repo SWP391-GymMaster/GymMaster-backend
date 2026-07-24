@@ -22,7 +22,8 @@ public class MemberServiceTests
         return new GymMasterDbContext(options);
     }
 
-    private static MemberService NewService(GymMasterDbContext db) => new(db, new NoopAudit());
+    private static MemberService NewService(GymMasterDbContext db, IAuditService? audit = null)
+        => new(db, audit ?? new NoopAudit());
 
     private static async Task<Role> SeedMemberRoleAsync(GymMasterDbContext db)
     {
@@ -235,6 +236,91 @@ public class MemberServiceTests
         Assert.Equal(1, await db.MemberProfiles.CountAsync());
     }
 
+    [Fact]
+    public async Task GetOrCreateCurrentProfile_restores_a_soft_deleted_profile_in_place()
+    {
+        using var db = NewDb();
+        await SeedMemberRoleAsync(db);
+        var audit = new RecordingAudit();
+        var service = NewService(db, audit);
+        var created = await service.CreateAsync(Request("moi@gym.test"), default);
+        var originalId = created.Value!.Member.Id;
+        var userId = created.Value.Member.UserId;
+        await service.DeleteAsync(originalId, default);
+
+        var restored = await service.GetOrCreateCurrentProfileAsync(MemberPrincipal(userId), default);
+
+        Assert.True(restored.Succeeded);
+        Assert.Equal(originalId, restored.Value);
+        Assert.Equal(1, await db.MemberProfiles.CountAsync());
+        Assert.False((await db.MemberProfiles.SingleAsync()).IsDeleted);
+        Assert.Contains(audit.Entries, entry =>
+            entry.Action == "RESTORE_MEMBER" &&
+            entry.Entity == "MemberProfile" &&
+            entry.EntityId == originalId);
+    }
+
+    [Fact]
+    public async Task Create_restores_a_soft_deleted_profile_and_preserves_related_history()
+    {
+        using var db = NewDb();
+        await SeedMemberRoleAsync(db);
+        var audit = new RecordingAudit();
+        var service = NewService(db, audit);
+        var created = await service.CreateAsync(
+            new CreateMemberRequest(
+                "Nguyen Van A",
+                "moi@gym.test",
+                null,
+                null,
+                new DateTime(1999, 2, 3),
+                "Female",
+                "Da Nang",
+                "0911111111"),
+            default);
+        var originalId = created.Value!.Member.Id;
+        var originalProfile = await db.MemberProfiles.AsNoTracking().SingleAsync();
+        db.ProgressLogs.Add(new ProgressLog
+        {
+            MemberId = originalId,
+            MeasuredAt = DateTime.UtcNow,
+            WeightKg = 70
+        });
+        await db.SaveChangesAsync();
+        await service.DeleteAsync(originalId, default);
+
+        var restored = await service.CreateAsync(
+            new CreateMemberRequest(
+                "Nguyen Van A",
+                "moi@gym.test",
+                null,
+                null,
+                new DateTime(2000, 1, 2),
+                "Male",
+                "Ha Noi",
+                "0900000000"),
+            default);
+
+        Assert.True(restored.Succeeded);
+        Assert.True(restored.Value!.LinkedToExistingAccount);
+        Assert.Equal(originalId, restored.Value.Member.Id);
+        Assert.Equal(1, await db.MemberProfiles.CountAsync());
+        Assert.Equal(originalId, (await db.ProgressLogs.SingleAsync()).MemberId);
+
+        var profile = await db.MemberProfiles.SingleAsync();
+        Assert.False(profile.IsDeleted);
+        Assert.Equal(originalProfile.JoinedAt, profile.JoinedAt);
+        Assert.Equal(originalProfile.CreatedAt, profile.CreatedAt);
+        Assert.Equal(originalProfile.DateOfBirth, profile.DateOfBirth);
+        Assert.Equal(originalProfile.Gender, profile.Gender);
+        Assert.Equal(originalProfile.Address, profile.Address);
+        Assert.Equal(originalProfile.EmergencyContact, profile.EmergencyContact);
+        Assert.Contains(audit.Entries, entry =>
+            entry.Action == "RESTORE_MEMBER" &&
+            entry.Entity == "MemberProfile" &&
+            entry.EntityId == originalId);
+    }
+
     // ---------- AC-05: soft delete, khong xoa cung ----------
 
     [Fact]
@@ -290,5 +376,21 @@ public class MemberServiceTests
     {
         public Task LogAsync(string action, string entity, long entityId, object? metadata, CancellationToken cancellationToken)
             => Task.CompletedTask;
+    }
+
+    private sealed class RecordingAudit : IAuditService
+    {
+        public List<(string Action, string Entity, long EntityId)> Entries { get; } = new();
+
+        public Task LogAsync(
+            string action,
+            string entity,
+            long entityId,
+            object? metadata,
+            CancellationToken cancellationToken)
+        {
+            Entries.Add((action, entity, entityId));
+            return Task.CompletedTask;
+        }
     }
 }

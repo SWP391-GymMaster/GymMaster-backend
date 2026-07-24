@@ -11,7 +11,8 @@ using Xunit;
 
 namespace GymMaster.Api.Tests;
 
-// Spec 006 AC-06 — quy tac suy currentMembership (FR-360-03, BIZ-17):
+// Spec 006 FR-360-02 + AC-06: ma tran quyen truy cap va quy tac suy currentMembership
+// (FR-360-03, BIZ-17):
 //   Active con han (EndDate lon nhat)  ->  PendingPayment moi nhat  ->  null
 // KHONG duoc fallback dong bat ky: member chi con don Cancelled/Expired thi phai
 // tra null, neu khong man hinh 360 se hien goi da chet nhu "goi hien tai".
@@ -28,13 +29,16 @@ public class Profile360Tests
     private static ProgressService NewService(GymMasterDbContext db)
         => new(db, new NoopAudit(), new NutritionService(db, new NoopAudit()));
 
-    private static ClaimsPrincipal Staff(long userId = 99)
+    private static ClaimsPrincipal Principal(long userId, string role)
         => new(new ClaimsIdentity(
             new[]
             {
                 new Claim(ClaimTypes.NameIdentifier, userId.ToString()),
-                new Claim(ClaimTypes.Role, RoleNames.Staff)
+                new Claim(ClaimTypes.Role, role)
             }, "test"));
+
+    private static ClaimsPrincipal Staff(long userId = 99)
+        => Principal(userId, RoleNames.Staff);
 
     private const long MemberId = 1;
 
@@ -68,6 +72,126 @@ public class Profile360Tests
             CreatedAt = createdAt ?? DateTime.UtcNow
         });
         await db.SaveChangesAsync();
+    }
+
+    private static async Task SeedTrainerAsync(
+        GymMasterDbContext db,
+        long userId,
+        long trainerId,
+        byte? assignmentStatus)
+    {
+        var user = new User
+        {
+            Id = userId,
+            Email = $"pt{userId}@gym.test",
+            FullName = $"PT {userId}",
+            PasswordHash = "x",
+            IsDeleted = false
+        };
+        var trainer = new TrainerProfile
+        {
+            Id = trainerId,
+            UserId = userId,
+            User = user,
+            IsDeleted = false
+        };
+
+        db.Users.Add(user);
+        db.TrainerProfiles.Add(trainer);
+
+        if (assignmentStatus is not null)
+        {
+            db.TrainerAssignments.Add(new TrainerAssignment
+            {
+                Id = trainerId,
+                MemberId = MemberId,
+                TrainerId = trainerId,
+                StartDate = AppClock.Today(),
+                Status = assignmentStatus.Value,
+                CreatedByUserId = 99
+            });
+        }
+
+        await db.SaveChangesAsync();
+    }
+
+    [Theory]
+    [InlineData(RoleNames.Admin)]
+    [InlineData(RoleNames.Staff)]
+    public async Task Admin_and_staff_can_view_any_member_profile_360(string role)
+    {
+        using var db = NewDb();
+        await SeedMemberAsync(db);
+
+        var result = await NewService(db).GetProfile360Async(
+            MemberId,
+            Principal(userId: 99, role),
+            default);
+
+        Assert.True(result.Succeeded);
+    }
+
+    [Fact]
+    public async Task Member_can_view_their_own_profile_360()
+    {
+        using var db = NewDb();
+        await SeedMemberAsync(db);
+
+        var result = await NewService(db).GetProfile360Async(
+            MemberId,
+            Principal(userId: 10, RoleNames.Member),
+            default);
+
+        Assert.True(result.Succeeded);
+    }
+
+    [Fact]
+    public async Task Member_cannot_view_another_members_profile_360()
+    {
+        using var db = NewDb();
+        await SeedMemberAsync(db);
+
+        var result = await NewService(db).GetProfile360Async(
+            MemberId,
+            Principal(userId: 11, RoleNames.Member),
+            default);
+
+        Assert.False(result.Succeeded);
+        Assert.Equal(StatusCodes.Status403Forbidden, result.StatusCode);
+    }
+
+    [Fact]
+    public async Task Assigned_pt_can_view_the_members_profile_360()
+    {
+        using var db = NewDb();
+        await SeedMemberAsync(db);
+        await SeedTrainerAsync(db, userId: 20, trainerId: 2, AssignmentStatuses.Active);
+
+        var result = await NewService(db).GetProfile360Async(
+            MemberId,
+            Principal(userId: 20, RoleNames.Pt),
+            default);
+
+        Assert.True(result.Succeeded);
+    }
+
+    [Theory]
+    [InlineData(null)]
+    [InlineData(AssignmentStatuses.Ended)]
+    public async Task Pt_without_an_active_assignment_cannot_view_the_members_profile_360(
+        byte? assignmentStatus)
+    {
+        using var db = NewDb();
+        await SeedMemberAsync(db);
+        await SeedTrainerAsync(db, userId: 20, trainerId: 2, assignmentStatus);
+
+        var result = await NewService(db).GetProfile360Async(
+            MemberId,
+            Principal(userId: 20, RoleNames.Pt),
+            default);
+
+        Assert.False(result.Succeeded);
+        Assert.Equal(StatusCodes.Status403Forbidden, result.StatusCode);
     }
 
     [Fact]

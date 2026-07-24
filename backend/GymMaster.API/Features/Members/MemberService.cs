@@ -75,11 +75,26 @@ public sealed class MemberService : IMemberService
                     "DUPLICATE", "Email nay da duoc dung boi mot tai khoan khac.", StatusCodes.Status409Conflict);
             }
 
-            if (await _dbContext.MemberProfiles.AnyAsync(
-                    item => item.UserId == existing.Id && !item.IsDeleted, cancellationToken))
+            var existingProfile = await _dbContext.MemberProfiles
+                .FirstOrDefaultAsync(item => item.UserId == existing.Id, cancellationToken);
+
+            if (existingProfile is { IsDeleted: false })
             {
                 return Fail<CreateMemberResponse>(
                     "DUPLICATE", "Hoi vien nay da co ho so.", StatusCodes.Status409Conflict);
+            }
+
+            if (existingProfile is not null)
+            {
+                existingProfile.User = existing;
+                await RestoreProfileAsync(
+                    existingProfile,
+                    new { linked = true },
+                    cancellationToken);
+
+                return ServiceResult<CreateMemberResponse>.Success(
+                    new CreateMemberResponse(ToResponse(existingProfile), null, false, true),
+                    StatusCodes.Status201Created);
             }
 
             var linkedProfile = BuildProfile(request);
@@ -240,6 +255,19 @@ public sealed class MemberService : IMemberService
         if (user is null)
         {
             return Fail<long>("NOT_FOUND", "Khong tim thay tai khoan.", StatusCodes.Status404NotFound);
+        }
+
+        var archivedProfile = await _dbContext.MemberProfiles.FirstOrDefaultAsync(
+            item => item.UserId == user.Id && item.IsDeleted, cancellationToken);
+
+        if (archivedProfile is not null)
+        {
+            await RestoreProfileAsync(
+                archivedProfile,
+                new { selfService = true },
+                cancellationToken);
+
+            return ServiceResult<long>.Success(archivedProfile.Id);
         }
 
         // Tu phuc vu: user role member chua co ho so -> tao ho so khi can quyen co ban.
@@ -420,14 +448,36 @@ public sealed class MemberService : IMemberService
 
     private static MemberProfile BuildProfile(CreateMemberRequest request)
     {
-        return new MemberProfile
-        {
-            DateOfBirth = request.DateOfBirth,
-            Gender = string.IsNullOrWhiteSpace(request.Gender) ? null : request.Gender.Trim(),
-            Address = string.IsNullOrWhiteSpace(request.Address) ? null : request.Address.Trim(),
-            EmergencyContact = string.IsNullOrWhiteSpace(request.EmergencyContact) ? null : request.EmergencyContact.Trim(),
-            JoinedAt = DateTime.UtcNow
-        };
+        var profile = new MemberProfile { JoinedAt = DateTime.UtcNow };
+        ApplyProfileDetails(profile, request);
+        return profile;
+    }
+
+    private async Task RestoreProfileAsync(
+        MemberProfile profile,
+        object metadata,
+        CancellationToken cancellationToken)
+    {
+        profile.IsDeleted = false;
+        profile.UpdatedAt = DateTime.UtcNow;
+        await _dbContext.SaveChangesAsync(cancellationToken);
+
+        await _auditService.LogAsync(
+            "RESTORE_MEMBER",
+            "MemberProfile",
+            profile.Id,
+            metadata,
+            cancellationToken);
+    }
+
+    private static void ApplyProfileDetails(MemberProfile profile, CreateMemberRequest request)
+    {
+        profile.DateOfBirth = request.DateOfBirth;
+        profile.Gender = string.IsNullOrWhiteSpace(request.Gender) ? null : request.Gender.Trim();
+        profile.Address = string.IsNullOrWhiteSpace(request.Address) ? null : request.Address.Trim();
+        profile.EmergencyContact = string.IsNullOrWhiteSpace(request.EmergencyContact)
+            ? null
+            : request.EmergencyContact.Trim();
     }
 
     private static MemberResponse ToResponse(MemberProfile profile)
