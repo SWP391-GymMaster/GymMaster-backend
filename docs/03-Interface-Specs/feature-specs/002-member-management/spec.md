@@ -27,7 +27,7 @@ Quản lý vòng đời hồ sơ người dùng: Admin quản lý tài khoản S
 - **FR-USR-03 (Ubiquitous):** THE system SHALL chỉ cho Admin thao tác endpoint `/users` và `/trainers` quản lý.
 - **FR-USR-04 (Unwanted):** IF Admin cập nhật user với `role` khác role hiện tại, THEN THE system SHALL từ chối với 422 `ROLE_TRANSITION_NOT_ALLOWED` — **role là bất biến**, muốn đổi vai trò phải tạo tài khoản mới và khoá/xoá tài khoản cũ.
 - **FR-USR-05 (Event):** WHEN Admin đổi trạng thái user (`PATCH /users/{id}/status` = active/locked) hoặc reset mật khẩu (`POST /users/{id}/reset-password`), THE system SHALL cập nhật và ghi AuditLog; reset trả `temporaryPassword`.
-- **FR-MEM-01 (Event):** WHEN Admin/Staff tạo hồ sơ Member hợp lệ, THE system SHALL lưu MemberProfile liên kết User role Member. WHERE email chưa tồn tại, tạo cả User (role Member) + MemberProfile. WHERE email đã thuộc một tài khoản Member chưa có hồ sơ active, THE system SHALL gắn hồ sơ vào tài khoản đó và KHÔNG đổi mật khẩu (`linkedToExistingAccount=true`); WHERE tài khoản còn một MemberProfile đã soft-delete, THE system SHALL **khôi phục đúng profile cũ** (`IsDeleted=0`) thay vì chèn row mới để giữ nguyên `MemberId` và các quan hệ lịch sử; WHERE tài khoản đó đã có hồ sơ active hoặc email thuộc role khác, THEN 409.
+- **FR-MEM-01 (Event):** WHEN Admin/Staff tạo hồ sơ Member hợp lệ, THE system SHALL lưu MemberProfile liên kết User role Member. WHERE email chưa tồn tại, tạo cả User (role Member) + MemberProfile. WHERE email đã thuộc một tài khoản Member chưa có hồ sơ active, THE system SHALL gắn hồ sơ vào tài khoản đó và KHÔNG đổi mật khẩu (`linkedToExistingAccount=true`); WHERE tài khoản còn một MemberProfile đã soft-delete, THE system SHALL **khôi phục đúng profile cũ** (`IsDeleted=0`) thay vì chèn row mới, không ghi đè dữ liệu profile đã lưu (cập nhật dùng `PUT`), để giữ nguyên `MemberId` và các quan hệ lịch sử; WHERE tài khoản đó đã có hồ sơ active hoặc email thuộc role khác, THEN 409.
 - **FR-MEM-02 (Event):** WHEN Admin/Staff tìm kiếm theo tên/email/SĐT, THE system SHALL trả `PagedResult` khớp (mặc định 20/trang).
 - **FR-MEM-03 (Event):** WHEN cập nhật hồ sơ Member, THE system SHALL validate (PersonValidation) và lưu, cập nhật UpdatedAt.
 - **FR-MEM-04 (Ubiquitous):** THE system SHALL xóa hồ sơ theo cơ chế soft-delete (IsDeleted=1), KHÔNG xóa cứng (DATA-01).
@@ -99,7 +99,7 @@ Quản lý vòng đời hồ sơ người dùng: Admin quản lý tài khoản S
 - [ ] **AC-08:** Given Member chưa có hồ sơ, When gọi `GET /members/me`, Then hệ thống tự tạo MemberProfile và trả về.
 - [ ] **AC-09:** Given người dùng upload ảnh jpeg ≤5MB, When `POST /users/me/avatar`, Then `avatarUrl` cập nhật (Cloudinary).
 - [ ] **AC-10:** Given Admin tạo PT một bước, When hoàn tất, Then có tài khoản role PT + TrainerProfile + initialPassword.
-- [ ] **AC-11:** Given tài khoản Member còn profile đã soft-delete, When Member gọi `/members/me` hoặc Admin/Staff tạo lại bằng cùng email, Then hệ thống khôi phục đúng profile cũ, giữ nguyên `MemberId`, không tạo row thứ hai và ghi AuditLog `RESTORE_MEMBER`.
+- [ ] **AC-11:** Given tài khoản Member còn profile đã soft-delete, When Member gọi `/members/me` hoặc Admin/Staff tạo lại bằng cùng email, Then hệ thống khôi phục đúng profile cũ, giữ nguyên dữ liệu profile và `MemberId`, không tạo row thứ hai và ghi AuditLog `RESTORE_MEMBER`.
 
 ## 9. Out of Scope
 - Import hàng loạt Excel/CSV, KYC xác minh danh tính, đăng ký công khai (thuộc spec 001).

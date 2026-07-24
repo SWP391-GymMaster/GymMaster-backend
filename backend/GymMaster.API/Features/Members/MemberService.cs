@@ -87,7 +87,6 @@ public sealed class MemberService : IMemberService
             if (existingProfile is not null)
             {
                 existingProfile.User = existing;
-                ApplyProfileDetails(existingProfile, request);
                 await RestoreProfileAsync(
                     existingProfile,
                     new { linked = true },

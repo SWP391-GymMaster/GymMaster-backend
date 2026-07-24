@@ -267,7 +267,17 @@ public class MemberServiceTests
         await SeedMemberRoleAsync(db);
         var audit = new RecordingAudit();
         var service = NewService(db, audit);
-        var created = await service.CreateAsync(Request("moi@gym.test"), default);
+        var created = await service.CreateAsync(
+            new CreateMemberRequest(
+                "Nguyen Van A",
+                "moi@gym.test",
+                null,
+                null,
+                new DateTime(1999, 2, 3),
+                "Female",
+                "Da Nang",
+                "0911111111"),
+            default);
         var originalId = created.Value!.Member.Id;
         var originalProfile = await db.MemberProfiles.AsNoTracking().SingleAsync();
         db.ProgressLogs.Add(new ProgressLog
@@ -301,8 +311,10 @@ public class MemberServiceTests
         Assert.False(profile.IsDeleted);
         Assert.Equal(originalProfile.JoinedAt, profile.JoinedAt);
         Assert.Equal(originalProfile.CreatedAt, profile.CreatedAt);
-        Assert.Equal(new DateTime(2000, 1, 2), profile.DateOfBirth);
-        Assert.Equal("Ha Noi", profile.Address);
+        Assert.Equal(originalProfile.DateOfBirth, profile.DateOfBirth);
+        Assert.Equal(originalProfile.Gender, profile.Gender);
+        Assert.Equal(originalProfile.Address, profile.Address);
+        Assert.Equal(originalProfile.EmergencyContact, profile.EmergencyContact);
         Assert.Contains(audit.Entries, entry =>
             entry.Action == "RESTORE_MEMBER" &&
             entry.Entity == "MemberProfile" &&
