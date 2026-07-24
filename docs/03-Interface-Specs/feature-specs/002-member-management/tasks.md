@@ -6,7 +6,7 @@ description: "Task list — User, Staff, PT & Member Management"
 
 **Feature**: `002-member-management`
 **Input**: [spec.md](spec.md) · [plan.md](plan.md)
-**Trạng thái tổng**: 42/45 hoàn thành
+**Trạng thái tổng**: 44/45 hoàn thành
 
 > Bảng công việc **as-built**: `[X]` = đã có trong code (đường dẫn kiểm chứng được), `[ ]` = còn nợ, phát hiện khi đối chiếu spec ↔ code.
 
@@ -106,8 +106,8 @@ description: "Task list — User, Staff, PT & Member Management"
 ## Phase 8: Change — khôi phục MemberProfile đã soft-delete
 
 - [X] T044 Cập nhật FR-MEM-01/06, AC-11 và D-109: restore đúng profile cũ, không insert row trùng `UserId`
-- [ ] T045 Sửa `MemberService.CreateAsync` và `GetOrCreateCurrentProfileAsync` để restore tại chỗ + audit `RESTORE_MEMBER`
-- [ ] T046 Bổ sung unit test giữ nguyên `MemberId`, chỉ có một profile và bảo toàn quan hệ sau restore
+- [X] T045 Sửa `MemberService.CreateAsync` và `GetOrCreateCurrentProfileAsync` để restore tại chỗ + audit `RESTORE_MEMBER`
+- [X] T046 Bổ sung unit test giữ nguyên `MemberId`, chỉ có một profile và bảo toàn quan hệ sau restore
 
 ---
 
