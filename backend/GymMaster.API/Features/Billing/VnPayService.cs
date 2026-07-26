@@ -349,7 +349,7 @@ public sealed class VnPayService : IVnPayService
 
     private static bool CanInitiate(ClaimsPrincipal principal, MemberProfile profile, long actorId)
     {
-        if (principal.IsInRole(RoleNames.Admin) || principal.IsInRole(RoleNames.Staff))
+        if (principal.IsInRole(RoleNames.Staff))
         {
             return true;
         }

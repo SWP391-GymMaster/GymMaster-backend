@@ -45,10 +45,10 @@ description: "Task list — Online Payment via VNPay (Sandbox)"
 - [X] T012 [US1] ★ `vnp_Amount = Package.Price × 100`, **giá lấy từ server**, không nhận từ client → **FR-VNP-08**, **SEC-07**, D-1005
 - [X] T013 [US1] `vnp_CreateDate` / `vnp_ExpireDate` theo **giờ VN**, link hết hạn **15 phút** (ngắn hơn TTL 30 phút của đơn Pending — spec 003) → D-1009
 - [X] T014 [US1] Chặn membership không ở `PendingPayment` → 409 `INVALID_MEMBERSHIP_STATE` → **FR-VNP-02**
-- [X] T015 [US1] Ownership: Member chỉ trả cho membership của mình → 403; Admin/Staff trả thay bất kỳ
+- [X] T015 [US1] Ownership/RBAC: Member chỉ trả cho membership của mình; Staff trả thay bất kỳ; Admin/PT → 403
 - [X] T016 [US1] Chưa cấu hình VNPay → 500 `VNPAY_NOT_CONFIGURED`
 - [X] T017 [US1] `VnPayController.cs` route `api/v1/payments/vnpay`
-- [X] T018 [US1] Unit test `create-url` (xUnit + EF Core InMemory)
+- [X] T018 [US1] Unit test `create-url` (xUnit + EF Core InMemory), gồm ca Admin bị từ chối 403
 
 ---
 

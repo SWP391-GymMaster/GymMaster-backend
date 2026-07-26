@@ -9,7 +9,7 @@
 
 Phòng tập gym quy mô nhỏ đến trung bình thường vận hành bằng Excel, sổ tay, Zalo hoặc nhiều công cụ rời rạc. Điều này gây ra các vấn đề:
 
-- Admin khó tra cứu hội viên khi check-in hoặc gia hạn gói.
+- Staff khó tra cứu hội viên khi check-in hoặc gia hạn gói.
 - Thông tin gói tập, thanh toán, ngày hết hạn dễ bị sai lệch.
 - PT không có nơi tập trung để theo dõi giáo án, ghi chú và tiến độ của hội viên.
 - Hội viên khó nhìn lại lịch sử tập luyện, tiến độ cơ thể và dinh dưỡng.
@@ -85,7 +85,7 @@ Member lifecycle
 
 ```text
 Admin tạo tài khoản/hồ sơ Member
-→ Admin/Staff bán hoặc gia hạn gói tập
+→ Staff bán hoặc gia hạn gói tập
 → Payment được ghi nhận
 → Membership active
 → Member check-in
@@ -144,7 +144,7 @@ Admin tạo tài khoản/hồ sơ Member
 | OQ-02 | Frontend ưu tiên React/Next.js, có cần chốt chính thức không? | Resolved: Next.js |
 | OQ-03 | Backend dùng ASP.NET Core, Supabase, hay phương án khác? | Resolved: ASP.NET Core 10 Web API (.NET 10) |
 | OQ-04 | Database dùng SQL Server, PostgreSQL/Supabase hay khác? | Resolved: SQL Server + EF Core 10 Code First |
-| OQ-05 | Member có được tự gia hạn gói không, hay chỉ Admin/Staff? | Resolved: Member được gửi yêu cầu gia hạn, Admin/Staff xác nhận thanh toán |
+| OQ-05 | Member có được tự gia hạn gói không, hay chỉ Staff? | Resolved: Member được gửi yêu cầu gia hạn; Staff xác nhận thủ công hoặc VNPay tự xác nhận |
 | OQ-06 | Check-in giới hạn 1 lần/ngày hay cho phép nhiều lần/ngày? | Resolved: MVP cho phép nhiều lần/ngày; có thể cấu hình giới hạn sau |
 | OQ-09 | Image Food Recognition Assist có được đưa vào enhancement sau secondary không? | Resolved: Enhancement; dùng Google Cloud Vision API nếu còn thời gian |
 | OQ-08 | Dashboard cần realtime hay chỉ cập nhật theo request? | Resolved: cập nhật theo request/MVP; realtime là optional |

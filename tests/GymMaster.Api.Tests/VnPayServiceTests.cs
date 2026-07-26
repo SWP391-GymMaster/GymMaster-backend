@@ -2,6 +2,7 @@ using System.Security.Claims;
 using GymMaster.API.Data;
 using GymMaster.API.Entities;
 using GymMaster.API.Options;
+using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using System.Security.Cryptography;
@@ -46,6 +47,30 @@ public class VnPayServiceTests
             {
                 new Claim(ClaimTypes.NameIdentifier, userId.ToString()),
                 new Claim(ClaimTypes.Role, RoleNames.Staff)
+            },
+            "test");
+        return new ClaimsPrincipal(identity);
+    }
+
+    private static ClaimsPrincipal Admin(long userId = 98)
+    {
+        var identity = new ClaimsIdentity(
+            new[]
+            {
+                new Claim(ClaimTypes.NameIdentifier, userId.ToString()),
+                new Claim(ClaimTypes.Role, RoleNames.Admin)
+            },
+            "test");
+        return new ClaimsPrincipal(identity);
+    }
+
+    private static ClaimsPrincipal Member(long userId)
+    {
+        var identity = new ClaimsIdentity(
+            new[]
+            {
+                new Claim(ClaimTypes.NameIdentifier, userId.ToString()),
+                new Claim(ClaimTypes.Role, RoleNames.Member)
             },
             "test");
         return new ClaimsPrincipal(identity);
@@ -180,6 +205,52 @@ public class VnPayServiceTests
         var payment = await db.Payments.SingleAsync();
         Assert.Equal(PaymentStatus.Pending, payment.Status);
         Assert.Equal(Price, payment.Amount);
+    }
+
+    [Fact] // Admin chi quan ly/giam sat, khong khoi tao giao dich VNPay.
+    public async Task CreatePaymentUrl_rejects_admin()
+    {
+        using var db = NewDb();
+        await SeedPendingMembershipAsync(db);
+        var service = NewService(db);
+
+        var result = await service.CreatePaymentUrlAsync(
+            new CreateVnPayPaymentRequest(1), "127.0.0.1", Admin(), default);
+
+        Assert.False(result.Succeeded);
+        Assert.Equal(StatusCodes.Status403Forbidden, result.StatusCode);
+        Assert.Equal("FORBIDDEN", result.ErrorCode);
+        Assert.Empty(db.Payments);
+    }
+
+    [Fact] // Member duoc thanh toan membership cua chinh minh.
+    public async Task CreatePaymentUrl_allows_owning_member()
+    {
+        using var db = NewDb();
+        await SeedPendingMembershipAsync(db);
+        var service = NewService(db);
+
+        var result = await service.CreatePaymentUrlAsync(
+            new CreateVnPayPaymentRequest(1), "127.0.0.1", Member(10), default);
+
+        Assert.True(result.Succeeded);
+        Assert.Single(db.Payments);
+    }
+
+    [Fact] // Member khong duoc thanh toan membership cua nguoi khac.
+    public async Task CreatePaymentUrl_rejects_non_owning_member()
+    {
+        using var db = NewDb();
+        await SeedPendingMembershipAsync(db);
+        var service = NewService(db);
+
+        var result = await service.CreatePaymentUrlAsync(
+            new CreateVnPayPaymentRequest(1), "127.0.0.1", Member(11), default);
+
+        Assert.False(result.Succeeded);
+        Assert.Equal(StatusCodes.Status403Forbidden, result.StatusCode);
+        Assert.Equal("FORBIDDEN", result.ErrorCode);
+        Assert.Empty(db.Payments);
     }
 
     [Fact] // IPN hop le + thanh cong -> membership Active, payment Paid, tra "00".

@@ -129,7 +129,7 @@ Gia hạn:
 
 Member xin gia hạn:
   POST /memberships/renewal-request {packageId}  → chỉ tạo đơn PendingPayment (ADR-05)
-                                                 → Staff/Admin/VNPay xác nhận mới Active
+                                                 → Staff/VNPay xác nhận mới Active
 
 Gác quyền PT (dùng ở spec 005):
   tồn tại Membership Active AND EndDate ≥ hôm nay(VN) AND Package.SupportsPT ⇒ được dùng PT

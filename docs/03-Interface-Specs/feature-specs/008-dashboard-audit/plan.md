@@ -166,7 +166,7 @@ GET /api/v1/audit-logs?userId=&action=&from=&to=&search=&page=   [Admin]
 |---|---|---|
 | `IAuditService` nằm trong slice `Dashboard/` thay vì `Infrastructure/` | Contract ghi và contract đọc audit tiến hoá cùng nhau; chỉ có một nơi tiêu thụ | Để ở `Infrastructure/` → đúng lý thuyết hơn nhưng phải đồng bộ 2 nơi mỗi lần đổi metadata. **Nếu sau này có nơi tiêu thụ thứ hai thì nên chuyển** |
 | Dashboard là slice phụ thuộc **nhiều nhất** hệ thống | Bản chất là màn tổng hợp; coupling chỉ ở tầng đọc | FE tự gọi và tự cộng → logic nghiệp vụ (giờ cao điểm, tải cơ sở) rơi xuống FE |
-| Không cache, tính lại mỗi lần gọi (D-801) | Yêu cầu "số liệu thật, khớp DB" | Cache 5 phút → Admin bán gói xong không thấy doanh thu đổi, mất niềm tin vào số liệu |
+| Không cache, tính lại mỗi lần gọi (D-801) | Yêu cầu "số liệu thật, khớp DB" | Cache 5 phút → Staff bán gói xong nhưng Admin chưa thấy doanh thu đổi, mất niềm tin vào số liệu |
 | Sức chứa hardcode 50 (D-804) | Đồ án một cơ sở duy nhất | Đưa vào config/DB → thêm hạ tầng cho đúng một con số |
 | `AuditLog.Metadata` không truy vấn được theo trường (D-808) | Mỗi hành động có hình dạng dữ liệu khác nhau | Schema cứng → không đủ chỗ cho hành động mới; bảng phụ key-value → phức tạp gấp bội |
 | `AuthService` không ghi audit login/logout/refresh | Ghi mọi lần đăng nhập làm phình `audit_logs` và nhiễu dashboard; audit tập trung vào hành động **thay đổi dữ liệu** | Ghi hết → bảng audit mất giá trị tra cứu (xem `001-auth-rbac/plan.md` §8) |

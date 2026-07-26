@@ -11,8 +11,8 @@ GymMaster tập trung vào **vận hành cốt lõi của phòng gym + theo dõi
 | MVP-01 | Auth & Role | Đăng nhập JWT, 4 role Admin/Staff/PT/Member |
 | MVP-02 | Member Management | Admin/Staff tạo, sửa, tìm hồ sơ hội viên |
 | MVP-03 | Membership Package | Admin tạo/sửa gói tập mẫu |
-| MVP-04 | Sell & Renew Membership | Bán/gia hạn gói, gán cho Member, set ngày hết hạn |
-| MVP-05 | Payment (manual) | Ghi nhận thanh toán thủ công cho membership |
+| MVP-04 | Sell & Renew Membership | Staff bán/gia hạn gói, gán cho Member, set ngày hết hạn |
+| MVP-05 | Payment (manual) | Staff ghi nhận thanh toán thủ công cho membership |
 | MVP-06 | Check-in | Ghi nhận lượt check-in của Member |
 | MVP-07 | PT Assignment | Admin phân công PT cho Member |
 | MVP-08 | Workout Plan | PT tạo giáo án + bài tập cho Member |

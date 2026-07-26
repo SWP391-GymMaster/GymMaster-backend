@@ -65,8 +65,8 @@ description: "Task list — Membership Packages, Sell, Renew & Payment"
 - [X] T023 [US2] Chặn ghi payment cho membership đã `Active` → 409 `DUPLICATE_PAYMENT` → **FR-PAY-01**
 - [X] T024 [US2] Chặn `Amount` < giá gói → 422 `INSUFFICIENT_AMOUNT`; đơn đã `Cancelled` → 409 `MEMBERSHIP_CANCELLED`
 - [X] T025 [US2] Ghi AuditLog `SELL_MEMBERSHIP` / `CONFIRM_PAYMENT` → **FR-MS-06**
-- [X] T026 [US2] `MembershipsController.cs` — `[Authorize(Roles="admin,staff")]` cho sell/payment
-- [X] T027 [US2] Unit test `tests/GymMaster.Api.Tests/MembershipServiceTests.cs`
+- [X] T026 [US2] `MembershipsController.cs` — `[Authorize(Roles="staff")]` cho sell/payment/renew; Admin gọi các action giao dịch này → 403
+- [X] T027 [US2] Unit test `tests/GymMaster.Api.Tests/MembershipServiceTests.cs` + contract quyền `MembershipAuthorizationTests.cs`
 
 **Checkpoint**: bán được gói và thu được tiền → MVP doanh thu chạy.
 

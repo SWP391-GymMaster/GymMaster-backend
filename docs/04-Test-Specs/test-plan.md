@@ -84,7 +84,7 @@
 ---
 
 # 4. UAT Demo Script
-1. Admin login → 2. tạo package → 3. tạo/tìm member → 4. bán package → 5. Member login → 6. check-in → 7. Admin assign PT → 8. PT login → 9. tạo workout plan → 10. ghi trainer note → 11. Member xem 360° profile → 12. add meal log → 13. xem daily calorie summary → 14. Admin xem dashboard → 15. Admin xem audit log.
+1. Admin login → 2. tạo package → 3. tạo/tìm member → 4. Staff login → 5. bán package → 6. Member login → 7. check-in → 8. Admin login → 9. assign PT → 10. PT login → 11. tạo workout plan → 12. ghi trainer note → 13. Member xem 360° profile → 14. add meal log → 15. xem daily calorie summary → 16. Admin xem dashboard → 17. Admin xem audit log.
 
 # 5. Defect Log Template
 | Defect ID | Feature | Description | Severity | Owner | Status | Fixed In |

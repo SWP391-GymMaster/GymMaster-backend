@@ -18,7 +18,7 @@ public sealed class MembershipsController : ApiControllerBase
 
     // FR-MS-01
     [HttpPost("sell")]
-    [Authorize(Roles = $"{RoleNames.Admin},{RoleNames.Staff}")]
+    [Authorize(Roles = RoleNames.Staff)]
     public async Task<IActionResult> Sell(
         [FromBody] SellMembershipRequest request,
         CancellationToken cancellationToken)
@@ -29,7 +29,7 @@ public sealed class MembershipsController : ApiControllerBase
 
     // FR-MS-02
     [HttpPost("{id:long}/payment")]
-    [Authorize(Roles = $"{RoleNames.Admin},{RoleNames.Staff}")]
+    [Authorize(Roles = RoleNames.Staff)]
     public async Task<IActionResult> ConfirmPayment(
         long id,
         [FromBody] ConfirmPaymentRequest request,
@@ -41,7 +41,7 @@ public sealed class MembershipsController : ApiControllerBase
 
     // FR-MS-03
     [HttpPost("{id:long}/renew")]
-    [Authorize(Roles = $"{RoleNames.Admin},{RoleNames.Staff}")]
+    [Authorize(Roles = RoleNames.Staff)]
     public async Task<IActionResult> Renew(
         long id,
         [FromBody] RenewMembershipRequest request,
