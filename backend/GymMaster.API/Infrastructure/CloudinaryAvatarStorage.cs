@@ -4,6 +4,8 @@ using GymMaster.API.Options;
 using Microsoft.Extensions.Options;
 
 namespace GymMaster.API.Infrastructure;
+// Adapter I/O thuan (upload len Cloudinary) — kiem chung bang manual/integration, khong unit test.
+[System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverage]
 public sealed class CloudinaryAvatarStorage : IAvatarStorage
 {
     private readonly CloudinaryOptions _options;

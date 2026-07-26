@@ -5,6 +5,8 @@ using Microsoft.Extensions.Options;
 using MimeKit;
 
 namespace GymMaster.API.Infrastructure;
+// Adapter I/O thuan (gui SMTP qua MailKit) — kiem chung bang manual/integration, khong unit test.
+[System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverage]
 public sealed class EmailSender : IEmailSender
 {
     private readonly EmailOptions _options;

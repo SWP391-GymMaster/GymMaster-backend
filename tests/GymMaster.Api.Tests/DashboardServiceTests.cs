@@ -154,7 +154,9 @@ public sealed class DashboardServiceTests
         Assert.Equal("Nguyen Van Minh", summary.RecentlyExpired[0].MemberName);
         Assert.Equal(2, summary.FacilityLoadPercent);
         Assert.Equal(1, summary.NewMembershipsThisMonth);
-        Assert.Equal((now.AddHours(7).Hour), summary.PeakHourStart);
+        // Peak hour suy ra tu chinh moc check-in (now-5'), doi sang gio VN (+7) — khong dung `now`
+        // de tranh flaky khi chay ngay sau dau gio (now-5' roi sang gio truoc).
+        Assert.Equal(now.AddMinutes(-5).AddHours(7).Hour, summary.PeakHourStart);
     }
 
     [Fact]
