@@ -62,3 +62,8 @@ env.yaml
 .test-runtime/
 tests/blackbox/artifacts/
 TestResults/
+
+# Bao cao coverage sinh tu coverlet/reportgenerator — artifact, khong commit.
+coverage-report/
+coverage-nofilter/
+*.cobertura.xml
