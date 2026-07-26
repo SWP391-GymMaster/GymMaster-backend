@@ -129,3 +129,7 @@ app.MapGet("/", () => Results.Ok(new
 await DatabaseSeeder.SeedAsync(app.Services);
 
 app.Run();
+
+// Lo ra class `Program` (mac dinh internal voi top-level statements) de
+// WebApplicationFactory<Program> trong integration test dung lam entry point.
+public partial class Program;

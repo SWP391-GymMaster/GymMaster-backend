@@ -3,6 +3,8 @@ using Microsoft.EntityFrameworkCore;
 
 namespace GymMaster.API.Data;
 
+// Seeder du lieu demo/khoi tao (roles + tai khoan mau) — khong phai logic nghiep vu.
+[System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverage]
 public static class DatabaseSeeder
 {
     public static async Task SeedAsync(IServiceProvider services)

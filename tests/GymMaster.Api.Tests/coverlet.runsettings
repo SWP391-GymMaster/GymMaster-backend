@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Cau hinh do coverage: loai code KHONG phai do team viet ra khoi phep do.
+  Chay: dotnet test with collector "XPlat Code Coverage" and this settings file.
+  Nho do con so coverage phan anh dung code nghiep vu (khong bi keo xuong boi
+  code OpenAPI tu sinh cua .NET, EF migrations, hay code compiler sinh).
+-->
+<RunSettings>
+  <DataCollectionRunSettings>
+    <DataCollectors>
+      <DataCollector friendlyName="XPlat code coverage">
+        <Configuration>
+          <!-- Loai theo attribute: code auto-generated + code danh dau bo qua.
+               KHONG loai CompilerGeneratedAttribute (async/lambda) de con so trung thuc. -->
+          <ExcludeByAttribute>GeneratedCodeAttribute,ExcludeFromCodeCoverageAttribute</ExcludeByAttribute>
+          <!-- Loai theo namespace/assembly: OpenAPI generator cua .NET va EF migrations -->
+          <Exclude>[*]Microsoft.AspNetCore.OpenApi.*,[*]*.Migrations.*</Exclude>
+        </Configuration>
+      </DataCollector>
+    </DataCollectors>
+  </DataCollectionRunSettings>
+</RunSettings>
