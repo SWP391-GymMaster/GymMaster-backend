@@ -10,9 +10,12 @@ using GymMaster.API.Features.Dashboard;
 using GymMaster.API.Infrastructure;
 
 namespace GymMaster.API.Features.Nutrition;
+
 /// <summary>
-/// Tinh nang Quet anh mon an bang AI (Gemini). Tach rieng khoi FoodItemService de KHONG dung
-/// cham code mon an co san. Tu kiem tra "co goi tap active" bang DbContext.
+/// Nghiệp vụ AI cho API 09–11.
+/// Tách khỏi FoodItemService để phần Gemini không làm phức tạp kho món thông thường.
+/// Service tự kiểm Membership active, validate dữ liệu, gọi IFoodImageAnalyzer,
+/// đối chiếu kết quả với FoodItem và ghi Audit Log khi lưu món AI.
 /// </summary>
 public sealed class FoodScanService : IFoodScanService
 {
@@ -37,6 +40,12 @@ public sealed class FoodScanService : IFoodScanService
         _options = options.Value;
     }
 
+    // API 09 — POST /api/v1/foods/scan-image
+    // 1) Gác cổng Member + membership active.
+    // 2) Chỉ nhận JPG/PNG không rỗng và không vượt MaxImageBytes.
+    // 3) Gọi Gemini nhận diện nhiều món.
+    // 4) Với từng tên: match FoodItem active; không match thì tạo FoodNutritionDraft.
+    // 5) Chỉ trả response, tuyệt đối chưa lưu món AI chưa được Member xác nhận.
     public async Task<ServiceResult<FoodScanResponse>> ScanImageAsync(
         IFormFile? image,
         ClaimsPrincipal principal,
@@ -101,6 +110,9 @@ public sealed class FoodScanService : IFoodScanService
         return ServiceResult<FoodScanResponse>.Success(new FoodScanResponse(items));
     }
 
+    // API 10 — POST /api/v1/foods/estimate-nutrition
+    // Dùng cho form tạo món: Gemini ước lượng dinh dưỡng từ tên món.
+    // Kết quả là FoodNutritionDraft trên 100g và không ghi database.
     public async Task<ServiceResult<FoodNutritionDraft>> EstimateNutritionAsync(
         EstimateFoodNutritionRequest request,
         ClaimsPrincipal principal,
@@ -141,6 +153,9 @@ public sealed class FoodScanService : IFoodScanService
             "AI"));
     }
 
+    // API 11 — POST /api/v1/foods/confirm-ai-food
+    // Member xác nhận bản nháp AI. Nếu tên đã tồn tại thì trả món cũ;
+    // nếu chưa có thì tạo FoodItem Source="AI", ghi CONFIRM_AI_FOOD và trả 201.
     public async Task<ServiceResult<ScannedFood>> ConfirmAiFoodAsync(
         ConfirmAiFoodRequest request,
         ClaimsPrincipal principal,
@@ -195,6 +210,7 @@ public sealed class FoodScanService : IFoodScanService
         return ServiceResult<ScannedFood>.Success(ToScannedFood(foodItem), StatusCodes.Status201Created);
     }
 
+    // Chuyển UserId trong JWT -> MemberProfile -> kiểm membership active và EndDate >= hôm nay.
     private async Task<bool> HasActivePackageAsync(long userId, CancellationToken cancellationToken)
     {
         var memberId = await _dbContext.MemberProfiles
@@ -213,6 +229,8 @@ public sealed class FoodScanService : IFoodScanService
             cancellationToken);
     }
 
+    // Ưu tiên tên khớp chính xác không dấu/hoa thường; nếu không có thì tìm tên chứa
+    // và chọn kết quả có tên ngắn nhất để giảm match sai.
     private async Task<FoodItem?> FindDatabaseMatchAsync(string name, CancellationToken cancellationToken)
     {
         var exact = await _dbContext.FoodItems.AsNoTracking().FirstOrDefaultAsync(
@@ -228,9 +246,11 @@ public sealed class FoodScanService : IFoodScanService
             .FirstOrDefaultAsync(cancellationToken);
     }
 
+    // Map FoodItem đã có Id sang DTO mà frontend AI có thể đưa thẳng vào form ghi bữa.
     private static ScannedFood ToScannedFood(FoodItem f)
         => new(f.Id, f.Name, f.Unit, f.ServingSize, f.CaloriesPerUnit, f.ProteinG, f.CarbG, f.FatG, f.Source);
 
+    // ActorId lấy từ claim NameIdentifier; fallback sang chuẩn JWT "sub".
     private static long? GetActorId(ClaimsPrincipal principal)
     {
         var value = principal.FindFirstValue(ClaimTypes.NameIdentifier)

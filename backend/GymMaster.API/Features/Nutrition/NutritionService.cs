@@ -7,6 +7,13 @@ using GymMaster.API.Common;
 using GymMaster.API.Features.Dashboard;
 
 namespace GymMaster.API.Features.Nutrition;
+
+/// <summary>
+/// Nghiệp vụ trung tâm cho API 01–06: mục tiêu calo, nhật ký bữa ăn,
+/// tổng kết một ngày và lịch sử nhiều ngày.
+/// Service kiểm tra hội viên/quyền truy cập, làm việc trực tiếp với GymMasterDbContext,
+/// tính calo/macro và ghi Audit Log cho các thao tác thay đổi dữ liệu.
+/// </summary>
 public sealed class NutritionService : INutritionService
 {
     private readonly GymMasterDbContext _dbContext;
@@ -18,7 +25,9 @@ public sealed class NutritionService : INutritionService
         _auditService = auditService;
     }
 
-    // FR-CAL-TGT-01
+    // API 01 — POST /api/v1/members/{id}/calorie-target
+    // Kiểm tra hội viên + quyền + dữ liệu, sau đó UPSERT theo (MemberId, EffectiveDate).
+    // Tạo mới trả 201, cập nhật trả 200; cả hai đều ghi SET_CALORIE_TARGET.
     public async Task<ServiceResult<CalorieTargetResponse>> SetTargetAsync(
         long memberId,
         SetCalorieTargetRequest request,
@@ -80,6 +89,8 @@ public sealed class NutritionService : INutritionService
         return ServiceResult<CalorieTargetResponse>.Success(ToResponse(target), statusCode);
     }
 
+    // API 02 — GET /api/v1/members/{id}/calorie-target
+    // Lấy mục tiêu có EffectiveDate <= hôm nay và mới nhất; không có trả 404 NO_TARGET.
     public async Task<ServiceResult<CalorieTargetResponse>> GetTargetAsync(
         long memberId,
         ClaimsPrincipal principal,
@@ -110,7 +121,10 @@ public sealed class NutritionService : INutritionService
         return ServiceResult<CalorieTargetResponse>.Success(ToResponse(target));
     }
 
-    // FR-MEAL-01 / FR-MEAL-02 / FR-MEAL-03
+    // API 05 — POST /api/v1/meal-logs
+    // Gộp FoodItemId trùng trong request; xác minh tất cả món active;
+    // tạo MealLog mới hoặc cộng dồn vào bữa cùng MemberId/LogDate/MealType;
+    // tính CaloriesPerUnit × Quantity và ghi CREATE_MEAL_LOG.
     public async Task<ServiceResult<MealLogResponse>> CreateMealLogAsync(
         CreateMealLogRequest request,
         ClaimsPrincipal principal,
@@ -213,7 +227,9 @@ public sealed class NutritionService : INutritionService
             StatusCodes.Status201Created);
     }
 
-    // 🆕 API_CONTRACT_Y: doc nhat ky bua an theo member + ngay.
+    // API 06 — GET /api/v1/meal-logs
+    // Lấy MealLog kèm MealLogItem + FoodItem theo hội viên/ngày,
+    // sắp xếp bữa theo MealType và map thành danh sách MealLogResponse.
     public async Task<ServiceResult<IReadOnlyList<MealLogResponse>>> GetMealLogsAsync(
         long memberId,
         DateOnly? date,
@@ -244,7 +260,9 @@ public sealed class NutritionService : INutritionService
             mealLogs.Select(ToResponse).ToList());
     }
 
-    // FR-CAL-01
+    // API 03 — GET /api/v1/members/{id}/calorie-summary
+    // Cộng calo/macro của mọi món trong ngày, lấy mục tiêu hiệu lực tại ngày đó
+    // rồi tính Remaining = Target - Consumed. Không có mục tiêu thì Target/Remaining null.
     public async Task<ServiceResult<CalorieSummaryResponse>> GetSummaryAsync(
         long memberId,
         DateOnly? date,
@@ -301,7 +319,9 @@ public sealed class NutritionService : INutritionService
                 target?.FatG is null ? null : target.FatG - consumedFat));
     }
 
-    // FR-CAL-01
+    // API 04 — GET /api/v1/members/{id}/calorie-history
+    // Mặc định sinh đủ 7 ngày; ngày không có bữa vẫn trả Consumed=0.
+    // Mỗi ngày dùng mục tiêu mới nhất đã có hiệu lực tại chính ngày đó.
     public async Task<ServiceResult<IReadOnlyList<CalorieSummaryResponse>>> GetHistoryAsync(
         long memberId,
         DateOnly? from,
@@ -374,6 +394,7 @@ public sealed class NutritionService : INutritionService
         return ServiceResult<IReadOnlyList<CalorieSummaryResponse>>.Success(results);
     }
 
+    // Tìm mục tiêu mới nhất có hiệu lực tại một ngày cụ thể; dùng cho summary.
     private async Task<CalorieTarget?> GetTargetForDateAsync(
         long memberId,
         DateOnly date,
@@ -385,6 +406,7 @@ public sealed class NutritionService : INutritionService
             .FirstOrDefaultAsync(cancellationToken);
     }
 
+    // Chỉ coi hội viên tồn tại khi cả MemberProfile và User chưa bị soft-delete.
     private Task<MemberProfile?> FindMemberAsync(long memberId, CancellationToken cancellationToken)
     {
         return _dbContext.MemberProfiles
@@ -392,6 +414,9 @@ public sealed class NutritionService : INutritionService
             .FirstOrDefaultAsync(item => item.Id == memberId && !item.IsDeleted && !item.User.IsDeleted, cancellationToken);
     }
 
+    // Luật truy cập dùng chung cho cả 6 API:
+    // Admin/Staff xem mọi hội viên; Member chỉ chính mình;
+    // PT chỉ hội viên có TrainerAssignment active với PT đó.
     private async Task<bool> CanAccessAsync(
         ClaimsPrincipal principal,
         MemberProfile profile,
@@ -436,6 +461,7 @@ public sealed class NutritionService : INutritionService
         return false;
     }
 
+    // Map entity mục tiêu sang DTO; không trả trực tiếp entity EF Core.
     private static CalorieTargetResponse ToResponse(CalorieTarget target)
     {
         return new CalorieTargetResponse(
@@ -448,6 +474,7 @@ public sealed class NutritionService : INutritionService
             target.FatG);
     }
 
+    // Map một bữa sang DTO, nhân macro theo Quantity và cộng TotalCalories.
     private static MealLogResponse ToResponse(MealLog mealLog)
     {
         var items = mealLog.Items

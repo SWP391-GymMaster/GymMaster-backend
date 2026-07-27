@@ -4,7 +4,13 @@ using Microsoft.AspNetCore.Mvc;
 using GymMaster.API.Common;
 
 namespace GymMaster.API.Features.Nutrition;
-// Tinh nang Quet anh AI — controller rieng, route api/v1/foods (khong dung cham FoodItemsController).
+
+/// <summary>
+/// Nhóm API AI dành riêng cho Member có gói tập active.
+/// Controller chỉ nhận file/body; FoodScanService kiểm gói, validate dữ liệu,
+/// gọi Gemini và đối chiếu/lưu món trong database.
+/// Route dùng /api/v1/foods để tách khỏi kho món /api/v1/food-items.
+/// </summary>
 [ApiController]
 [Route("api/v1/foods")]
 [Authorize]
@@ -17,7 +23,10 @@ public sealed class FoodScanController : ApiControllerBase
         _foodScanService = foodScanService;
     }
 
-    // FR-IMG-01/02: nhan dien nhieu mon trong anh.
+    // 09 POST /api/v1/foods/scan-image
+    // Mục đích: nhận ảnh JPG/PNG và dùng Gemini nhận diện một hoặc nhiều món.
+    // Input: multipart/form-data, field image; giới hạn nghiệp vụ 5MB.
+    // Xử lý thật: FoodScanService.ScanImageAsync; response: FoodScanResponse.
     [HttpPost("scan-image")]
     [Authorize(Roles = RoleNames.Member)]
     [Consumes("multipart/form-data")]
@@ -30,7 +39,10 @@ public sealed class FoodScanController : ApiControllerBase
         return ToActionResult(result);
     }
 
-    // AI ho tro form tu tao: uoc luong dinh duong/100g tu mot ten chung, chua luu DB.
+    // 10 POST /api/v1/foods/estimate-nutrition
+    // Mục đích: nhờ Gemini ước lượng calo/protein/carb/fat trên 100g từ tên món.
+    // Input: EstimateFoodNutritionRequest; response: FoodNutritionDraft.
+    // Luồng này chỉ trả bản nháp cho form, chưa lưu food_items.
     [HttpPost("estimate-nutrition")]
     [Authorize(Roles = RoleNames.Member)]
     public async Task<IActionResult> EstimateNutrition(
@@ -41,7 +53,10 @@ public sealed class FoodScanController : ApiControllerBase
         return ToActionResult(result);
     }
 
-    // FR-IMG-03: luu mon AI sau khi user xac nhan.
+    // 11 POST /api/v1/foods/confirm-ai-food
+    // Mục đích: lưu món AI sau khi Member đã xem và xác nhận thông tin dinh dưỡng.
+    // Input: ConfirmAiFoodRequest; nếu tên đã có thì trả món cũ, nếu mới thì tạo
+    // FoodItem Source="AI", ghi audit_logs và trả ScannedFood.
     [HttpPost("confirm-ai-food")]
     [Authorize(Roles = RoleNames.Member)]
     public async Task<IActionResult> ConfirmAiFood(

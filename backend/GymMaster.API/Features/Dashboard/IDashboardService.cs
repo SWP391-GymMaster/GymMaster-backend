@@ -1,14 +1,19 @@
 using GymMaster.API.Common;
 namespace GymMaster.API.Features.Dashboard;
+
+/// <summary>
+/// Hợp đồng hai nghiệp vụ đọc của feature Dashboard:
+/// tổng hợp chỉ số vận hành và tra cứu Audit Log.
+/// </summary>
 public interface IDashboardService
 {
-    // FR-DASH-01/02: tong hop chi so trong khoang ngay (0 neu khong co du lieu - FR-DASH-03).
+    // API 12: tổng hợp số liệu cho Admin Dashboard; không có dữ liệu thì trả số 0/danh sách rỗng.
     Task<ServiceResult<DashboardSummaryResponse>> GetSummaryAsync(
         DateTime? from,
         DateTime? to,
         CancellationToken cancellationToken);
 
-    // FR-AUD-02: tra cuu audit log phan trang, giam dan theo thoi gian.
+    // API 13: lọc/phân trang Audit Log, sắp xếp bản ghi mới nhất trước.
     Task<ServiceResult<PagedResult<AuditLogResponse>>> GetAuditLogsAsync(
         long? userId,
         string? action,

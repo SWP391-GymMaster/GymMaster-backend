@@ -1,21 +1,26 @@
 using System.Security.Claims;
 using GymMaster.API.Common;
 namespace GymMaster.API.Features.Nutrition;
+
+/// <summary>
+/// Hợp đồng ba nghiệp vụ AI của FoodScanController.
+/// Việc gọi Gemini được che phía sau interface IFoodImageAnalyzer trong implementation.
+/// </summary>
 public interface IFoodScanService
 {
-    // FR-IMG-01/02: quet anh -> danh sach mon (DB match hoac nhap AI). Yeu cau goi tap active.
+    // API 09: quét ảnh -> danh sách món đã match DB hoặc bản nháp AI cần xác nhận.
     Task<ServiceResult<FoodScanResponse>> ScanImageAsync(
         IFormFile? image,
         ClaimsPrincipal principal,
         CancellationToken cancellationToken);
 
-    // AI ho tro dien form mon tu tao; chi tra draft, KHONG tu luu vao DB.
+    // API 10: ước lượng dinh dưỡng từ tên; chỉ trả draft, không tự lưu DB.
     Task<ServiceResult<FoodNutritionDraft>> EstimateNutritionAsync(
         EstimateFoodNutritionRequest request,
         ClaimsPrincipal principal,
         CancellationToken cancellationToken);
 
-    // FR-IMG-03: luu mon AI sau khi user xac nhan.
+    // API 11: lưu món AI sau khi Member xác nhận hoặc trả món cũ nếu đã tồn tại.
     Task<ServiceResult<ScannedFood>> ConfirmAiFoodAsync(
         ConfirmAiFoodRequest request,
         ClaimsPrincipal principal,

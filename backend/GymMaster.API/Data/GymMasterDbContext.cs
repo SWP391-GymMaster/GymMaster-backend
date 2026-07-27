@@ -26,6 +26,7 @@ public sealed class GymMasterDbContext : DbContext
 
     public DbSet<TrainerProfile> TrainerProfiles => Set<TrainerProfile>();
 
+    // Phần Dashboard/Audit của Minh: DbSet để AuditService ghi và DashboardService đọc log.
     public DbSet<AuditLog> AuditLogs => Set<AuditLog>();
 
     public DbSet<TrainerAssignment> TrainerAssignments => Set<TrainerAssignment>();
@@ -46,6 +47,7 @@ public sealed class GymMasterDbContext : DbContext
 
     public DbSet<ProgressLog> ProgressLogs => Set<ProgressLog>();
 
+    // Phần Nutrition của Minh: kho món, đầu bữa, chi tiết món và mục tiêu calo.
     public DbSet<FoodItem> FoodItems => Set<FoodItem>();
 
     public DbSet<MealLog> MealLogs => Set<MealLog>();
@@ -168,6 +170,8 @@ public sealed class GymMasterDbContext : DbContext
                 .HasForeignKey(profile => profile.UserId);
         });
 
+        // PHẦN MINH — bảng audit_logs.
+        // Action/Entity bắt buộc; index (Entity, EntityId) phục vụ truy vết lịch sử một đối tượng.
         modelBuilder.Entity<AuditLog>(entity =>
         {
             entity.ToTable("audit_logs");
@@ -322,6 +326,8 @@ public sealed class GymMasterDbContext : DbContext
             entity.HasIndex(progress => new { progress.MemberId, progress.MeasuredAt });
         });
 
+        // PHẦN MINH — bảng food_items.
+        // Giới hạn độ dài/precision và unique Name để kho món không có hai tên giống hệt.
         modelBuilder.Entity<FoodItem>(entity =>
         {
             entity.ToTable("food_items");
@@ -337,6 +343,8 @@ public sealed class GymMasterDbContext : DbContext
             entity.HasIndex(food => food.Name).IsUnique();
         });
 
+        // PHẦN MINH — bảng meal_logs.
+        // MealType lưu tinyint theo NutritionEnums; quan hệ một MealLog có nhiều MealLogItem.
         modelBuilder.Entity<MealLog>(entity =>
         {
             entity.ToTable("meal_logs");
@@ -351,6 +359,8 @@ public sealed class GymMasterDbContext : DbContext
                 .HasForeignKey(item => item.MealLogId);
         });
 
+        // PHẦN MINH — bảng meal_log_items.
+        // Mỗi dòng thuộc một MealLog và tham chiếu một FoodItem để đọc tên/macro.
         modelBuilder.Entity<MealLogItem>(entity =>
         {
             entity.ToTable("meal_log_items");
@@ -364,6 +374,8 @@ public sealed class GymMasterDbContext : DbContext
                 .HasForeignKey(item => item.FoodItemId);
         });
 
+        // PHẦN MINH — bảng calorie_targets.
+        // Unique (MemberId, EffectiveDate) hỗ trợ SetTargetAsync UPSERT đúng một mục tiêu/ngày.
         modelBuilder.Entity<CalorieTarget>(entity =>
         {
             entity.ToTable("calorie_targets");

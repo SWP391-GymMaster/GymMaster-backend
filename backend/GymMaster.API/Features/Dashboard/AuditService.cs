@@ -5,6 +5,11 @@ using GymMaster.API.Entities;
 using Microsoft.IdentityModel.JsonWebTokens;
 
 namespace GymMaster.API.Features.Dashboard;
+
+/// <summary>
+/// Implementation luồng nội bộ 14: ghi lịch sử cho mọi thao tác thay đổi dữ liệu quan trọng.
+/// Service lấy actor từ JWT, serialize metadata và lưu entity AuditLog.
+/// </summary>
 public sealed class AuditService : IAuditService
 {
     private readonly GymMasterDbContext _dbContext;
@@ -16,6 +21,9 @@ public sealed class AuditService : IAuditService
         _httpContextAccessor = httpContextAccessor;
     }
 
+    // LUỒNG NỘI BỘ 14 — được service nghiệp vụ gọi sau khi SaveChanges thành công.
+    // action: tên hành động; entity/entityId: đối tượng bị tác động;
+    // metadata: thông tin truy vết bổ sung, được serialize JSON và không chứa PII nhạy cảm.
     public async Task LogAsync(
         string action,
         string entity,
@@ -36,6 +44,8 @@ public sealed class AuditService : IAuditService
         await _dbContext.SaveChangesAsync(cancellationToken);
     }
 
+    // Ưu tiên claim NameIdentifier; fallback "sub".
+    // Nếu không có hoặc không phải số thì trả null nhưng Audit Log vẫn được ghi.
     private long? GetActorId()
     {
         var principal = _httpContextAccessor.HttpContext?.User;

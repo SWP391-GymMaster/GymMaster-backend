@@ -7,6 +7,12 @@ using GymMaster.API.Common;
 using GymMaster.API.Features.Dashboard;
 
 namespace GymMaster.API.Features.Nutrition;
+
+/// <summary>
+/// Nghiệp vụ kho món ăn cho API 07–08.
+/// Service đọc claim để quyết định kho full/free, truy vấn FoodItem,
+/// validate món tự nhập và gọi IAuditService khi tạo món mới.
+/// </summary>
 public sealed class FoodItemService : IFoodItemService
 {
     private const int DefaultPageSize = 20;
@@ -25,7 +31,11 @@ public sealed class FoodItemService : IFoodItemService
         _auditService = auditService;
     }
 
-    // FR-FOOD-01
+    // API 07 — GET /api/v1/food-items
+    // 1) Chuẩn hóa page/pageSize.
+    // 2) Xác định tài khoản được xem toàn kho hay chỉ 20 món dùng thử.
+    // 3) Chỉ lấy món active, lọc tên không phân biệt dấu/hoa thường.
+    // 4) Sắp xếp A–Z, phân trang và map entity sang FoodItemResponse.
     public async Task<ServiceResult<PagedResult<FoodItemResponse>>> SearchAsync(
         string? query,
         int page,
@@ -82,7 +92,9 @@ public sealed class FoodItemService : IFoodItemService
         return ServiceResult<PagedResult<FoodItemResponse>>.Success(result);
     }
 
-    // Toan quyen kho mon neu: KHONG phai role Member (Admin/Staff/PT), HOAC la Member co goi tap active.
+    // Quyền toàn kho:
+    // - Admin/Staff/PT: luôn true.
+    // - Member: phải tìm được MemberProfile và có Membership Active chưa hết hạn.
     private async Task<bool> HasFullFoodAccessAsync(ClaimsPrincipal principal, CancellationToken cancellationToken)
     {
         if (!principal.IsInRole(RoleNames.Member))
@@ -118,7 +130,10 @@ public sealed class FoodItemService : IFoodItemService
         return long.TryParse(value, out var id) ? id : null;
     }
 
-    // FR-FOOD-02
+    // API 08 — POST /api/v1/food-items
+    // 1) Chuẩn hóa tên/đơn vị và validate calo/macro.
+    // 2) Nếu trùng tên thì trả món cũ với 200 (find-or-create).
+    // 3) Nếu mới thì INSERT food_items, ghi CREATE_FOOD và trả 201.
     public async Task<ServiceResult<FoodItemResponse>> AddAsync(
         CreateFoodItemRequest request,
         ClaimsPrincipal principal,
@@ -171,6 +186,7 @@ public sealed class FoodItemService : IFoodItemService
             StatusCodes.Status201Created);
     }
 
+    // Chỉ trả DTO cần thiết cho API, không để controller trả thẳng EF entity.
     private static FoodItemResponse ToResponse(FoodItem foodItem)
     {
         return new FoodItemResponse(

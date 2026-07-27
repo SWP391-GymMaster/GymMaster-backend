@@ -5,9 +5,12 @@ using Microsoft.Extensions.Options;
 using GymMaster.API.Common;
 
 namespace GymMaster.API.Infrastructure;
+
 /// <summary>
-/// Goi Gemini Vision (Generative Language API) de nhan dien TAT CA mon an trong anh
-/// va uoc luong dinh duong/100g cho moi mon, tra ve trong 1 lan goi (structured output).
+/// Adapter gọi Google Gemini cho API 09–10.
+/// Class dựng prompt + JSON response schema, gửi HTTP request, ghép các phần text,
+/// bỏ markdown fence, parse structured output và chuẩn hóa lỗi về FoodImageAnalysisResult.
+/// FoodScanService chỉ phụ thuộc IFoodImageAnalyzer nên có thể mock class này trong test.
 /// </summary>
 public sealed class GeminiService : IFoodImageAnalyzer
 {
@@ -26,7 +29,9 @@ public sealed class GeminiService : IFoodImageAnalyzer
         _httpClient.Timeout = TimeSpan.FromSeconds(Math.Clamp(_options.TimeoutSeconds, 5, 60));
     }
 
-    // FR-IMG-01/02: nhan dien nhieu mon + uoc luong dinh duong.
+    // API 09 sử dụng.
+    // Dựng schema mảng món, gửi ảnh base64 + prompt cho Gemini,
+    // sau đó parse từng phần tử thành DetectedFood và chặn giá trị số âm.
     public async Task<FoodImageAnalysisResult<IReadOnlyList<DetectedFood>>> DetectFoodsAsync(
         byte[] imageBytes,
         string contentType,
@@ -115,6 +120,9 @@ public sealed class GeminiService : IFoodImageAnalyzer
         }
     }
 
+    // API 10 sử dụng.
+    // Dựng schema một món, gửi prompt chỉ chứa tên thực phẩm và parse
+    // calo/protein/carb/fat trung bình trên 100g thành EstimatedFoodNutrition.
     public async Task<FoodImageAnalysisResult<EstimatedFoodNutrition>> EstimateNutritionAsync(
         string foodName,
         CancellationToken cancellationToken)
@@ -194,6 +202,12 @@ public sealed class GeminiService : IFoodImageAnalyzer
         }
     }
 
+    // Hàm HTTP dùng chung cho cả nhận diện ảnh và ước lượng theo tên:
+    // - kiểm tra ApiKey;
+    // - gắn prompt và ảnh (nếu có);
+    // - yêu cầu Gemini trả JSON theo schema;
+    // - xử lý timeout/network/status lỗi;
+    // - trích text, bỏ ```json fence và parse JsonDocument.
     private async Task<FoodImageAnalysisResult<JsonDocument>> CallGeminiAsync(
         byte[]? imageBytes,
         string? contentType,
@@ -303,9 +317,9 @@ public sealed class GeminiService : IFoodImageAnalyzer
     }
 
     /// <summary>
-    /// GHEP TAT CA cac phan text trong candidates[*].content.parts[*].text
-    /// (anh that output dai Gemini hay chia thanh NHIEU part -> phai noi lai, neu chi lay part dau se cut JSON).
-    /// Tra ve (text gop, finishReason) de chan doan.
+    /// Ghép tất cả candidates[*].content.parts[*].text.
+    /// Gemini có thể chia JSON dài thành nhiều part; chỉ đọc part đầu sẽ làm JSON bị cắt.
+    /// Đồng thời trả finishReason để chẩn đoán MAX_TOKENS/SAFETY.
     /// </summary>
     private static (string? Text, string? FinishReason) ExtractOutputText(JsonElement root)
     {
@@ -345,7 +359,7 @@ public sealed class GeminiService : IFoodImageAnalyzer
         return (sb.Length > 0 ? sb.ToString() : null, finishReason);
     }
 
-    /// <summary>Bo cap ```json ... ``` (hoac ``` ... ```) neu Gemini boc JSON trong markdown.</summary>
+    /// <summary>Bỏ cặp ```json ... ``` nếu Gemini bọc JSON trong Markdown.</summary>
     private static string StripJsonFence(string text)
     {
         var t = text.Trim();
@@ -364,10 +378,11 @@ public sealed class GeminiService : IFoodImageAnalyzer
         return t.Trim();
     }
 
+    // Giới hạn độ dài nội dung ghi log để không làm log chẩn đoán quá lớn.
     private static string Truncate(string value, int max)
         => value.Length <= max ? value : value[..max] + "...";
 
-    /// <summary>Ghi 1 dong chan doan ra file de soi khi quet loi (khong phu thuoc console).</summary>
+    /// <summary>Ghi chẩn đoán tạm vào gemini_diag.log khi Gemini trả response lỗi.</summary>
     private static void WriteDiag(string line)
     {
         try
@@ -378,7 +393,7 @@ public sealed class GeminiService : IFoodImageAnalyzer
         catch { /* khong de logging lam vo luong */ }
     }
 
-    /// <summary>Doc so an toan: Gemini doi khi tra number duoi dang string.</summary>
+    /// <summary>Đọc số an toàn vì Gemini đôi khi trả number dưới dạng JSON string.</summary>
     private static decimal ReadDecimal(JsonElement root, string propertyName)
     {
         if (!root.TryGetProperty(propertyName, out var element))

@@ -4,6 +4,12 @@ using Microsoft.EntityFrameworkCore;
 using GymMaster.API.Common;
 
 namespace GymMaster.API.Features.Dashboard;
+
+/// <summary>
+/// Nghiệp vụ đọc cho API 12–13.
+/// Service tổng hợp dữ liệu Dashboard từ các bảng của nhiều feature và
+/// truy vấn Audit Log có filter/phân trang; không thay đổi dữ liệu nghiệp vụ.
+/// </summary>
 public sealed class DashboardService : IDashboardService
 {
     private readonly GymMasterDbContext _db;
@@ -16,7 +22,10 @@ public sealed class DashboardService : IDashboardService
         _db = db;
     }
 
-    // FR-DASH-01/02/03
+    // API 12 — GET /api/v1/dashboard/summary
+    // Thực hiện các truy vấn độc lập để dựng một DashboardSummaryResponse:
+    // doanh thu, membership, check-in, thanh toán chờ, biểu đồ 6 tháng,
+    // hội viên hết hạn, tải cơ sở, membership mới và giờ cao điểm.
     public async Task<ServiceResult<DashboardSummaryResponse>> GetSummaryAsync(
         DateTime? from,
         DateTime? to,
@@ -186,7 +195,9 @@ public sealed class DashboardService : IDashboardService
         return ServiceResult<DashboardSummaryResponse>.Success(summary);
     }
 
-    // FR-AUD-02
+    // API 13 — GET /api/v1/audit-logs
+    // Chuẩn hóa phân trang, áp lần lượt các filter, lấy log mới nhất,
+    // nạp tên user bằng truy vấn riêng để tránh N+1 và trả PagedResult.
     public async Task<ServiceResult<PagedResult<AuditLogResponse>>> GetAuditLogsAsync(
         long? userId,
         string? action,
@@ -249,10 +260,11 @@ public sealed class DashboardService : IDashboardService
         return ServiceResult<PagedResult<AuditLogResponse>>.Success(result);
     }
 
-    // Moc dau thang theo lich VN, quy ve thoi diem UTC tuong ung (PaidAt luu UTC).
+    // Mốc 00:00 đầu tháng theo lịch Việt Nam, quy đổi về UTC vì PaidAt lưu UTC.
     private static DateTime VnMonthStartUtc(int year, int month)
         => DateTime.SpecifyKind(new DateTime(year, month, 1, 0, 0, 0).AddHours(-7), DateTimeKind.Utc);
 
+    // Tạo chữ viết tắt để card hội viên hết hạn hiển thị avatar thay thế.
     private static string GetInitials(string fullName)
     {
         var parts = fullName.Trim().Split(' ', StringSplitOptions.RemoveEmptyEntries);

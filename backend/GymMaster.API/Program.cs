@@ -38,6 +38,8 @@ builder.Services.Configure<VnPayOptions>(
     builder.Configuration.GetSection(VnPayOptions.SectionName));
 builder.Services.Configure<EmailOptions>(
     builder.Configuration.GetSection(EmailOptions.SectionName));
+// PHẦN MINH: bind cấu hình GeminiOptions từ section "Gemini".
+// ApiKey thực tế lấy từ User Secrets/biến môi trường, không ghi vào appsettings đã commit.
 builder.Services.Configure<GeminiOptions>(
     builder.Configuration.GetSection(GeminiOptions.SectionName));
 
@@ -64,6 +66,8 @@ builder.Services
 
 builder.Services.AddAuthorization();
 builder.Services.AddHttpContextAccessor();
+// PHẦN MINH: IAuditService là service ghi log dùng chung; AuditService cần HttpContextAccessor
+// để đọc UserId từ JWT của request hiện tại.
 builder.Services.AddScoped<IAuditService, AuditService>();
 builder.Services.AddScoped<IEmailSender, EmailSender>();
 builder.Services.AddScoped<IAvatarStorage, CloudinaryAvatarStorage>();
@@ -76,6 +80,7 @@ builder.Services.AddScoped<ITrainerService, TrainerService>();
 builder.Services.AddScoped<IAssignmentService, AssignmentService>();
 builder.Services.AddScoped<IWorkoutPlanService, WorkoutPlanService>();
 builder.Services.AddScoped<ITrainerNoteService, TrainerNoteService>();
+// PHẦN MINH: API 12–13 resolve IDashboardService thành DashboardService theo từng request.
 builder.Services.AddScoped<IDashboardService, DashboardService>();
 // spec 003/004/006/007 — membership, payment, progress, nutrition, check-in
 builder.Services.AddScoped<IMembershipPackageService, MembershipPackageService>();
@@ -83,10 +88,13 @@ builder.Services.AddScoped<IMembershipService, MembershipService>();
 builder.Services.AddScoped<IPaymentService, PaymentService>();
 builder.Services.AddScoped<IVnPayService, VnPayService>();
 builder.Services.AddScoped<IProgressService, ProgressService>();
+// PHẦN MINH: API 07–08 của kho món.
 builder.Services.AddScoped<IFoodItemService, FoodItemService>();
-// Quet anh mon an bang AI (Gemini)
+// PHẦN MINH: API 09–11 của AI. FoodScanService chứa nghiệp vụ;
+// GeminiService là typed HttpClient đứng sau IFoodImageAnalyzer để có thể mock khi test.
 builder.Services.AddScoped<IFoodScanService, FoodScanService>();
 builder.Services.AddHttpClient<IFoodImageAnalyzer, GeminiService>();
+// PHẦN MINH: API 01–06 của mục tiêu calo, nhật ký ăn và tổng kết.
 builder.Services.AddScoped<INutritionService, NutritionService>();
 builder.Services.AddScoped<ICheckInService, CheckInService>();
 
