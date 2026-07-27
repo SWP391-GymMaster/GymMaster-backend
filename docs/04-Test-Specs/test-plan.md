@@ -42,6 +42,7 @@
 | TC-203 | Renew membership | EndDate nối tiếp | FR-MS-03 |
 | TC-204 | Payment pending | Membership PendingPayment | FR-MS-01 |
 | TC-205 | Ghi payment trùng | 409 Conflict | FR-PAY-01 |
+| TC-206 | Admin gọi sell/payment/renew | 403 FORBIDDEN; Staff vẫn thực hiện được | AC-11 (spec 003), D-28 |
 
 ## Check-in
 | TC ID | Scenario | Expected | Spec |
