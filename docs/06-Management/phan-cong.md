@@ -193,12 +193,12 @@ gom *ca frontend lan backend*, de khong ai phai cho nguoi khac lam xong API moi 
 | Billing | `GET /api/v1/payments/vnpay/ipn` | Anonymous |
 | Billing | `GET /api/v1/payments/vnpay/return` | Anonymous |
 | Billing | `POST /api/v1/memberships/renewal-request` | Member |
-| Billing | `POST /api/v1/memberships/sell` | Admin/Staff |
+| Billing | `POST /api/v1/memberships/sell` | Staff |
 | Billing | `POST /api/v1/memberships/{id:long}/cancel` | Member/Staff/Admin |
-| Billing | `POST /api/v1/memberships/{id:long}/payment` | Admin/Staff |
-| Billing | `POST /api/v1/memberships/{id:long}/renew` | Admin/Staff |
+| Billing | `POST /api/v1/memberships/{id:long}/payment` | Staff |
+| Billing | `POST /api/v1/memberships/{id:long}/renew` | Staff |
 | Billing | `POST /api/v1/packages` | Admin |
-| Billing | `POST /api/v1/payments/vnpay/create-url` | Authenticated |
+| Billing | `POST /api/v1/payments/vnpay/create-url` | Member(self)/Staff |
 | Billing | `PUT /api/v1/packages/{id:long}` | Admin |
 
 #### Function không có màn hình (3)

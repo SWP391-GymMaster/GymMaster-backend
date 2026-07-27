@@ -17,7 +17,7 @@ Chỉ có **tầng API + Service + DbContext** — không có Repository (ARCH-0
 
 | File | Vai trò | Loại |
 |---|---|---|
-| [`MembershipsController.cs`](../../../backend/GymMaster.API/Features/Billing/MembershipsController.cs) | Nhận request `/memberships/*`, gác role Admin/Staff | Controller |
+| [`MembershipsController.cs`](../../../backend/GymMaster.API/Features/Billing/MembershipsController.cs) | Nhận request `/memberships/*`; sell/payment/renew chỉ Staff, tra cứu Admin/Staff | Controller |
 | [`MembershipService.cs`](../../../backend/GymMaster.API/Features/Billing/MembershipService.cs) | Toàn bộ nghiệp vụ bán/thu/gia hạn/huỷ | Service |
 | [`MembershipLifecycle.cs`](../../../backend/GymMaster.API/Features/Billing/MembershipLifecycle.cs) | **Luật vòng đời dùng chung** — 3 hàm tĩnh, không I/O | Domain rule |
 | [`PaymentService.cs`](../../../backend/GymMaster.API/Features/Billing/PaymentService.cs) | Tra cứu + tổng hợp doanh thu (không kích hoạt gói) | Service |

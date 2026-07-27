@@ -25,8 +25,8 @@
 ### A3. Membership & Payment
 - **FR-PKG-01 (Event):** WHEN Admin tạo gói tập, THE system SHALL lưu gói với tên, giá, thời hạn (ngày).
 - **FR-MS-01 (Event):** WHEN Staff bán gói cho Member, THE system SHALL tạo Membership status `PendingPayment`, tính ngày hết hạn = ngày bắt đầu + thời hạn.
-- **FR-MS-02 (Event):** WHEN Payment được ghi nhận cho Membership, THE system SHALL chuyển status sang `Active`.
-- **FR-MS-03 (Event):** WHEN gia hạn cho Member đang có gói active, THE system SHALL nối tiếp ngày hết hạn cũ.
+- **FR-MS-02 (Event):** WHEN Staff ghi nhận Payment thủ công cho Membership, THE system SHALL chuyển status sang `Active`.
+- **FR-MS-03 (Event):** WHEN Staff gia hạn trực tiếp cho Member đang có gói active, THE system SHALL nối tiếp ngày hết hạn cũ.
 - **FR-MS-04 (State):** WHILE ngày hiện tại > ngày hết hạn, THE system SHALL coi Membership là `Expired`.
 - **FR-PAY-01 (Unwanted):** WHERE ghi Payment trùng cho cùng Membership+kỳ, THE system SHALL trả 409.
 

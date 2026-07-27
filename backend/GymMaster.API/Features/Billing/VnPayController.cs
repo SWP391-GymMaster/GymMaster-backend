@@ -14,7 +14,7 @@ public sealed class VnPayController : ApiControllerBase
         _vnPayService = vnPayService;
     }
 
-    // Member (so huu) hoac Admin/Staff tao link thanh toan cho 1 membership PendingPayment.
+    // Member (so huu) hoac Staff tao link thanh toan cho 1 membership PendingPayment.
     [HttpPost("create-url")]
     [Authorize]
     public async Task<IActionResult> CreateUrl(

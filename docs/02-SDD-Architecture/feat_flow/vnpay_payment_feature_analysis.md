@@ -13,7 +13,7 @@
 
 | Endpoint | Ai gọi | Vai trò |
 |---|---|---|
-| `POST /create-url` | Member (sở hữu) · Admin · Staff | Sinh URL thanh toán đã ký HMAC-SHA512 |
+| `POST /create-url` | Member (sở hữu) · Staff | Sinh URL thanh toán đã ký HMAC-SHA512 |
 | `GET /ipn` | **VNPay** (server → server) | **Nguồn sự thật** — kích hoạt membership |
 | `GET /return` | trình duyệt người dùng | Hiển thị kết quả + **finalize dự phòng** |
 
@@ -27,7 +27,7 @@ Không có bảng DB mới — tái dùng `payments` / `memberships` của spec 
 | [`VnPayService.cs`](../../../backend/GymMaster.API/Features/Billing/VnPayService.cs) | Nghiệp vụ: ký, verify, đối chiếu tiền, kích hoạt | Service |
 | [`VnPayLibrary.cs`](../../../backend/GymMaster.API/Infrastructure/VnPayLibrary.cs) | Dựng query string sắp xếp + HMAC-SHA512 | Infrastructure |
 | [`VnPayOptions.cs`](../../../backend/GymMaster.API/Options/VnPayOptions.cs) | `TmnCode`, `HashSecret` (User Secrets), `BaseUrl`, `ReturnUrl` | Options |
-| [`VnPayServiceTests.cs`](../../../tests/GymMaster.Api.Tests/VnPayServiceTests.cs) | 6 test — phủ đủ 6/6 AC | Test |
+| [`VnPayServiceTests.cs`](../../../tests/GymMaster.Api.Tests/VnPayServiceTests.cs) | 12 test — gồm ownership Member, RBAC Admin 403 và các nhánh thanh toán/callback | Test |
 
 ### Hàm chính
 

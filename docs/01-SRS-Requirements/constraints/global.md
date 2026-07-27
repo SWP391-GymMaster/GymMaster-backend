@@ -134,7 +134,7 @@ Chi tiết phiên bản package → [`CONSTITUTION.md`](../../../CONSTITUTION.md
 | | |
 |---|---|
 | **Quy định** | Dashboard (008) và Member 360° (006) **SHALL** tính trực tiếp từ DB mỗi lần gọi. |
-| **Vì sao** | Yêu cầu "số liệu thật, khớp DB". Cache khiến Admin bán gói xong không thấy doanh thu đổi → mất niềm tin vào số liệu. |
+| **Vì sao** | Yêu cầu "số liệu thật, khớp DB". Cache khiến Staff bán gói xong nhưng Admin chưa thấy doanh thu đổi → mất niềm tin vào số liệu. |
 | **Đánh đổi** | Phải giữ trong ngân sách hiệu năng: dashboard < 2s, 360° < 1.5s — **chưa có số đo** (B-11, B-12) |
 | **Kiểm chứng** | **0** lời gọi `IMemoryCache` / `IDistributedCache` / `ResponseCache` |
 

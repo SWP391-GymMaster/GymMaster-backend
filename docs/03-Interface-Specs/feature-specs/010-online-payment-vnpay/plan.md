@@ -92,11 +92,11 @@ tests/GymMaster.Api.Tests/VnPayServiceTests.cs   # 6 test: create-url · IPN th�
 
 ```text
 1) Tạo link thanh toán:
-  POST /api/v1/payments/vnpay/create-url {membershipId}     [Member(sở hữu) | Admin | Staff]
+  POST /api/v1/payments/vnpay/create-url {membershipId}     [Member(sở hữu) | Staff]
     → VnPayService.CreatePaymentUrlAsync
         ├─ chưa cấu hình TmnCode/HashSecret     → 500 VNPAY_NOT_CONFIGURED
         ├─ membership không tồn tại             → 404
-        ├─ Member không sở hữu membership       → 403 FORBIDDEN
+        ├─ Member không sở hữu hoặc role Admin/PT → 403 FORBIDDEN
         ├─ membership không ở PendingPayment    → 409 INVALID_MEMBERSHIP_STATE
         ├─ tái dùng Payment Pending, không có thì tạo mới     (D-1010)
         ├─ amount = Package.Price × 100   ★ lấy từ server     (D-1005)

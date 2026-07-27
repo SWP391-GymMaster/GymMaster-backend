@@ -81,12 +81,12 @@ Spec: `docs/03-Interface-Specs/feature-specs/003-membership-billing/spec.md` · 
 | `GET /api/v1/payments/vnpay/ipn` | Anonymous |
 | `GET /api/v1/payments/vnpay/return` | Anonymous |
 | `POST /api/v1/memberships/renewal-request` | Member |
-| `POST /api/v1/memberships/sell` | Admin/Staff |
+| `POST /api/v1/memberships/sell` | Staff |
 | `POST /api/v1/memberships/{id:long}/cancel` | Member/Staff/Admin |
-| `POST /api/v1/memberships/{id:long}/payment` | Admin/Staff |
-| `POST /api/v1/memberships/{id:long}/renew` | Admin/Staff |
+| `POST /api/v1/memberships/{id:long}/payment` | Staff |
+| `POST /api/v1/memberships/{id:long}/renew` | Staff |
 | `POST /api/v1/packages` | Admin |
-| `POST /api/v1/payments/vnpay/create-url` | Authenticated |
+| `POST /api/v1/payments/vnpay/create-url` | Member(self)/Staff |
 | `PUT /api/v1/packages/{id:long}` | Admin |
 
 ### CheckIns — 3 endpoint

@@ -2,7 +2,7 @@
 
 **Feature Branch**: `010-online-payment-vnpay`
 **Created**: 2026-06-15
-**Status**: Implemented (spec đồng bộ theo code 2026-07-15)
+**Status**: Implemented (spec đồng bộ theo code 2026-07-26)
 **Spec style**: SDD + Spec Kit — 9 components, EARS notation
 **Source**: Yêu cầu giảng viên (bắt buộc có luồng thanh toán online); mở rộng spec 003 §10 (đã tiên liệu); **override ADR-03** (MVP thủ công → bổ sung cổng online chạy **sandbox**)
 
@@ -21,12 +21,12 @@ Sai = sai doanh thu, kích hoạt nhầm gói, hoặc lỗ hổng giả mạo ca
 | Actor | Vai trò |
 |---|---|
 | Member | Tự khởi tạo thanh toán online cho membership *của mình* đang `PendingPayment` |
-| Admin / Staff | Khởi tạo thanh toán online thay cho bất kỳ membership `PendingPayment` |
+| Staff | Khởi tạo thanh toán online thay cho bất kỳ membership `PendingPayment` |
 | VNPay (Sandbox) | Xử lý thu tiền; gọi **IPN** + redirect **Return URL** kèm chữ ký |
 | System | Ký/verify HMAC-SHA512, đối chiếu số tiền, kích hoạt membership, ghi AuditLog |
 
 ## 3. Functional Requirements (EARS)
-- **FR-VNP-01 (Event):** WHEN Member (sở hữu) hoặc Admin/Staff yêu cầu thanh toán online cho membership `PendingPayment`, THE system SHALL tạo (hoặc tái dùng) một `Payment` trạng thái `Pending` và trả về **URL thanh toán VNPay đã ký** HMAC-SHA512.
+- **FR-VNP-01 (Event):** WHEN Member (sở hữu) hoặc Staff yêu cầu thanh toán online cho membership `PendingPayment`, THE system SHALL tạo (hoặc tái dùng) một `Payment` trạng thái `Pending` và trả về **URL thanh toán VNPay đã ký** HMAC-SHA512.
 - **FR-VNP-02 (Unwanted):** IF membership không ở trạng thái `PendingPayment`, THEN THE system SHALL từ chối với `409 INVALID_MEMBERSHIP_STATE`.
 - **FR-VNP-03 (Event):** WHEN VNPay gọi **IPN** với chữ ký hợp lệ và giao dịch thành công (`vnp_ResponseCode=00` AND `vnp_TransactionStatus=00`), THE system SHALL đặt `Payment=Paid` (+`PaidAt`), chuyển `Membership=Active`, ghi AuditLog `VNPAY_PAYMENT`, và trả `{ RspCode:"00" }`.
 - **FR-VNP-04 (Unwanted):** IF chữ ký IPN/Return không hợp lệ, THEN THE system SHALL từ chối (IPN `{ RspCode:"97" }` / Return `400 INVALID_SIGNATURE`) và **KHÔNG** kích hoạt membership.
@@ -56,7 +56,7 @@ Tái dùng bảng của spec 003 — **không đổi schema** (bản tối giả
 ## 6. API Spec
 | Method | Path | Role | Request | Success | Lỗi |
 |---|---|---|---|---|---|
-| POST | /api/v1/payments/vnpay/create-url | Member (sở hữu), Admin, Staff | {membershipId} | 201 {payUrl, paymentId, amount} | 403, 404, 409, 500 `VNPAY_NOT_CONFIGURED` |
+| POST | /api/v1/payments/vnpay/create-url | Member (sở hữu), Staff | {membershipId} | 201 {payUrl, paymentId, amount} | 403, 404, 409, 500 `VNPAY_NOT_CONFIGURED` |
 | GET | /api/v1/payments/vnpay/ipn | VNPay (AllowAnonymous, bảo vệ bằng chữ ký) | query `vnp_*` | 200 {RspCode, Message} | — (mọi lỗi diễn đạt qua RspCode) |
 | GET | /api/v1/payments/vnpay/return | AllowAnonymous (trình duyệt) | query `vnp_*` | 200 {paymentId, status, membershipStatus, paidAt} | 400, 404 |
 
@@ -66,7 +66,7 @@ Tái dùng bảng của spec 003 — **không đổi schema** (bản tối giả
 - IF chưa cấu hình VNPay (thiếu TmnCode/HashSecret), THEN `500 VNPAY_NOT_CONFIGURED`.
 - IF membership/Payment không tồn tại, THEN `404 NOT_FOUND` (IPN: `RspCode 01`).
 - IF membership không `PendingPayment`, THEN `409 INVALID_MEMBERSHIP_STATE`.
-- IF người gọi là Member nhưng không sở hữu membership, THEN `403 FORBIDDEN`.
+- IF người gọi là Member nhưng không sở hữu membership, hoặc người gọi là Admin/PT, THEN `403 FORBIDDEN`.
 - IF chữ ký không hợp lệ, THEN IPN `RspCode 97` / Return `400 INVALID_SIGNATURE`.
 - IF số tiền lệch, THEN IPN `RspCode 04` / Return `400 INVALID_AMOUNT`.
 - IF callback trùng (đã Paid), THEN IPN `RspCode 02` (idempotent, không lỗi nghiệp vụ).
@@ -78,6 +78,7 @@ Tái dùng bảng của spec 003 — **không đổi schema** (bản tối giả
 - [ ] **AC-04:** Given IPN sai chữ ký, Then `RspCode 97`, Membership vẫn `PendingPayment`.
 - [ ] **AC-05:** Given chữ ký đúng nhưng `vnp_Amount` lệch giá gói, Then `RspCode 04`, không kích hoạt.
 - [ ] **AC-06:** Given membership đã `Active`/`Cancelled`, When `create-url`, Then `409 INVALID_MEMBERSHIP_STATE`.
+- [ ] **AC-07:** Given người gọi có role Admin, When gọi `create-url`, Then `403 FORBIDDEN`; Member sở hữu hoặc Staff vẫn tạo được URL.
 
 ## 9. Out of Scope
 - Giao dịch **tiền thật** / hợp đồng merchant / quyết toán / đối soát ngân hàng (chỉ sandbox demo).
@@ -90,4 +91,4 @@ Tái dùng bảng của spec 003 — **không đổi schema** (bản tối giả
 - **Bản tối giản (demo)**: không đổi schema DB; `vnp_TxnRef = Payment.Id`; `Method = Transfer`; member tự trả gói của mình.
 - **IPN chạy local cần tunnel** (ngrok / Cloudflare Tunnel) để VNPay sandbox gọi vào `localhost`; đăng ký URL tunnel làm Return/IPN trên portal sandbox. Return URL có finalize dự phòng nếu IPN không tới được.
 - **Thuộc Part Y** (billing 003) — không đụng module của thành viên khác.
-- **Test**: 6 unit test (xUnit + EF Core InMemory) ở `tests/GymMaster.Api.Tests/VnPayServiceTests.cs` — create-url, IPN thành công/idempotent/sai chữ ký/lệch tiền, signature roundtrip.
+- **Test**: 12 unit test (xUnit + EF Core InMemory) ở `tests/GymMaster.Api.Tests/VnPayServiceTests.cs` — gồm create-url, ownership Member, chặn Admin, IPN thành công/idempotent/sai chữ ký/lệch tiền và signature roundtrip.

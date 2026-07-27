@@ -29,7 +29,7 @@ Layered: **Controller → Service → Repository → DbContext** (xem `CONSTITUT
 - **ADR-06:** ~~.NET 8~~ → **.NET 10** (ASP.NET Core 10 + EF Core 10) (đổi 2026-06-01, xem D-18) — code đã build trên `net10.0`; docs đồng bộ theo code.
 - **ADR-03:** Payment ghi nhận **thủ công** trong MVP — không tích hợp payment gateway (giảm rủi ro).
 - **ADR-04:** Meal journal nhập tay từ food database; Image Food Recognition là enhancement sau secondary.
-- **ADR-05:** Member gửi *yêu cầu gia hạn*, Admin/Staff *xác nhận thanh toán* mới active.
+- **ADR-05:** Member gửi *yêu cầu gia hạn*; **Staff** xác nhận thanh toán thủ công hoặc VNPay xác nhận online mới active. Admin quản trị/giám sát, không thực hiện giao dịch bán/gia hạn/thu tiền.
 
 ## PATTERNS BẮT BUỘC
 - DTO cho mọi request/response — không trả entity trực tiếp.

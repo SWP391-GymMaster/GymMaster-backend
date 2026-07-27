@@ -1,667 +1,1687 @@
 {
-  "GymMaster.API/Data/DatabaseSeeder.cs": {
-    "mtime": 1783305628.7095637,
-    "ast_hash": "ce813c65d369eaac4a272322d3f43bff",
-    "semantic_hash": "ce813c65d369eaac4a272322d3f43bff"
+  ".claude/skills/swp391-diagrams/scripts/class_mermaid.py": {
+    "mtime": 1784249967.5418954,
+    "ast_hash": "95760d9862da461dd8e0916ec5f9addf",
+    "semantic_hash": ""
   },
-  "GymMaster.API/Data/GymMasterDbContext.cs": {
-    "mtime": 1783305628.7110143,
-    "ast_hash": "634c6bf4bdc17d25eaa84c87178a5735",
-    "semantic_hash": "634c6bf4bdc17d25eaa84c87178a5735"
+  ".claude/skills/swp391-diagrams/scripts/erd_mermaid.py": {
+    "mtime": 1784249967.542892,
+    "ast_hash": "b48f610bfbe86325b3534107bf6ae062",
+    "semantic_hash": ""
   },
-  "GymMaster.API/Entities/AuditLog.cs": {
-    "mtime": 1780460426.1395764,
-    "ast_hash": "c62745bc8437d84742e696734d170123",
-    "semantic_hash": "c62745bc8437d84742e696734d170123"
+  ".claude/skills/swp391-diagrams/scripts/sequence_mermaid.py": {
+    "mtime": 1784249967.5438938,
+    "ast_hash": "27fbd2a65fa5b0af6bd1291393ddd21c",
+    "semantic_hash": ""
   },
-  "GymMaster.API/Entities/CalorieTarget.cs": {
-    "mtime": 1780993348.4230747,
-    "ast_hash": "dee9eea8a082f62eedaa0ea0f5719302",
-    "semantic_hash": "dee9eea8a082f62eedaa0ea0f5719302"
+  ".claude/skills/swp391-diagrams/scripts/usecase_drawio.py": {
+    "mtime": 1784823634.3108485,
+    "ast_hash": "fb73b51509356cd789c9aa98e38fb32b",
+    "semantic_hash": ""
   },
-  "GymMaster.API/Entities/CheckIn.cs": {
-    "mtime": 1781516870.0093665,
-    "ast_hash": "47ecfc03c3ff3c9b183758a45ce9fae4",
-    "semantic_hash": "47ecfc03c3ff3c9b183758a45ce9fae4"
+  ".claude/skills/swp391-docs/scripts/check_consistency.py": {
+    "mtime": 1784249967.5469038,
+    "ast_hash": "13e3ab529a65461d9a347f71966e73d7",
+    "semantic_hash": ""
   },
-  "GymMaster.API/Entities/ExerciseCatalog.cs": {
-    "mtime": 1781766811.822057,
-    "ast_hash": "de7ea4f6c1e4415105a8f5d5580fe765",
-    "semantic_hash": "de7ea4f6c1e4415105a8f5d5580fe765"
+  ".claude/skills/swp391-docs/scripts/fill_ai_usage.py": {
+    "mtime": 1784823634.3156245,
+    "ast_hash": "7fe8d60fd099c704e30b2c4da55f2c48",
+    "semantic_hash": ""
   },
-  "GymMaster.API/Entities/FoodItem.cs": {
-    "mtime": 1782624035.3507657,
-    "ast_hash": "f7e4b3b62eb0618023706ee234208a8e",
-    "semantic_hash": "f7e4b3b62eb0618023706ee234208a8e"
+  ".claude/skills/swp391-docs/scripts/fill_final_release.py": {
+    "mtime": 1784823634.3161538,
+    "ast_hash": "431630f2b3fa5bdd6e22e638f3668078",
+    "semantic_hash": ""
   },
-  "GymMaster.API/Entities/MealLog.cs": {
-    "mtime": 1780993348.4241693,
-    "ast_hash": "e237a87919d609127a15b6abde24e85b",
-    "semantic_hash": "e237a87919d609127a15b6abde24e85b"
+  ".claude/skills/swp391-docs/scripts/fill_in_charge.py": {
+    "mtime": 1784823634.3171718,
+    "ast_hash": "b1626c93df84315b99b07315581ddcbc",
+    "semantic_hash": ""
   },
-  "GymMaster.API/Entities/MealLogItem.cs": {
-    "mtime": 1780993348.4241693,
-    "ast_hash": "7c34972cbc62c72dee26aa597857987d",
-    "semantic_hash": "7c34972cbc62c72dee26aa597857987d"
+  ".claude/skills/swp391-docs/scripts/fill_issues.py": {
+    "mtime": 1784569074.1267211,
+    "ast_hash": "1287dec7528f479d2e4a3f5ff3d45afc",
+    "semantic_hash": ""
   },
-  "GymMaster.API/Entities/MemberProfile.cs": {
-    "mtime": 1780460426.1395764,
-    "ast_hash": "3a59f76c037566b0cd4f90fb9b5a6715",
-    "semantic_hash": "3a59f76c037566b0cd4f90fb9b5a6715"
+  ".claude/skills/swp391-docs/scripts/fill_iterations.py": {
+    "mtime": 1784569074.1267211,
+    "ast_hash": "1b5d8657228b261b77a32bb664f0957f",
+    "semantic_hash": ""
   },
-  "GymMaster.API/Entities/Membership.cs": {
-    "mtime": 1781766811.822057,
-    "ast_hash": "6b0e49a56292d1af81f4634b2654be59",
-    "semantic_hash": "6b0e49a56292d1af81f4634b2654be59"
+  ".claude/skills/swp391-docs/scripts/fill_rds_design.py": {
+    "mtime": 1784569074.1277218,
+    "ast_hash": "647d43793de323d158de04e0e92c0e7b",
+    "semantic_hash": ""
   },
-  "GymMaster.API/Entities/MembershipEnums.cs": {
-    "mtime": 1780993348.4241693,
-    "ast_hash": "9787c42c9d10541d13fa5986a311b891",
-    "semantic_hash": "9787c42c9d10541d13fa5986a311b891"
+  ".claude/skills/swp391-docs/scripts/fill_rds_overview.py": {
+    "mtime": 1784823634.318188,
+    "ast_hash": "5f6884fe13cb5dde4cbefce26fe1f679",
+    "semantic_hash": ""
   },
-  "GymMaster.API/Entities/MembershipPackage.cs": {
-    "mtime": 1782456562.9709759,
-    "ast_hash": "70373842d6596c5a83545bb92015e965",
-    "semantic_hash": "70373842d6596c5a83545bb92015e965"
+  ".claude/skills/swp391-docs/scripts/fill_rds_usecases.py": {
+    "mtime": 1784823634.3191874,
+    "ast_hash": "ae3bac519bb3863ad6e2559821ade677",
+    "semantic_hash": ""
   },
-  "GymMaster.API/Entities/NutritionEnums.cs": {
-    "mtime": 1780993348.4254742,
-    "ast_hash": "176ab18e5820d66058d1c8b616566621",
-    "semantic_hash": "176ab18e5820d66058d1c8b616566621"
+  ".claude/skills/swp391-docs/scripts/fill_sds.py": {
+    "mtime": 1784823634.3201919,
+    "ast_hash": "e261d893567264fad338bfc09d864b3b",
+    "semantic_hash": ""
   },
-  "GymMaster.API/Entities/PasswordResetToken.cs": {
-    "mtime": 1781937550.352312,
-    "ast_hash": "0ecef76a5c3bd767a196b59f0e0b4a2d",
-    "semantic_hash": "0ecef76a5c3bd767a196b59f0e0b4a2d"
+  ".claude/skills/swp391-docs/scripts/fill_tracking.py": {
+    "mtime": 1784569074.129199,
+    "ast_hash": "82417c5190bd7be24d1ac951968042b7",
+    "semantic_hash": ""
   },
-  "GymMaster.API/Entities/Payment.cs": {
-    "mtime": 1781516870.0113597,
-    "ast_hash": "be135bfe8581b9a11f6e67e4763b3757",
-    "semantic_hash": "be135bfe8581b9a11f6e67e4763b3757"
+  ".claude/skills/swp391-docs/scripts/gen_list.py": {
+    "mtime": 1784823634.3201919,
+    "ast_hash": "f6fc2d24a1aa55436c9f71363ef43dbf",
+    "semantic_hash": ""
   },
-  "GymMaster.API/Entities/ProgressLog.cs": {
-    "mtime": 1780993348.4254742,
-    "ast_hash": "c8ec73de17dd143eecb39a4c7d2d5841",
-    "semantic_hash": "c8ec73de17dd143eecb39a4c7d2d5841"
+  ".claude/skills/swp391-docs/scripts/gen_phancong.py": {
+    "mtime": 1784823634.321185,
+    "ast_hash": "fc64ed6466e977aec2cd116f8d13eb86",
+    "semantic_hash": ""
   },
-  "GymMaster.API/Entities/RefreshToken.cs": {
-    "mtime": 1780153942.3872035,
-    "ast_hash": "fb7e49f1046521f44996a0a2ab286f1a",
-    "semantic_hash": "fb7e49f1046521f44996a0a2ab286f1a"
+  ".claude/skills/swp391-docs/scripts/gen_phancong_rds.py": {
+    "mtime": 1784823634.321185,
+    "ast_hash": "493058a8e8da0291c6a68da5d13b4276",
+    "semantic_hash": ""
   },
-  "GymMaster.API/Entities/Role.cs": {
-    "mtime": 1780159611.4608495,
-    "ast_hash": "3cfabc7cd194231cec17dc489bba6026",
-    "semantic_hash": "3cfabc7cd194231cec17dc489bba6026"
+  ".claude/skills/swp391-docs/scripts/inventory.py": {
+    "mtime": 1784249967.547893,
+    "ast_hash": "39ec38c3bd97b5de3775645188da2880",
+    "semantic_hash": ""
   },
-  "GymMaster.API/Entities/StaffProfile.cs": {
-    "mtime": 1783305628.7110143,
-    "ast_hash": "aed5f23bb2b890256e2da1a20822b8f9",
-    "semantic_hash": "aed5f23bb2b890256e2da1a20822b8f9"
+  ".claude/skills/swp391-docs/scripts/strip_samples.py": {
+    "mtime": 1784569074.129199,
+    "ast_hash": "95b1a2e9eea0896db482d6ff23870595",
+    "semantic_hash": ""
   },
-  "GymMaster.API/Entities/TrainerAssignment.cs": {
-    "mtime": 1781766811.8230536,
-    "ast_hash": "8af462d036f9e816f408928282f4494e",
-    "semantic_hash": "8af462d036f9e816f408928282f4494e"
+  ".claude/skills/swp391-docs/scripts/who_owns.py": {
+    "mtime": 1784569074.129199,
+    "ast_hash": "51de1012310085e79e6e5d5b09decd89",
+    "semantic_hash": ""
   },
-  "GymMaster.API/Entities/TrainerNote.cs": {
-    "mtime": 1781766811.8230536,
-    "ast_hash": "bf63abb2b96a52be89696f94c09dc995",
-    "semantic_hash": "bf63abb2b96a52be89696f94c09dc995"
+  ".specify/extensions/git/scripts/bash/auto-commit.sh": {
+    "mtime": 1780670119.2054443,
+    "ast_hash": "46e605b9842f937443287c5fa48384dd",
+    "semantic_hash": ""
   },
-  "GymMaster.API/Entities/TrainerProfile.cs": {
-    "mtime": 1783305628.7110143,
-    "ast_hash": "7624bd8d8743faff23ef83bdc8f55728",
-    "semantic_hash": "7624bd8d8743faff23ef83bdc8f55728"
+  ".specify/extensions/git/scripts/bash/create-new-feature.sh": {
+    "mtime": 1784823634.3258348,
+    "ast_hash": "f2e9b38e358acb1ab7f52656f138cab7",
+    "semantic_hash": ""
   },
-  "GymMaster.API/Entities/User.cs": {
-    "mtime": 1783305628.7110143,
-    "ast_hash": "fa7f1914549d8725b9c17d71234f4e25",
-    "semantic_hash": "fa7f1914549d8725b9c17d71234f4e25"
+  ".specify/extensions/git/scripts/bash/git-common.sh": {
+    "mtime": 1780670119.2064724,
+    "ast_hash": "438e85741152cce8e74f2104d6db2838",
+    "semantic_hash": ""
   },
-  "GymMaster.API/Entities/UserRole.cs": {
-    "mtime": 1780153942.3270998,
-    "ast_hash": "251647ce2b4d04b1ad57f59ea41ac3ee",
-    "semantic_hash": "251647ce2b4d04b1ad57f59ea41ac3ee"
+  ".specify/extensions/git/scripts/bash/initialize-repo.sh": {
+    "mtime": 1780670119.2064724,
+    "ast_hash": "527b1c7c477bf13b058b64b2353ad6d4",
+    "semantic_hash": ""
   },
-  "GymMaster.API/Entities/WorkoutExercise.cs": {
-    "mtime": 1781766811.8230536,
-    "ast_hash": "e85cf2fa2823117e5372e285ab052689",
-    "semantic_hash": "e85cf2fa2823117e5372e285ab052689"
+  ".specify/extensions/git/scripts/powershell/auto-commit.ps1": {
+    "mtime": 1780670119.207467,
+    "ast_hash": "c648ce8a4c9da585532f0e7d8849a742",
+    "semantic_hash": ""
   },
-  "GymMaster.API/Entities/WorkoutPlan.cs": {
-    "mtime": 1781766811.8230536,
-    "ast_hash": "935de8655866474a5f4b3e55b8c6d466",
-    "semantic_hash": "935de8655866474a5f4b3e55b8c6d466"
+  ".specify/extensions/git/scripts/powershell/create-new-feature.ps1": {
+    "mtime": 1784823634.3268437,
+    "ast_hash": "45b85b35de2e60f271b9f807d00386ae",
+    "semantic_hash": ""
   },
-  "GymMaster.API/GymMaster.API.csproj": {
-    "mtime": 1783305628.7110143,
-    "ast_hash": "8594c51465dd134852c6ba9a16b42790",
-    "semantic_hash": "8594c51465dd134852c6ba9a16b42790"
+  ".specify/extensions/git/scripts/powershell/git-common.ps1": {
+    "mtime": 1780670119.209468,
+    "ast_hash": "38c7e6e9d86ba16be1e06d0332f31034",
+    "semantic_hash": ""
   },
-  "GymMaster.API/Options/CheckInOptions.cs": {
-    "mtime": 1782890061.9175706,
-    "ast_hash": "5df3dadb4d46964c4e6f7417da5d545b",
-    "semantic_hash": "5df3dadb4d46964c4e6f7417da5d545b"
+  ".specify/extensions/git/scripts/powershell/initialize-repo.ps1": {
+    "mtime": 1780670119.209468,
+    "ast_hash": "95f5fb126c9a696357c21dc29a4ba160",
+    "semantic_hash": ""
   },
-  "GymMaster.API/Options/CloudinaryOptions.cs": {
-    "mtime": 1783305628.7110143,
-    "ast_hash": "8f903df8da70eb7fd350938f8a928129",
-    "semantic_hash": "8f903df8da70eb7fd350938f8a928129"
+  ".specify/init-options.json": {
+    "mtime": 1780670119.209468,
+    "ast_hash": "9e4d356adf0b5bc278d9c47e113291cc",
+    "semantic_hash": ""
   },
-  "GymMaster.API/Options/EmailOptions.cs": {
-    "mtime": 1781937550.353521,
-    "ast_hash": "c926dde3e19a22e5db26f99d7c25c7d0",
-    "semantic_hash": "c926dde3e19a22e5db26f99d7c25c7d0"
+  ".specify/integration.json": {
+    "mtime": 1780670119.209468,
+    "ast_hash": "ede3c9e2fb4797e74e3c8b54d4d2e417",
+    "semantic_hash": ""
   },
-  "GymMaster.API/Options/GeminiOptions.cs": {
-    "mtime": 1782624035.3517623,
-    "ast_hash": "c1c5e16242d36e6705f4ac67d5f8cef4",
-    "semantic_hash": "c1c5e16242d36e6705f4ac67d5f8cef4"
+  ".specify/integrations/claude.manifest.json": {
+    "mtime": 1780670119.2104673,
+    "ast_hash": "741fd81ee854c6b6e89d11ed205f4118",
+    "semantic_hash": ""
   },
-  "GymMaster.API/Options/GoogleAuthOptions.cs": {
-    "mtime": 1780160914.0253267,
-    "ast_hash": "810574c624e6f860713395549127e23d",
-    "semantic_hash": "810574c624e6f860713395549127e23d"
+  ".specify/integrations/speckit.manifest.json": {
+    "mtime": 1780670119.2104673,
+    "ast_hash": "8e62d16761c03b84b2d63ac8ab958630",
+    "semantic_hash": ""
   },
-  "GymMaster.API/Options/JwtOptions.cs": {
-    "mtime": 1780153942.111539,
-    "ast_hash": "bc62492adb2ac66989ba27306b6cad20",
-    "semantic_hash": "bc62492adb2ac66989ba27306b6cad20"
+  ".specify/scripts/powershell/check-prerequisites.ps1": {
+    "mtime": 1780670119.211972,
+    "ast_hash": "c24853430b39a11766a182ccfeb2e1b4",
+    "semantic_hash": ""
   },
-  "GymMaster.API/Options/VnPayOptions.cs": {
-    "mtime": 1782109179.4777627,
-    "ast_hash": "7d2d3b9e041695128ba78393b0568354",
-    "semantic_hash": "7d2d3b9e041695128ba78393b0568354"
+  ".specify/scripts/powershell/common.ps1": {
+    "mtime": 1784823634.3288145,
+    "ast_hash": "e23c892a134785c340929a86bc1fb48a",
+    "semantic_hash": ""
   },
-  "GymMaster.API/Program.cs": {
-    "mtime": 1784214251.339548,
-    "ast_hash": "b086e3e8a6bd69179810776fa065bdcc",
-    "semantic_hash": "b086e3e8a6bd69179810776fa065bdcc"
+  ".specify/scripts/powershell/create-new-feature.ps1": {
+    "mtime": 1784823634.329346,
+    "ast_hash": "87381b6cc906c3979305c6df6f7acc61",
+    "semantic_hash": ""
   },
-  "GymMaster.API/Properties/launchSettings.json": {
-    "mtime": 1780151003.9517832,
-    "ast_hash": "6b28e973ee16130fdb16509da7b77bb3",
-    "semantic_hash": "6b28e973ee16130fdb16509da7b77bb3"
+  ".specify/scripts/powershell/setup-plan.ps1": {
+    "mtime": 1780670119.2139866,
+    "ast_hash": "bac6181a581beacff6ef4ff6443f342a",
+    "semantic_hash": ""
   },
-  "GymMaster.API/appsettings.Development.json": {
-    "mtime": 1780460426.1428168,
-    "ast_hash": "804b473502a4c415cf75db61c56c32aa",
-    "semantic_hash": "804b473502a4c415cf75db61c56c32aa"
+  ".specify/scripts/powershell/setup-tasks.ps1": {
+    "mtime": 1780670119.2149916,
+    "ast_hash": "03ba44597234f897f2821e5076070589",
+    "semantic_hash": ""
   },
-  "GymMaster.API/appsettings.json": {
-    "mtime": 1783305628.717438,
-    "ast_hash": "d96ea47275b4e8428d1bb73df9d13878",
-    "semantic_hash": "d96ea47275b4e8428d1bb73df9d13878"
+  ".specify/workflows/workflow-registry.json": {
+    "mtime": 1780670119.2181263,
+    "ast_hash": "ce21d66a72058d3ed3acc30323f89e53",
+    "semantic_hash": ""
   },
-  "GymMaster.API/README.md": {
-    "mtime": 1784124385.5108924,
-    "ast_hash": "9ab32200b631947442e99b02dc931340",
-    "semantic_hash": "9ab32200b631947442e99b02dc931340"
-  },
-  "GymMaster.API/Common/ApiControllerBase.cs": {
-    "mtime": 1784214157.0142534,
+  "backend/GymMaster.API/Common/ApiControllerBase.cs": {
+    "mtime": 1784249967.5876756,
     "ast_hash": "c8577e295a32395e097e14754e72facb",
-    "semantic_hash": "c8577e295a32395e097e14754e72facb"
+    "semantic_hash": ""
   },
-  "GymMaster.API/Common/ApiResponse.cs": {
-    "mtime": 1784214316.1243508,
-    "ast_hash": "3ccf4d9397793854c0ea1003c0f8a603",
-    "semantic_hash": "3ccf4d9397793854c0ea1003c0f8a603"
+  "backend/GymMaster.API/Common/ApiResponse.cs": {
+    "mtime": 1784249967.5882037,
+    "ast_hash": "085182c98694127a65628a731edbada0",
+    "semantic_hash": ""
   },
-  "GymMaster.API/Common/AppClock.cs": {
-    "mtime": 1784213985.511194,
+  "backend/GymMaster.API/Common/AppClock.cs": {
+    "mtime": 1784249967.5882037,
     "ast_hash": "9f48e91bf5fb1ecb5f4af0a822634c1d",
-    "semantic_hash": "9f48e91bf5fb1ecb5f4af0a822634c1d"
+    "semantic_hash": ""
   },
-  "GymMaster.API/Common/PagedResult.cs": {
-    "mtime": 1784214089.7517588,
-    "ast_hash": "d12a04b4d9474b3369521fa8cb831645",
-    "semantic_hash": "d12a04b4d9474b3369521fa8cb831645"
+  "backend/GymMaster.API/Common/PagedResult.cs": {
+    "mtime": 1784249967.5887425,
+    "ast_hash": "f4e0b519b3aac24e3fc70cd92115b5d2",
+    "semantic_hash": ""
   },
-  "GymMaster.API/Common/PersonValidation.cs": {
-    "mtime": 1784213985.530733,
+  "backend/GymMaster.API/Common/PersonValidation.cs": {
+    "mtime": 1784249967.5887425,
     "ast_hash": "38f9d252b5b2393fd93e3a7d6e542045",
-    "semantic_hash": "38f9d252b5b2393fd93e3a7d6e542045"
+    "semantic_hash": ""
   },
-  "GymMaster.API/Common/ServiceResult.cs": {
-    "mtime": 1784214157.01525,
+  "backend/GymMaster.API/Common/ServiceResult.cs": {
+    "mtime": 1784249967.5892873,
     "ast_hash": "14b1e313df833f85cb6a9598e5107e73",
-    "semantic_hash": "14b1e313df833f85cb6a9598e5107e73"
+    "semantic_hash": ""
   },
-  "GymMaster.API/Features/Account/AccountController.cs": {
-    "mtime": 1784214247.1654682,
+  "backend/GymMaster.API/Data/DatabaseSeeder.cs": {
+    "mtime": 1783130676.3603494,
+    "ast_hash": "ce813c65d369eaac4a272322d3f43bff",
+    "semantic_hash": ""
+  },
+  "backend/GymMaster.API/Data/GymMasterDbContext.cs": {
+    "mtime": 1783093405.3897572,
+    "ast_hash": "3afd0e590fa715af4c0f47026696e7e5",
+    "semantic_hash": ""
+  },
+  "backend/GymMaster.API/Entities/AuditLog.cs": {
+    "mtime": 1780670119.232212,
+    "ast_hash": "c62745bc8437d84742e696734d170123",
+    "semantic_hash": ""
+  },
+  "backend/GymMaster.API/Entities/CalorieTarget.cs": {
+    "mtime": 1781173815.8078191,
+    "ast_hash": "dee9eea8a082f62eedaa0ea0f5719302",
+    "semantic_hash": ""
+  },
+  "backend/GymMaster.API/Entities/CheckIn.cs": {
+    "mtime": 1781173815.8078191,
+    "ast_hash": "47ecfc03c3ff3c9b183758a45ce9fae4",
+    "semantic_hash": ""
+  },
+  "backend/GymMaster.API/Entities/ExerciseCatalog.cs": {
+    "mtime": 1782019692.1377268,
+    "ast_hash": "de7ea4f6c1e4415105a8f5d5580fe765",
+    "semantic_hash": ""
+  },
+  "backend/GymMaster.API/Entities/FoodItem.cs": {
+    "mtime": 1782615687.76044,
+    "ast_hash": "f7e4b3b62eb0618023706ee234208a8e",
+    "semantic_hash": ""
+  },
+  "backend/GymMaster.API/Entities/MealLog.cs": {
+    "mtime": 1781173815.8090804,
+    "ast_hash": "e237a87919d609127a15b6abde24e85b",
+    "semantic_hash": ""
+  },
+  "backend/GymMaster.API/Entities/MealLogItem.cs": {
+    "mtime": 1781173815.8100848,
+    "ast_hash": "7c34972cbc62c72dee26aa597857987d",
+    "semantic_hash": ""
+  },
+  "backend/GymMaster.API/Entities/MemberProfile.cs": {
+    "mtime": 1780670119.232212,
+    "ast_hash": "3a59f76c037566b0cd4f90fb9b5a6715",
+    "semantic_hash": ""
+  },
+  "backend/GymMaster.API/Entities/Membership.cs": {
+    "mtime": 1782667318.9984417,
+    "ast_hash": "4a07147a0dd7b035073744f12579ed43",
+    "semantic_hash": ""
+  },
+  "backend/GymMaster.API/Entities/MembershipEnums.cs": {
+    "mtime": 1781173815.8100848,
+    "ast_hash": "9787c42c9d10541d13fa5986a311b891",
+    "semantic_hash": ""
+  },
+  "backend/GymMaster.API/Entities/MembershipPackage.cs": {
+    "mtime": 1782615687.7619648,
+    "ast_hash": "70373842d6596c5a83545bb92015e965",
+    "semantic_hash": ""
+  },
+  "backend/GymMaster.API/Entities/NutritionEnums.cs": {
+    "mtime": 1781173815.81112,
+    "ast_hash": "176ab18e5820d66058d1c8b616566621",
+    "semantic_hash": ""
+  },
+  "backend/GymMaster.API/Entities/PasswordResetToken.cs": {
+    "mtime": 1782019692.1397388,
+    "ast_hash": "0ecef76a5c3bd767a196b59f0e0b4a2d",
+    "semantic_hash": ""
+  },
+  "backend/GymMaster.API/Entities/Payment.cs": {
+    "mtime": 1781173815.81112,
+    "ast_hash": "be135bfe8581b9a11f6e67e4763b3757",
+    "semantic_hash": ""
+  },
+  "backend/GymMaster.API/Entities/ProgressLog.cs": {
+    "mtime": 1781173815.8121476,
+    "ast_hash": "c8ec73de17dd143eecb39a4c7d2d5841",
+    "semantic_hash": ""
+  },
+  "backend/GymMaster.API/Entities/RefreshToken.cs": {
+    "mtime": 1780670119.233524,
+    "ast_hash": "e109b3615dd677f8ad599e4f23834208",
+    "semantic_hash": ""
+  },
+  "backend/GymMaster.API/Entities/Role.cs": {
+    "mtime": 1780670119.233524,
+    "ast_hash": "443a2c7ea26fc208ada7ea653e9ada07",
+    "semantic_hash": ""
+  },
+  "backend/GymMaster.API/Entities/StaffProfile.cs": {
+    "mtime": 1783093387.9732678,
+    "ast_hash": "a49073a800997b0b96bfa0a0b58ac919",
+    "semantic_hash": ""
+  },
+  "backend/GymMaster.API/Entities/TrainerAssignment.cs": {
+    "mtime": 1782019692.1408248,
+    "ast_hash": "8af462d036f9e816f408928282f4494e",
+    "semantic_hash": ""
+  },
+  "backend/GymMaster.API/Entities/TrainerNote.cs": {
+    "mtime": 1782019692.1408248,
+    "ast_hash": "bf63abb2b96a52be89696f94c09dc995",
+    "semantic_hash": ""
+  },
+  "backend/GymMaster.API/Entities/TrainerProfile.cs": {
+    "mtime": 1783093411.8706002,
+    "ast_hash": "3ea19a49ae1343a54040eaaaf8cc0e15",
+    "semantic_hash": ""
+  },
+  "backend/GymMaster.API/Entities/User.cs": {
+    "mtime": 1783034515.0610762,
+    "ast_hash": "8d25a43f607fb30bfe04f5b38890e519",
+    "semantic_hash": ""
+  },
+  "backend/GymMaster.API/Entities/UserRole.cs": {
+    "mtime": 1780670119.2350311,
+    "ast_hash": "db6ad22bae311e384c5b1d803b2544db",
+    "semantic_hash": ""
+  },
+  "backend/GymMaster.API/Entities/WorkoutExercise.cs": {
+    "mtime": 1782019692.1420667,
+    "ast_hash": "e85cf2fa2823117e5372e285ab052689",
+    "semantic_hash": ""
+  },
+  "backend/GymMaster.API/Entities/WorkoutPlan.cs": {
+    "mtime": 1782019692.142781,
+    "ast_hash": "935de8655866474a5f4b3e55b8c6d466",
+    "semantic_hash": ""
+  },
+  "backend/GymMaster.API/Features/Account/AccountController.cs": {
+    "mtime": 1784249967.5898943,
     "ast_hash": "744d6565bb04f775fddcc981a0b142a5",
-    "semantic_hash": "744d6565bb04f775fddcc981a0b142a5"
+    "semantic_hash": ""
   },
-  "GymMaster.API/Features/Account/AccountDtos.cs": {
-    "mtime": 1784213985.8184657,
+  "backend/GymMaster.API/Features/Account/AccountDtos.cs": {
+    "mtime": 1784249967.5898943,
     "ast_hash": "043f979a7a2235f537a07b441a8ff793",
-    "semantic_hash": "043f979a7a2235f537a07b441a8ff793"
+    "semantic_hash": ""
   },
-  "GymMaster.API/Features/Account/AccountService.cs": {
-    "mtime": 1784214247.1654682,
+  "backend/GymMaster.API/Features/Account/AccountService.cs": {
+    "mtime": 1784249967.5904548,
     "ast_hash": "bfc257bd5ee908f1bf23c0dcc0358467",
-    "semantic_hash": "bfc257bd5ee908f1bf23c0dcc0358467"
+    "semantic_hash": ""
   },
-  "GymMaster.API/Features/Account/IAccountService.cs": {
-    "mtime": 1784214247.166974,
+  "backend/GymMaster.API/Features/Account/IAccountService.cs": {
+    "mtime": 1784249967.591014,
     "ast_hash": "280eb954698e9cf5126a0d83f9972a5f",
-    "semantic_hash": "280eb954698e9cf5126a0d83f9972a5f"
+    "semantic_hash": ""
   },
-  "GymMaster.API/Features/Auth/AuthController.cs": {
-    "mtime": 1784214247.1654682,
+  "backend/GymMaster.API/Features/Auth/AuthController.cs": {
+    "mtime": 1784249967.591014,
     "ast_hash": "ae742b350f54eec52776be21cd091b88",
-    "semantic_hash": "ae742b350f54eec52776be21cd091b88"
+    "semantic_hash": ""
   },
-  "GymMaster.API/Features/Auth/AuthDtos.cs": {
-    "mtime": 1784214316.2379837,
+  "backend/GymMaster.API/Features/Auth/AuthDtos.cs": {
+    "mtime": 1784249967.5915782,
     "ast_hash": "a15c968fe6c02669e19e3331e6d4007d",
-    "semantic_hash": "a15c968fe6c02669e19e3331e6d4007d"
+    "semantic_hash": ""
   },
-  "GymMaster.API/Features/Auth/AuthService.cs": {
-    "mtime": 1784214247.1689317,
-    "ast_hash": "355c3258e7e17c441990407c03b29fb4",
-    "semantic_hash": "355c3258e7e17c441990407c03b29fb4"
+  "backend/GymMaster.API/Features/Auth/AuthService.cs": {
+    "mtime": 1784569074.1319506,
+    "ast_hash": "704851de5f304c9fca3c211b9052c9b5",
+    "semantic_hash": ""
   },
-  "GymMaster.API/Features/Auth/IAuthService.cs": {
-    "mtime": 1784214247.1675074,
+  "backend/GymMaster.API/Features/Auth/IAuthService.cs": {
+    "mtime": 1784249967.5921247,
     "ast_hash": "8c3d19207762476f02473d29335821f1",
-    "semantic_hash": "8c3d19207762476f02473d29335821f1"
+    "semantic_hash": ""
   },
-  "GymMaster.API/Features/Billing/IMembershipPackageService.cs": {
-    "mtime": 1784214247.1675074,
+  "backend/GymMaster.API/Features/Billing/IMembershipPackageService.cs": {
+    "mtime": 1784249967.5926616,
     "ast_hash": "8e42c55a64e69a47b11e17a9ea88e502",
-    "semantic_hash": "8e42c55a64e69a47b11e17a9ea88e502"
+    "semantic_hash": ""
   },
-  "GymMaster.API/Features/Billing/IMembershipService.cs": {
-    "mtime": 1784214247.1689317,
+  "backend/GymMaster.API/Features/Billing/IMembershipService.cs": {
+    "mtime": 1784249967.5926616,
     "ast_hash": "ed1fa80784a0c59c27c03be48b3dfce6",
-    "semantic_hash": "ed1fa80784a0c59c27c03be48b3dfce6"
+    "semantic_hash": ""
   },
-  "GymMaster.API/Features/Billing/IPaymentService.cs": {
-    "mtime": 1784214247.1699293,
+  "backend/GymMaster.API/Features/Billing/IPaymentService.cs": {
+    "mtime": 1784249967.5934386,
     "ast_hash": "dc7374d273b5cb0d8497158263141295",
-    "semantic_hash": "dc7374d273b5cb0d8497158263141295"
+    "semantic_hash": ""
   },
-  "GymMaster.API/Features/Billing/IVnPayService.cs": {
-    "mtime": 1784214247.172919,
+  "backend/GymMaster.API/Features/Billing/IVnPayService.cs": {
+    "mtime": 1784249967.5934386,
     "ast_hash": "a0e9a53636516fb086ecf82026a010b0",
-    "semantic_hash": "a0e9a53636516fb086ecf82026a010b0"
+    "semantic_hash": ""
   },
-  "GymMaster.API/Features/Billing/MemberMembershipsController.cs": {
-    "mtime": 1784214247.1689317,
+  "backend/GymMaster.API/Features/Billing/MemberMembershipsController.cs": {
+    "mtime": 1784249967.5939848,
     "ast_hash": "2b2222430f0fd43e0de70dace5fb0b55",
-    "semantic_hash": "2b2222430f0fd43e0de70dace5fb0b55"
+    "semantic_hash": ""
   },
-  "GymMaster.API/Features/Billing/MemberPaymentsController.cs": {
-    "mtime": 1784214247.1699293,
+  "backend/GymMaster.API/Features/Billing/MemberPaymentsController.cs": {
+    "mtime": 1784249967.5945096,
     "ast_hash": "e4bb9c53b7c3bce5ac1ec42e08972768",
-    "semantic_hash": "e4bb9c53b7c3bce5ac1ec42e08972768"
+    "semantic_hash": ""
   },
-  "GymMaster.API/Features/Billing/MembershipDtos.cs": {
-    "mtime": 1784213986.3580604,
+  "backend/GymMaster.API/Features/Billing/MembershipActivation.cs": {
+    "mtime": 1784907683.649875,
+    "ast_hash": "facf71110383cff76d3b716a050c4d8e",
+    "semantic_hash": ""
+  },
+  "backend/GymMaster.API/Features/Billing/MembershipDtos.cs": {
+    "mtime": 1784249967.5945096,
     "ast_hash": "0561deef46e65aec8f2cb9a7bba4d783",
-    "semantic_hash": "0561deef46e65aec8f2cb9a7bba4d783"
+    "semantic_hash": ""
   },
-  "GymMaster.API/Features/Billing/MembershipLifecycle.cs": {
-    "mtime": 1784213986.230232,
-    "ast_hash": "7d8a4b996b196d70830a040d9af070b9",
-    "semantic_hash": "7d8a4b996b196d70830a040d9af070b9"
+  "backend/GymMaster.API/Features/Billing/MembershipLifecycle.cs": {
+    "mtime": 1784907683.6516674,
+    "ast_hash": "efe099bc1a348bd7cf5b958a77485154",
+    "semantic_hash": ""
   },
-  "GymMaster.API/Features/Billing/MembershipPackageService.cs": {
-    "mtime": 1784214247.172919,
+  "backend/GymMaster.API/Features/Billing/MembershipPackageService.cs": {
+    "mtime": 1784249967.5950541,
     "ast_hash": "496870b7951336958a560babdc258e7c",
-    "semantic_hash": "496870b7951336958a560babdc258e7c"
+    "semantic_hash": ""
   },
-  "GymMaster.API/Features/Billing/MembershipService.cs": {
-    "mtime": 1784214247.175043,
-    "ast_hash": "8c3067486ef907045b845006a1a8430b",
-    "semantic_hash": "8c3067486ef907045b845006a1a8430b"
+  "backend/GymMaster.API/Features/Billing/MembershipService.cs": {
+    "mtime": 1784907683.6544428,
+    "ast_hash": "7498bbfdc557e730fa081291509e1fd5",
+    "semantic_hash": ""
   },
-  "GymMaster.API/Features/Billing/MembershipsController.cs": {
-    "mtime": 1784214247.1765485,
-    "ast_hash": "e00b13a17544f1bd4e8214598b20e043",
-    "semantic_hash": "e00b13a17544f1bd4e8214598b20e043"
+  "backend/GymMaster.API/Features/Billing/MembershipsController.cs": {
+    "mtime": 1785064160.7726214,
+    "ast_hash": "656160cdfaed6bb745d93fd7a50bd964",
+    "semantic_hash": ""
   },
-  "GymMaster.API/Features/Billing/PackageDtos.cs": {
-    "mtime": 1784213986.3744237,
+  "backend/GymMaster.API/Features/Billing/PackageDtos.cs": {
+    "mtime": 1784249967.5961215,
     "ast_hash": "14e2b660a4373df7bda96c1f36480277",
-    "semantic_hash": "14e2b660a4373df7bda96c1f36480277"
+    "semantic_hash": ""
   },
-  "GymMaster.API/Features/Billing/PackagesController.cs": {
-    "mtime": 1784214247.1765485,
+  "backend/GymMaster.API/Features/Billing/PackagesController.cs": {
+    "mtime": 1784249967.5961215,
     "ast_hash": "86176d1420a2c2262a947475ea3203ea",
-    "semantic_hash": "86176d1420a2c2262a947475ea3203ea"
+    "semantic_hash": ""
   },
-  "GymMaster.API/Features/Billing/PaymentDtos.cs": {
-    "mtime": 1784213986.391308,
+  "backend/GymMaster.API/Features/Billing/PaymentDtos.cs": {
+    "mtime": 1784249967.5961215,
     "ast_hash": "2d18e622519bb9bf27988a54c45d07c0",
-    "semantic_hash": "2d18e622519bb9bf27988a54c45d07c0"
+    "semantic_hash": ""
   },
-  "GymMaster.API/Features/Billing/PaymentService.cs": {
-    "mtime": 1784214247.181731,
+  "backend/GymMaster.API/Features/Billing/PaymentService.cs": {
+    "mtime": 1784249967.5972624,
     "ast_hash": "13eb65a201571fde03a272dde159993d",
-    "semantic_hash": "13eb65a201571fde03a272dde159993d"
+    "semantic_hash": ""
   },
-  "GymMaster.API/Features/Billing/PaymentsController.cs": {
-    "mtime": 1784214247.180277,
+  "backend/GymMaster.API/Features/Billing/PaymentsController.cs": {
+    "mtime": 1784249967.5972624,
     "ast_hash": "4c1aa684ffc4daeb5928b9d7b28b5369",
-    "semantic_hash": "4c1aa684ffc4daeb5928b9d7b28b5369"
+    "semantic_hash": ""
   },
-  "GymMaster.API/Features/Billing/VnPayController.cs": {
-    "mtime": 1784214247.1850626,
-    "ast_hash": "450653af10b0fce8a93e7c65d917249b",
-    "semantic_hash": "450653af10b0fce8a93e7c65d917249b"
+  "backend/GymMaster.API/Features/Billing/VnPayController.cs": {
+    "mtime": 1785064163.4949813,
+    "ast_hash": "520d3a8fa96202fb87f9a280f68e3552",
+    "semantic_hash": ""
   },
-  "GymMaster.API/Features/Billing/VnPayDtos.cs": {
-    "mtime": 1784213986.4092777,
+  "backend/GymMaster.API/Features/Billing/VnPayDtos.cs": {
+    "mtime": 1784249967.5972624,
     "ast_hash": "e1f714521c4ad67ca86cc815076f7a83",
-    "semantic_hash": "e1f714521c4ad67ca86cc815076f7a83"
+    "semantic_hash": ""
   },
-  "GymMaster.API/Features/Billing/VnPayService.cs": {
-    "mtime": 1784214251.3405366,
-    "ast_hash": "fea6af91c79f7b24178b31f69e909707",
-    "semantic_hash": "fea6af91c79f7b24178b31f69e909707"
+  "backend/GymMaster.API/Features/Billing/VnPayService.cs": {
+    "mtime": 1785064166.2995243,
+    "ast_hash": "7ec310ba1b871356c93bd67f78abb2ea",
+    "semantic_hash": ""
   },
-  "GymMaster.API/Features/CheckIns/CheckInDtos.cs": {
-    "mtime": 1784214048.5063727,
+  "backend/GymMaster.API/Features/CheckIns/CheckInDtos.cs": {
+    "mtime": 1784249967.5982623,
     "ast_hash": "a9cc3a428f0e12474de186132cab2548",
-    "semantic_hash": "a9cc3a428f0e12474de186132cab2548"
+    "semantic_hash": ""
   },
-  "GymMaster.API/Features/CheckIns/CheckInService.cs": {
-    "mtime": 1784214247.1719508,
+  "backend/GymMaster.API/Features/CheckIns/CheckInService.cs": {
+    "mtime": 1784249967.599403,
     "ast_hash": "611a017909d9773958226d2a0af0dd90",
-    "semantic_hash": "611a017909d9773958226d2a0af0dd90"
+    "semantic_hash": ""
   },
-  "GymMaster.API/Features/CheckIns/CheckInsController.cs": {
-    "mtime": 1784214247.1709256,
+  "backend/GymMaster.API/Features/CheckIns/CheckInsController.cs": {
+    "mtime": 1784249967.599403,
     "ast_hash": "0ca4d453e50085c824b26a69926d3f38",
-    "semantic_hash": "0ca4d453e50085c824b26a69926d3f38"
+    "semantic_hash": ""
   },
-  "GymMaster.API/Features/CheckIns/ICheckInService.cs": {
-    "mtime": 1784214247.172919,
+  "backend/GymMaster.API/Features/CheckIns/ICheckInService.cs": {
+    "mtime": 1784249967.599403,
     "ast_hash": "a9e1ee407e8eb48f91ee48f2dcb7b024",
-    "semantic_hash": "a9e1ee407e8eb48f91ee48f2dcb7b024"
+    "semantic_hash": ""
   },
-  "GymMaster.API/Features/Dashboard/AuditLogsController.cs": {
-    "mtime": 1784214247.1699293,
+  "backend/GymMaster.API/Features/Dashboard/AuditLogsController.cs": {
+    "mtime": 1784249967.599403,
     "ast_hash": "883b7ed650f65caf622561c9de723380",
-    "semantic_hash": "883b7ed650f65caf622561c9de723380"
+    "semantic_hash": ""
   },
-  "GymMaster.API/Features/Dashboard/AuditService.cs": {
-    "mtime": 1784213987.0922961,
+  "backend/GymMaster.API/Features/Dashboard/AuditService.cs": {
+    "mtime": 1784249967.6004105,
     "ast_hash": "1a4a7dca64d49df90e0f20154b02e6db",
-    "semantic_hash": "1a4a7dca64d49df90e0f20154b02e6db"
+    "semantic_hash": ""
   },
-  "GymMaster.API/Features/Dashboard/DashboardController.cs": {
-    "mtime": 1784214247.172919,
+  "backend/GymMaster.API/Features/Dashboard/DashboardController.cs": {
+    "mtime": 1784249967.6004105,
     "ast_hash": "576abba9da0b01d8edfef8332c96c129",
-    "semantic_hash": "576abba9da0b01d8edfef8332c96c129"
+    "semantic_hash": ""
   },
-  "GymMaster.API/Features/Dashboard/DashboardDtos.cs": {
-    "mtime": 1784213987.1330686,
+  "backend/GymMaster.API/Features/Dashboard/DashboardDtos.cs": {
+    "mtime": 1784249967.6004105,
     "ast_hash": "e78553d23646b0aa265a71b8257da40a",
-    "semantic_hash": "e78553d23646b0aa265a71b8257da40a"
+    "semantic_hash": ""
   },
-  "GymMaster.API/Features/Dashboard/DashboardService.cs": {
-    "mtime": 1784214247.175043,
+  "backend/GymMaster.API/Features/Dashboard/DashboardService.cs": {
+    "mtime": 1784249967.6004105,
     "ast_hash": "43240c801b88b728c24603ac6d7ffcad",
-    "semantic_hash": "43240c801b88b728c24603ac6d7ffcad"
+    "semantic_hash": ""
   },
-  "GymMaster.API/Features/Dashboard/IAuditService.cs": {
-    "mtime": 1784213987.1140711,
+  "backend/GymMaster.API/Features/Dashboard/IAuditService.cs": {
+    "mtime": 1784249967.6018455,
     "ast_hash": "4881324ccd01094f58735b280670ba61",
-    "semantic_hash": "4881324ccd01094f58735b280670ba61"
+    "semantic_hash": ""
   },
-  "GymMaster.API/Features/Dashboard/IDashboardService.cs": {
-    "mtime": 1784214247.175043,
+  "backend/GymMaster.API/Features/Dashboard/IDashboardService.cs": {
+    "mtime": 1784249967.6018455,
     "ast_hash": "86ef0194711cd341e557dbb3710144a9",
-    "semantic_hash": "86ef0194711cd341e557dbb3710144a9"
+    "semantic_hash": ""
   },
-  "GymMaster.API/Features/Dashboard/NotificationsController.cs": {
-    "mtime": 1784214247.1778035,
-    "ast_hash": "e6b1910a34946cb7dc53cdfb5b5c1b17",
-    "semantic_hash": "e6b1910a34946cb7dc53cdfb5b5c1b17"
-  },
-  "GymMaster.API/Features/Members/IMemberService.cs": {
-    "mtime": 1784214247.1709256,
+  "backend/GymMaster.API/Features/Members/IMemberService.cs": {
+    "mtime": 1784249967.6018455,
     "ast_hash": "88d5a8d16f5187ca97663ec246366402",
-    "semantic_hash": "88d5a8d16f5187ca97663ec246366402"
+    "semantic_hash": ""
   },
-  "GymMaster.API/Features/Members/MemberDtos.cs": {
-    "mtime": 1784213985.9605484,
+  "backend/GymMaster.API/Features/Members/MemberDtos.cs": {
+    "mtime": 1784249967.6029625,
     "ast_hash": "99ddae6c5fd8bd2d5f28943a8f96d04e",
-    "semantic_hash": "99ddae6c5fd8bd2d5f28943a8f96d04e"
+    "semantic_hash": ""
   },
-  "GymMaster.API/Features/Members/MemberService.cs": {
-    "mtime": 1784214247.175043,
-    "ast_hash": "b608b520635e180d46ce1b26507b493c",
-    "semantic_hash": "b608b520635e180d46ce1b26507b493c"
+  "backend/GymMaster.API/Features/Members/MemberService.cs": {
+    "mtime": 1784907683.6544428,
+    "ast_hash": "c872d7f421ea5600f5066024423bf63d",
+    "semantic_hash": ""
   },
-  "GymMaster.API/Features/Members/MembersController.cs": {
-    "mtime": 1784214247.172919,
+  "backend/GymMaster.API/Features/Members/MembersController.cs": {
+    "mtime": 1784249967.6029625,
     "ast_hash": "5f76ae5d6570469ab1bfe5b7fb14c565",
-    "semantic_hash": "5f76ae5d6570469ab1bfe5b7fb14c565"
+    "semantic_hash": ""
   },
-  "GymMaster.API/Features/Nutrition/FoodItemService.cs": {
-    "mtime": 1784214247.1742373,
+  "backend/GymMaster.API/Features/Nutrition/FoodItemService.cs": {
+    "mtime": 1784249967.6039717,
     "ast_hash": "724638bd161af42ed4602609270feb16",
-    "semantic_hash": "724638bd161af42ed4602609270feb16"
+    "semantic_hash": ""
   },
-  "GymMaster.API/Features/Nutrition/FoodItemsController.cs": {
-    "mtime": 1784214247.1719508,
+  "backend/GymMaster.API/Features/Nutrition/FoodItemsController.cs": {
+    "mtime": 1784249967.6039717,
     "ast_hash": "51926aa98615989d9ed56455ba893d1a",
-    "semantic_hash": "51926aa98615989d9ed56455ba893d1a"
+    "semantic_hash": ""
   },
-  "GymMaster.API/Features/Nutrition/FoodScanController.cs": {
-    "mtime": 1784214247.180277,
-    "ast_hash": "058d70e113eecaa0d2dd107b07c3acd2",
-    "semantic_hash": "058d70e113eecaa0d2dd107b07c3acd2"
+  "backend/GymMaster.API/Features/Nutrition/FoodScanController.cs": {
+    "mtime": 1784754019.1766295,
+    "ast_hash": "96b37f34ac54bc3a5f21af8df62e0550",
+    "semantic_hash": ""
   },
-  "GymMaster.API/Features/Nutrition/FoodScanDtos.cs": {
-    "mtime": 1784213986.9832852,
-    "ast_hash": "f00010913332141b699776312dc43132",
-    "semantic_hash": "f00010913332141b699776312dc43132"
+  "backend/GymMaster.API/Features/Nutrition/FoodScanDtos.cs": {
+    "mtime": 1784754019.1771667,
+    "ast_hash": "61b4c590f82ca70ec009c5783d230c7a",
+    "semantic_hash": ""
   },
-  "GymMaster.API/Features/Nutrition/FoodScanService.cs": {
-    "mtime": 1784214247.186573,
-    "ast_hash": "1efbd112e89b47c7e18ecd047ad48367",
-    "semantic_hash": "1efbd112e89b47c7e18ecd047ad48367"
+  "backend/GymMaster.API/Features/Nutrition/FoodScanService.cs": {
+    "mtime": 1784754019.1784928,
+    "ast_hash": "278c661b02a9e88cb5eb34694175757f",
+    "semantic_hash": ""
   },
-  "GymMaster.API/Features/Nutrition/IFoodItemService.cs": {
-    "mtime": 1784214247.1778035,
+  "backend/GymMaster.API/Features/Nutrition/IFoodItemService.cs": {
+    "mtime": 1784249967.6052353,
     "ast_hash": "93688b61f1466a829433017f0dadc6f1",
-    "semantic_hash": "93688b61f1466a829433017f0dadc6f1"
+    "semantic_hash": ""
   },
-  "GymMaster.API/Features/Nutrition/IFoodScanService.cs": {
-    "mtime": 1784214247.186573,
-    "ast_hash": "2f0479fc2f34f7353c0d71886c02a762",
-    "semantic_hash": "2f0479fc2f34f7353c0d71886c02a762"
+  "backend/GymMaster.API/Features/Nutrition/IFoodScanService.cs": {
+    "mtime": 1784754019.179566,
+    "ast_hash": "c95d7fa47e2f1187cb0acb18c71ee86b",
+    "semantic_hash": ""
   },
-  "GymMaster.API/Features/Nutrition/INutritionService.cs": {
-    "mtime": 1784214247.188013,
+  "backend/GymMaster.API/Features/Nutrition/INutritionService.cs": {
+    "mtime": 1784249967.6052353,
     "ast_hash": "a70ae6f1d18c888e492bcf6832918dc2",
-    "semantic_hash": "a70ae6f1d18c888e492bcf6832918dc2"
+    "semantic_hash": ""
   },
-  "GymMaster.API/Features/Nutrition/MealLogsController.cs": {
-    "mtime": 1784214247.188013,
+  "backend/GymMaster.API/Features/Nutrition/MealLogsController.cs": {
+    "mtime": 1784249967.606244,
     "ast_hash": "83218113969805b0f2b483375510a381",
-    "semantic_hash": "83218113969805b0f2b483375510a381"
+    "semantic_hash": ""
   },
-  "GymMaster.API/Features/Nutrition/MemberNutritionController.cs": {
-    "mtime": 1784214247.1892624,
+  "backend/GymMaster.API/Features/Nutrition/MemberNutritionController.cs": {
+    "mtime": 1784249967.606244,
     "ast_hash": "dab61e55c54b18d532ab33627dfc599d",
-    "semantic_hash": "dab61e55c54b18d532ab33627dfc599d"
+    "semantic_hash": ""
   },
-  "GymMaster.API/Features/Nutrition/NutritionDtos.cs": {
-    "mtime": 1784213986.9667368,
+  "backend/GymMaster.API/Features/Nutrition/NutritionDtos.cs": {
+    "mtime": 1784249967.606244,
     "ast_hash": "7ea6fb315d4a5ac9cdb4481b592c80f8",
-    "semantic_hash": "7ea6fb315d4a5ac9cdb4481b592c80f8"
+    "semantic_hash": ""
   },
-  "GymMaster.API/Features/Nutrition/NutritionService.cs": {
-    "mtime": 1784214247.1902678,
+  "backend/GymMaster.API/Features/Nutrition/NutritionService.cs": {
+    "mtime": 1784249967.606244,
     "ast_hash": "eb303dbcc5c6b3bb55f626f9104c8ece",
-    "semantic_hash": "eb303dbcc5c6b3bb55f626f9104c8ece"
+    "semantic_hash": ""
   },
-  "GymMaster.API/Features/Trainers/ITrainerService.cs": {
-    "mtime": 1784214247.172919,
+  "backend/GymMaster.API/Features/Trainers/ITrainerService.cs": {
+    "mtime": 1784249967.6076713,
     "ast_hash": "286ef2f0102965823c7cab0fdeda8828",
-    "semantic_hash": "286ef2f0102965823c7cab0fdeda8828"
+    "semantic_hash": ""
   },
-  "GymMaster.API/Features/Trainers/TrainerDtos.cs": {
-    "mtime": 1784213986.0529523,
+  "backend/GymMaster.API/Features/Trainers/TrainerDtos.cs": {
+    "mtime": 1784249967.6076713,
     "ast_hash": "2138b037ae4606d4860cb7b6c6046c71",
-    "semantic_hash": "2138b037ae4606d4860cb7b6c6046c71"
+    "semantic_hash": ""
   },
-  "GymMaster.API/Features/Trainers/TrainerService.cs": {
-    "mtime": 1784214247.180277,
+  "backend/GymMaster.API/Features/Trainers/TrainerService.cs": {
+    "mtime": 1784249967.6076713,
     "ast_hash": "b6b221c1a9f05dc00e567ccfe1678e39",
-    "semantic_hash": "b6b221c1a9f05dc00e567ccfe1678e39"
+    "semantic_hash": ""
   },
-  "GymMaster.API/Features/Trainers/TrainersController.cs": {
-    "mtime": 1784214247.179233,
+  "backend/GymMaster.API/Features/Trainers/TrainersController.cs": {
+    "mtime": 1784249967.6076713,
     "ast_hash": "68bfbfef917dbd27dbbe3d8a9b8e28a5",
-    "semantic_hash": "68bfbfef917dbd27dbbe3d8a9b8e28a5"
+    "semantic_hash": ""
   },
-  "GymMaster.API/Features/Training/AssignmentService.cs": {
-    "mtime": 1784214247.179233,
+  "backend/GymMaster.API/Features/Training/AssignmentService.cs": {
+    "mtime": 1784249967.6076713,
     "ast_hash": "0ccd5dbf028bf6d07f2c18bb3ae23a54",
-    "semantic_hash": "0ccd5dbf028bf6d07f2c18bb3ae23a54"
+    "semantic_hash": ""
   },
-  "GymMaster.API/Features/Training/AssignmentsController.cs": {
-    "mtime": 1784214247.1778035,
+  "backend/GymMaster.API/Features/Training/AssignmentsController.cs": {
+    "mtime": 1784249967.609129,
     "ast_hash": "01f8d82c90387322b5a0138e433afb45",
-    "semantic_hash": "01f8d82c90387322b5a0138e433afb45"
+    "semantic_hash": ""
   },
-  "GymMaster.API/Features/Training/ExercisesController.cs": {
-    "mtime": 1784214247.1840658,
+  "backend/GymMaster.API/Features/Training/ExercisesController.cs": {
+    "mtime": 1784249967.609129,
     "ast_hash": "bb8b4f34d403126f83c0ab81b254a632",
-    "semantic_hash": "bb8b4f34d403126f83c0ab81b254a632"
+    "semantic_hash": ""
   },
-  "GymMaster.API/Features/Training/IAssignmentService.cs": {
-    "mtime": 1784214247.181731,
+  "backend/GymMaster.API/Features/Training/IAssignmentService.cs": {
+    "mtime": 1784249967.609129,
     "ast_hash": "6c9d6722f3a6bdf5bf7e803528fd3833",
-    "semantic_hash": "6c9d6722f3a6bdf5bf7e803528fd3833"
+    "semantic_hash": ""
   },
-  "GymMaster.API/Features/Training/IProgressService.cs": {
-    "mtime": 1784214247.1830628,
+  "backend/GymMaster.API/Features/Training/IProgressService.cs": {
+    "mtime": 1784249967.6105468,
     "ast_hash": "0b244e6b1b39a123849c76e58a181791",
-    "semantic_hash": "0b244e6b1b39a123849c76e58a181791"
+    "semantic_hash": ""
   },
-  "GymMaster.API/Features/Training/ITrainerNoteService.cs": {
-    "mtime": 1784214247.1840658,
+  "backend/GymMaster.API/Features/Training/ITrainerNoteService.cs": {
+    "mtime": 1784249967.6105468,
     "ast_hash": "95da7879e760edc644c220356b39d90d",
-    "semantic_hash": "95da7879e760edc644c220356b39d90d"
+    "semantic_hash": ""
   },
-  "GymMaster.API/Features/Training/IWorkoutPlanService.cs": {
-    "mtime": 1784214247.1850626,
+  "backend/GymMaster.API/Features/Training/IWorkoutPlanService.cs": {
+    "mtime": 1784249967.6105468,
     "ast_hash": "fa7ba03a17310575e52f6cf576b79d6b",
-    "semantic_hash": "fa7ba03a17310575e52f6cf576b79d6b"
+    "semantic_hash": ""
   },
-  "GymMaster.API/Features/Training/MemberProgressController.cs": {
-    "mtime": 1784214247.188013,
+  "backend/GymMaster.API/Features/Training/MemberProgressController.cs": {
+    "mtime": 1784249967.6105468,
     "ast_hash": "d54e8f0a2dd8c3d6b0a2b6fd418715f5",
-    "semantic_hash": "d54e8f0a2dd8c3d6b0a2b6fd418715f5"
+    "semantic_hash": ""
   },
-  "GymMaster.API/Features/Training/ProgressDtos.cs": {
-    "mtime": 1784214247.188013,
+  "backend/GymMaster.API/Features/Training/ProgressDtos.cs": {
+    "mtime": 1784249967.6120045,
     "ast_hash": "f8b5d8332ec5cf7e6ff90c11a1b6e9c0",
-    "semantic_hash": "f8b5d8332ec5cf7e6ff90c11a1b6e9c0"
+    "semantic_hash": ""
   },
-  "GymMaster.API/Features/Training/ProgressService.cs": {
-    "mtime": 1784214359.6485164,
+  "backend/GymMaster.API/Features/Training/ProgressService.cs": {
+    "mtime": 1784249967.6130135,
     "ast_hash": "a33692e5ef6fc2e01c2e9d6304499604",
-    "semantic_hash": "a33692e5ef6fc2e01c2e9d6304499604"
+    "semantic_hash": ""
   },
-  "GymMaster.API/Features/Training/PtController.cs": {
-    "mtime": 1784214247.1912653,
+  "backend/GymMaster.API/Features/Training/PtController.cs": {
+    "mtime": 1784249967.6130135,
     "ast_hash": "6fbc4ac6b5a198a6d664441bcf2ce6d8",
-    "semantic_hash": "6fbc4ac6b5a198a6d664441bcf2ce6d8"
+    "semantic_hash": ""
   },
-  "GymMaster.API/Features/Training/PtTrainingDtos.cs": {
-    "mtime": 1784213986.7512105,
+  "backend/GymMaster.API/Features/Training/PtTrainingDtos.cs": {
+    "mtime": 1784249967.6130135,
     "ast_hash": "0c523c503b3de8a4b6563d999a8ea6d8",
-    "semantic_hash": "0c523c503b3de8a4b6563d999a8ea6d8"
+    "semantic_hash": ""
   },
-  "GymMaster.API/Features/Training/TrainerNoteService.cs": {
-    "mtime": 1784214247.1912653,
+  "backend/GymMaster.API/Features/Training/TrainerNoteService.cs": {
+    "mtime": 1784249967.6143236,
     "ast_hash": "3a6ccb1afd28cd5ec337fc1a3604c82f",
-    "semantic_hash": "3a6ccb1afd28cd5ec337fc1a3604c82f"
+    "semantic_hash": ""
   },
-  "GymMaster.API/Features/Training/TrainerNotesController.cs": {
-    "mtime": 1784214247.1925652,
+  "backend/GymMaster.API/Features/Training/TrainerNotesController.cs": {
+    "mtime": 1784249967.615345,
     "ast_hash": "2f7edc43df04d9e3f471677de58d8878",
-    "semantic_hash": "2f7edc43df04d9e3f471677de58d8878"
+    "semantic_hash": ""
   },
-  "GymMaster.API/Features/Training/WorkoutPlanService.cs": {
-    "mtime": 1784214247.1925652,
-    "ast_hash": "c8a8de6a53dd8fdf81e0d5bdbfae728f",
-    "semantic_hash": "c8a8de6a53dd8fdf81e0d5bdbfae728f"
+  "backend/GymMaster.API/Features/Training/WorkoutPlanService.cs": {
+    "mtime": 1784625234.4348254,
+    "ast_hash": "8f9e149386708a5247f487234493dafa",
+    "semantic_hash": ""
   },
-  "GymMaster.API/Features/Training/WorkoutPlansController.cs": {
-    "mtime": 1784214247.1925652,
+  "backend/GymMaster.API/Features/Training/WorkoutPlansController.cs": {
+    "mtime": 1784249967.6163437,
     "ast_hash": "7d4182aad72ea3e28fe5027b1552eec8",
-    "semantic_hash": "7d4182aad72ea3e28fe5027b1552eec8"
+    "semantic_hash": ""
   },
-  "GymMaster.API/Features/Users/IUserService.cs": {
-    "mtime": 1784214247.179233,
+  "backend/GymMaster.API/Features/Users/IUserService.cs": {
+    "mtime": 1784249967.6173458,
     "ast_hash": "0ee07514e5a04f661dfda5d577f2ad23",
-    "semantic_hash": "0ee07514e5a04f661dfda5d577f2ad23"
+    "semantic_hash": ""
   },
-  "GymMaster.API/Features/Users/UserDtos.cs": {
-    "mtime": 1784214089.9120805,
+  "backend/GymMaster.API/Features/Users/UserDtos.cs": {
+    "mtime": 1784249967.6183422,
     "ast_hash": "7089b1e4780ae39f3ad260c7cb08de18",
-    "semantic_hash": "7089b1e4780ae39f3ad260c7cb08de18"
+    "semantic_hash": ""
   },
-  "GymMaster.API/Features/Users/UserService.cs": {
-    "mtime": 1784214247.188013,
+  "backend/GymMaster.API/Features/Users/UserService.cs": {
+    "mtime": 1784249967.619343,
     "ast_hash": "34cc31eff3482a35c0ed353e2ec3ff57",
-    "semantic_hash": "34cc31eff3482a35c0ed353e2ec3ff57"
+    "semantic_hash": ""
   },
-  "GymMaster.API/Features/Users/UsersController.cs": {
-    "mtime": 1784214247.1850626,
+  "backend/GymMaster.API/Features/Users/UsersController.cs": {
+    "mtime": 1784249967.619343,
     "ast_hash": "eaf6fe91721a9f282987ab69e00f8017",
-    "semantic_hash": "eaf6fe91721a9f282987ab69e00f8017"
+    "semantic_hash": ""
   },
-  "GymMaster.API/Infrastructure/AvatarStorageException.cs": {
-    "mtime": 1784213985.5889096,
+  "backend/GymMaster.API/GymMaster.API.csproj": {
+    "mtime": 1784907683.6544428,
+    "ast_hash": "e29017ab07f0914db48eac3018888f80",
+    "semantic_hash": ""
+  },
+  "backend/GymMaster.API/Infrastructure/AvatarStorageException.cs": {
+    "mtime": 1784249967.619343,
     "ast_hash": "6268a50d87e669463f34f274b2c585c7",
-    "semantic_hash": "6268a50d87e669463f34f274b2c585c7"
+    "semantic_hash": ""
   },
-  "GymMaster.API/Infrastructure/CloudinaryAvatarStorage.cs": {
-    "mtime": 1784213985.5509355,
+  "backend/GymMaster.API/Infrastructure/CloudinaryAvatarStorage.cs": {
+    "mtime": 1784249967.620961,
     "ast_hash": "c8a8d6b55569e0c8246aeb07b32bd7b7",
-    "semantic_hash": "c8a8d6b55569e0c8246aeb07b32bd7b7"
+    "semantic_hash": ""
   },
-  "GymMaster.API/Infrastructure/EmailSender.cs": {
-    "mtime": 1784213985.644181,
+  "backend/GymMaster.API/Infrastructure/EmailSender.cs": {
+    "mtime": 1784249967.620961,
     "ast_hash": "3e6b9a6e5f99ecb55aaead3fd09e32b5",
-    "semantic_hash": "3e6b9a6e5f99ecb55aaead3fd09e32b5"
+    "semantic_hash": ""
   },
-  "GymMaster.API/Infrastructure/GeminiService.cs": {
-    "mtime": 1784214359.6485164,
-    "ast_hash": "63185406e58335af9b5668dacc4723e1",
-    "semantic_hash": "63185406e58335af9b5668dacc4723e1"
+  "backend/GymMaster.API/Infrastructure/GeminiService.cs": {
+    "mtime": 1784754019.1811569,
+    "ast_hash": "1d38892839b063941d61ede81ff7d53b",
+    "semantic_hash": ""
   },
-  "GymMaster.API/Infrastructure/IAvatarStorage.cs": {
-    "mtime": 1784213985.5709922,
+  "backend/GymMaster.API/Infrastructure/IAvatarStorage.cs": {
+    "mtime": 1784249967.6219716,
     "ast_hash": "662e12c6c281ce7956f6db3ce812adda",
-    "semantic_hash": "662e12c6c281ce7956f6db3ce812adda"
+    "semantic_hash": ""
   },
-  "GymMaster.API/Infrastructure/IEmailSender.cs": {
-    "mtime": 1784213985.6628506,
+  "backend/GymMaster.API/Infrastructure/IEmailSender.cs": {
+    "mtime": 1784249967.6229806,
     "ast_hash": "604fd5db7d43764927f58491d0d2d0c3",
-    "semantic_hash": "604fd5db7d43764927f58491d0d2d0c3"
+    "semantic_hash": ""
   },
-  "GymMaster.API/Infrastructure/IFoodImageAnalyzer.cs": {
-    "mtime": 1784213985.6252873,
-    "ast_hash": "afdbd3f63a9106d57767626e02aa40aa",
-    "semantic_hash": "afdbd3f63a9106d57767626e02aa40aa"
+  "backend/GymMaster.API/Infrastructure/IFoodImageAnalyzer.cs": {
+    "mtime": 1784754019.1816888,
+    "ast_hash": "d5076eeea7b7a2d6034e06ed69871970",
+    "semantic_hash": ""
   },
-  "GymMaster.API/Infrastructure/VnPayLibrary.cs": {
-    "mtime": 1784213985.679803,
+  "backend/GymMaster.API/Infrastructure/VnPayLibrary.cs": {
+    "mtime": 1784249967.6239789,
     "ast_hash": "354843e00a80f010d82b924eca502d0b",
-    "semantic_hash": "354843e00a80f010d82b924eca502d0b"
+    "semantic_hash": ""
+  },
+  "backend/GymMaster.API/Options/CheckInOptions.cs": {
+    "mtime": 1783901745.4187877,
+    "ast_hash": "5df3dadb4d46964c4e6f7417da5d545b",
+    "semantic_hash": ""
+  },
+  "backend/GymMaster.API/Options/CloudinaryOptions.cs": {
+    "mtime": 1783034530.0676346,
+    "ast_hash": "d5bae754e21664e3e2123415073bc1ad",
+    "semantic_hash": ""
+  },
+  "backend/GymMaster.API/Options/EmailOptions.cs": {
+    "mtime": 1782019692.1442606,
+    "ast_hash": "c926dde3e19a22e5db26f99d7c25c7d0",
+    "semantic_hash": ""
+  },
+  "backend/GymMaster.API/Options/GeminiOptions.cs": {
+    "mtime": 1782615687.7619648,
+    "ast_hash": "c1c5e16242d36e6705f4ac67d5f8cef4",
+    "semantic_hash": ""
+  },
+  "backend/GymMaster.API/Options/GoogleAuthOptions.cs": {
+    "mtime": 1780670119.2370398,
+    "ast_hash": "083452a78c877a2fdfe890a97b156915",
+    "semantic_hash": ""
+  },
+  "backend/GymMaster.API/Options/JwtOptions.cs": {
+    "mtime": 1780670119.2370398,
+    "ast_hash": "d2188e38c0e6beac7c8e1332da7feaf8",
+    "semantic_hash": ""
+  },
+  "backend/GymMaster.API/Options/VnPayOptions.cs": {
+    "mtime": 1782019692.361086,
+    "ast_hash": "7d2d3b9e041695128ba78393b0568354",
+    "semantic_hash": ""
+  },
+  "backend/GymMaster.API/Program.cs": {
+    "mtime": 1784249967.6239789,
+    "ast_hash": "b086e3e8a6bd69179810776fa065bdcc",
+    "semantic_hash": ""
+  },
+  "backend/GymMaster.API/Properties/launchSettings.json": {
+    "mtime": 1780670119.2380383,
+    "ast_hash": "6b28e973ee16130fdb16509da7b77bb3",
+    "semantic_hash": ""
+  },
+  "backend/GymMaster.API/appsettings.Development.json": {
+    "mtime": 1780670119.2443671,
+    "ast_hash": "804b473502a4c415cf75db61c56c32aa",
+    "semantic_hash": ""
+  },
+  "backend/GymMaster.API/appsettings.json": {
+    "mtime": 1783901745.429473,
+    "ast_hash": "d96ea47275b4e8428d1bb73df9d13878",
+    "semantic_hash": ""
+  },
+  "database/004_checkin.sql": {
+    "mtime": 1781173815.8207958,
+    "ast_hash": "bbcc3c073ca65c78e3c0fc5f895aba99",
+    "semantic_hash": ""
+  },
+  "database/005_sync_missing_tables.sql": {
+    "mtime": 1781173815.8207958,
+    "ast_hash": "5f1e41392f776df69867201bfc55d02c",
+    "semantic_hash": ""
+  },
+  "database/006_spec5_pt_training.sql": {
+    "mtime": 1782019692.162793,
+    "ast_hash": "d6db42b88fd04c1a4d861f71901e8d8b",
+    "semantic_hash": ""
+  },
+  "database/007_add_reset_attemptcount.sql": {
+    "mtime": 1782019692.162793,
+    "ast_hash": "50627c2429715a15b77cdedcaf690794",
+    "semantic_hash": ""
+  },
+  "database/008_package_supports_pt.sql": {
+    "mtime": 1782327514.6439307,
+    "ast_hash": "05c6b3363f435df3298198050c5cc5ee",
+    "semantic_hash": ""
+  },
+  "database/009_food_scan_columns.sql": {
+    "mtime": 1782615687.7764597,
+    "ast_hash": "ca054c903e37c66f85c36df8f42996c0",
+    "semantic_hash": ""
+  },
+  "database/010_demo_active_member_seed.sql": {
+    "mtime": 1782615687.7764597,
+    "ast_hash": "24127b00035f8592a0b66c205f4097a8",
+    "semantic_hash": ""
+  },
+  "database/011_fix_check_ins_createdby_column.sql": {
+    "mtime": 1782635494.1521685,
+    "ast_hash": "e71bd953ab56550507ccde982ede6cbf",
+    "semantic_hash": ""
+  },
+  "database/012_users_avatarurl.sql": {
+    "mtime": 1783034512.6780682,
+    "ast_hash": "d907aebaf9f4db9bd1350083a55e678f",
+    "semantic_hash": ""
+  },
+  "database/013_staff_profiles_trainer_contact_filtered_unique.sql": {
+    "mtime": 1783131646.387045,
+    "ast_hash": "ca3152506d4ac75a5c9f24fbed745c72",
+    "semantic_hash": ""
+  },
+  "database/GymMaster_SQLServer_Final.sql": {
+    "mtime": 1782422203.7929673,
+    "ast_hash": "4f051c38afc5edc242f6f131ef63bd30",
+    "semantic_hash": ""
+  },
+  "tests/GymMaster.Api.Tests/AccountServiceTests.cs": {
+    "mtime": 1784249967.7168946,
+    "ast_hash": "205211ccede3b4e217bd0e8a2e2fc59c",
+    "semantic_hash": ""
+  },
+  "tests/GymMaster.Api.Tests/AssignmentServiceTests.cs": {
+    "mtime": 1784249967.7180004,
+    "ast_hash": "0e3d5508081a3c4a9a9814afba250825",
+    "semantic_hash": ""
+  },
+  "tests/GymMaster.Api.Tests/AuthServiceTests.cs": {
+    "mtime": 1784907683.9318094,
+    "ast_hash": "af2f5c961d6f5c6e171705243bbdd6f1",
+    "semantic_hash": ""
+  },
+  "tests/GymMaster.Api.Tests/CheckInServiceTests.cs": {
+    "mtime": 1784249967.7180004,
+    "ast_hash": "c8301cb446714f2c691c87162b88df69",
+    "semantic_hash": ""
+  },
+  "tests/GymMaster.Api.Tests/DashboardServiceTests.cs": {
+    "mtime": 1784754019.1982453,
+    "ast_hash": "8cfebf5ed803423e0a839867b9829247",
+    "semantic_hash": ""
+  },
+  "tests/GymMaster.Api.Tests/FoodItemServiceTests.cs": {
+    "mtime": 1784754019.1992645,
+    "ast_hash": "7fc24e756113c69e77333f700ddbcf2b",
+    "semantic_hash": ""
+  },
+  "tests/GymMaster.Api.Tests/FoodItemTierTests.cs": {
+    "mtime": 1784907683.9332685,
+    "ast_hash": "50c594cad712dcb371e590aef070787e",
+    "semantic_hash": ""
+  },
+  "tests/GymMaster.Api.Tests/FoodScanFallbackTests.cs": {
+    "mtime": 1784907683.93396,
+    "ast_hash": "9072a89380beb55f093d2edbf4329e02",
+    "semantic_hash": ""
+  },
+  "tests/GymMaster.Api.Tests/FoodScanServiceTests.cs": {
+    "mtime": 1784754019.20081,
+    "ast_hash": "866a9e1b80743559906c6d4062cae5c1",
+    "semantic_hash": ""
+  },
+  "tests/GymMaster.Api.Tests/GeminiServiceTests.cs": {
+    "mtime": 1784754019.2018623,
+    "ast_hash": "29b478c4cc0e5ba6fb204044cbd82f12",
+    "semantic_hash": ""
+  },
+  "tests/GymMaster.Api.Tests/GymMaster.Api.Tests.csproj": {
+    "mtime": 1782019692.3801112,
+    "ast_hash": "7ebe05b42f37ef87b8c0ecead29d8f5b",
+    "semantic_hash": ""
+  },
+  "tests/GymMaster.Api.Tests/MemberServiceTests.cs": {
+    "mtime": 1784907683.93396,
+    "ast_hash": "8375b80159b0673f768c7f89eef03d29",
+    "semantic_hash": ""
+  },
+  "tests/GymMaster.Api.Tests/MembershipAuthorizationTests.cs": {
+    "mtime": 1785064655.2986884,
+    "ast_hash": "47e5a311dd707ee7fc78314d78d34fb4",
+    "semantic_hash": ""
+  },
+  "tests/GymMaster.Api.Tests/MembershipLifecycleTests.cs": {
+    "mtime": 1784907683.93396,
+    "ast_hash": "bcf45c68a008571a39c1d48843edce7e",
+    "semantic_hash": ""
+  },
+  "tests/GymMaster.Api.Tests/MembershipPackageServiceTests.cs": {
+    "mtime": 1784823634.3896046,
+    "ast_hash": "1cc0d6aa954f90a0926468acda8a7ed7",
+    "semantic_hash": ""
+  },
+  "tests/GymMaster.Api.Tests/MembershipServiceTests.cs": {
+    "mtime": 1784823634.392646,
+    "ast_hash": "241e7bbd6eb12ef5f21606d61ed52a5a",
+    "semantic_hash": ""
+  },
+  "tests/GymMaster.Api.Tests/NutritionServiceTests.cs": {
+    "mtime": 1784754019.203532,
+    "ast_hash": "bd72293251c2090fcf0d427a331345b6",
+    "semantic_hash": ""
+  },
+  "tests/GymMaster.Api.Tests/PaymentServiceTests.cs": {
+    "mtime": 1784823634.3937685,
+    "ast_hash": "6a49fb122ba0d7d00d208a994bc4fb3a",
+    "semantic_hash": ""
+  },
+  "tests/GymMaster.Api.Tests/Profile360Tests.cs": {
+    "mtime": 1784907683.93396,
+    "ast_hash": "4d7a71392f8f5f33d4bff5a556a92fd5",
+    "semantic_hash": ""
+  },
+  "tests/GymMaster.Api.Tests/ProgressServiceTests.cs": {
+    "mtime": 1784249967.7207856,
+    "ast_hash": "37cc054a92f82c702b8bb94c8f76a450",
+    "semantic_hash": ""
+  },
+  "tests/GymMaster.Api.Tests/PtTrainingServiceTests.cs": {
+    "mtime": 1784907683.93396,
+    "ast_hash": "78bbd25bb0b89fb36764c6a52f443cf3",
+    "semantic_hash": ""
+  },
+  "tests/GymMaster.Api.Tests/TrainerServiceTests.cs": {
+    "mtime": 1784625240.172469,
+    "ast_hash": "f14299f02205cdf128999451c2d2346b",
+    "semantic_hash": ""
+  },
+  "tests/GymMaster.Api.Tests/UserServiceTests.cs": {
+    "mtime": 1784249967.721724,
+    "ast_hash": "7a8c537ae16af9cff460c12d48b1d6df",
+    "semantic_hash": ""
+  },
+  "tests/GymMaster.Api.Tests/VnPayServiceTests.cs": {
+    "mtime": 1785066093.7669456,
+    "ast_hash": "737151358fe4c1a669f827018bb0e0c7",
+    "semantic_hash": ""
+  },
+  "tests/blackbox/Api.BlackBox.Tests.ps1": {
+    "mtime": 1784754019.2044399,
+    "ast_hash": "b0d3b1c34befcce8e81f6467cf6c20c2",
+    "semantic_hash": ""
+  },
+  "tests/blackbox/Connection.Tests.ps1": {
+    "mtime": 1784754019.2044399,
+    "ast_hash": "bb4990cd10af5549800efeb7a5f59349",
+    "semantic_hash": ""
+  },
+  "tests/blackbox/Performance.Tests.ps1": {
+    "mtime": 1784754019.2044399,
+    "ast_hash": "cf2d4eafab5f730aa9058b848ceacb65",
+    "semantic_hash": ""
+  },
+  "tests/blackbox/TestSupport.ps1": {
+    "mtime": 1784754019.2098002,
+    "ast_hash": "31797f1e037498fbda59edb0b7dff33f",
+    "semantic_hash": ""
+  },
+  ".claude/skills/graphify/SKILL.md": {
+    "mtime": 1784249967.5358348,
+    "ast_hash": "dbc26bd0a418413896501cf151525ac6",
+    "semantic_hash": ""
+  },
+  ".claude/skills/graphify/references/add-watch.md": {
+    "mtime": 1784249967.5358348,
+    "ast_hash": "58c888b5ec0689a886543dd765c1acc9",
+    "semantic_hash": ""
+  },
+  ".claude/skills/graphify/references/exports.md": {
+    "mtime": 1784249967.536835,
+    "ast_hash": "ecc0c36852fee4ba6280cdf2b9149039",
+    "semantic_hash": ""
+  },
+  ".claude/skills/graphify/references/extraction-spec.md": {
+    "mtime": 1784249967.5378397,
+    "ast_hash": "e36dd450e4a3a90f5fe9073f4198fabc",
+    "semantic_hash": ""
+  },
+  ".claude/skills/graphify/references/github-and-merge.md": {
+    "mtime": 1784249967.5378397,
+    "ast_hash": "aa0e7ef186392cad062e60483ca7dbbf",
+    "semantic_hash": ""
+  },
+  ".claude/skills/graphify/references/hooks.md": {
+    "mtime": 1784249967.5378397,
+    "ast_hash": "0045c2f12c69bff3a641a8908a1ac057",
+    "semantic_hash": ""
+  },
+  ".claude/skills/graphify/references/query.md": {
+    "mtime": 1784249967.5388632,
+    "ast_hash": "852ef14334d60a75ae666ea103d4c4f0",
+    "semantic_hash": ""
+  },
+  ".claude/skills/graphify/references/transcribe.md": {
+    "mtime": 1784249967.5398498,
+    "ast_hash": "5c6a9af05d12b5797b2fa8b9493dcc37",
+    "semantic_hash": ""
+  },
+  ".claude/skills/graphify/references/update.md": {
+    "mtime": 1784249967.5408356,
+    "ast_hash": "01c78ea9438925c605b58a2eecbbcf5b",
+    "semantic_hash": ""
+  },
+  ".claude/skills/speckit-analyze/SKILL.md": {
+    "mtime": 1780670119.1849954,
+    "ast_hash": "0e40db349c5f2fda7183720792a147a5",
+    "semantic_hash": ""
+  },
+  ".claude/skills/speckit-checklist/SKILL.md": {
+    "mtime": 1780670119.1860042,
+    "ast_hash": "1c99234178bbae102c73bbc6d6e17fc7",
+    "semantic_hash": ""
+  },
+  ".claude/skills/speckit-clarify/SKILL.md": {
+    "mtime": 1780670119.1871493,
+    "ast_hash": "d8d97af6ca30a3a9b3ee3a11ca8f2a69",
+    "semantic_hash": ""
+  },
+  ".claude/skills/speckit-constitution/SKILL.md": {
+    "mtime": 1780670119.1881626,
+    "ast_hash": "ea82e28d1a830460299ae1c7ebc4d4b0",
+    "semantic_hash": ""
+  },
+  ".claude/skills/speckit-git-commit/SKILL.md": {
+    "mtime": 1780670119.1891685,
+    "ast_hash": "95b66baee44efd46cc77faf642a2f501",
+    "semantic_hash": ""
+  },
+  ".claude/skills/speckit-git-feature/SKILL.md": {
+    "mtime": 1780670119.1901674,
+    "ast_hash": "e89f630be92d94f9e6bdc04a8bb3ea40",
+    "semantic_hash": ""
+  },
+  ".claude/skills/speckit-git-initialize/SKILL.md": {
+    "mtime": 1784823634.306055,
+    "ast_hash": "24fb83118a04d9d20f8b7f9d8a5680eb",
+    "semantic_hash": ""
+  },
+  ".claude/skills/speckit-git-remote/SKILL.md": {
+    "mtime": 1780670119.1920679,
+    "ast_hash": "5f95e1e6ecd9ca60230596fd18cbfe16",
+    "semantic_hash": ""
+  },
+  ".claude/skills/speckit-git-validate/SKILL.md": {
+    "mtime": 1784823634.3066514,
+    "ast_hash": "fcadad1f2092b3c44ebce71225099c0b",
+    "semantic_hash": ""
+  },
+  ".claude/skills/speckit-implement/SKILL.md": {
+    "mtime": 1780670119.195093,
+    "ast_hash": "b3ccf23c9ee4ac96a79eb42c9dc48376",
+    "semantic_hash": ""
+  },
+  ".claude/skills/speckit-plan/SKILL.md": {
+    "mtime": 1780670119.196502,
+    "ast_hash": "99f386e4316f719b6d85158e7831a66d",
+    "semantic_hash": ""
+  },
+  ".claude/skills/speckit-specify/SKILL.md": {
+    "mtime": 1784823634.3086686,
+    "ast_hash": "b15264884871d8d1f2f92e26d480be86",
+    "semantic_hash": ""
+  },
+  ".claude/skills/speckit-tasks/SKILL.md": {
+    "mtime": 1780670119.1987505,
+    "ast_hash": "3ef1941f5c2e442ca79fdf96476c89aa",
+    "semantic_hash": ""
+  },
+  ".claude/skills/speckit-taskstoissues/SKILL.md": {
+    "mtime": 1780670119.1997457,
+    "ast_hash": "de19042ea17d9afa171a0cfa328df9a5",
+    "semantic_hash": ""
+  },
+  ".claude/skills/swp391-diagrams/SKILL.md": {
+    "mtime": 1784823634.309719,
+    "ast_hash": "30b18f36fba8c487aa044828f5907589",
+    "semantic_hash": ""
+  },
+  ".claude/skills/swp391-docs/SKILL.md": {
+    "mtime": 1784823634.3119767,
+    "ast_hash": "409cea3943b789ed1ebf35bfdac92ab0",
+    "semantic_hash": ""
+  },
+  ".claude/skills/swp391-docs/references/mon-hoc.md": {
+    "mtime": 1784823634.3124876,
+    "ast_hash": "de523e072a25a8b1f882044b37b8561b",
+    "semantic_hash": ""
+  },
+  ".claude/skills/swp391-docs/references/tien-do.md": {
+    "mtime": 1784823634.3129249,
+    "ast_hash": "d0302e0991a0697adedc7c600447a872",
+    "semantic_hash": ""
+  },
+  ".github/workflows/ci.yml": {
+    "mtime": 1784569074.1306036,
+    "ast_hash": "02b13b55a1c9edb0c77acdd01fa0ed0d",
+    "semantic_hash": ""
+  },
+  ".github/workflows/deploy.yml": {
+    "mtime": 1784823634.3225405,
+    "ast_hash": "3df99c688ace4951d6133b4ed72a15bb",
+    "semantic_hash": ""
+  },
+  ".specify/extensions.yml": {
+    "mtime": 1780670119.200743,
+    "ast_hash": "0a0b506e9a2c360a3d7d0e3d11157e97",
+    "semantic_hash": ""
+  },
+  ".specify/extensions/git/README.md": {
+    "mtime": 1784823634.3235636,
+    "ast_hash": "2e8032a62b3bee3e69b00e35ca3fcc4d",
+    "semantic_hash": ""
+  },
+  ".specify/extensions/git/commands/speckit.git.commit.md": {
+    "mtime": 1780670119.2028494,
+    "ast_hash": "d4e764faf7d76c7a4b671431a71a9792",
+    "semantic_hash": ""
+  },
+  ".specify/extensions/git/commands/speckit.git.feature.md": {
+    "mtime": 1780670119.2028494,
+    "ast_hash": "32f2385da4b1b5d3c0b6800339c23c01",
+    "semantic_hash": ""
+  },
+  ".specify/extensions/git/commands/speckit.git.initialize.md": {
+    "mtime": 1784823634.3245618,
+    "ast_hash": "a36b2b2b86aa2c287db06fe450ab91cd",
+    "semantic_hash": ""
+  },
+  ".specify/extensions/git/commands/speckit.git.remote.md": {
+    "mtime": 1780670119.2040062,
+    "ast_hash": "9fddd41588f63a311434e31f12d00053",
+    "semantic_hash": ""
+  },
+  ".specify/extensions/git/commands/speckit.git.validate.md": {
+    "mtime": 1784823634.3245618,
+    "ast_hash": "77a4eab443b8762c54176a7dc66f8fda",
+    "semantic_hash": ""
+  },
+  ".specify/extensions/git/config-template.yml": {
+    "mtime": 1780670119.2040062,
+    "ast_hash": "5e75a948773bf61a0cae4b8b754d4b74",
+    "semantic_hash": ""
+  },
+  ".specify/extensions/git/extension.yml": {
+    "mtime": 1780670119.2040062,
+    "ast_hash": "0d81f3bde7ea407f2df90ce5682dee26",
+    "semantic_hash": ""
+  },
+  ".specify/extensions/git/git-config.yml": {
+    "mtime": 1780670119.2054443,
+    "ast_hash": "5e75a948773bf61a0cae4b8b754d4b74",
+    "semantic_hash": ""
+  },
+  ".specify/memory/constitution.md": {
+    "mtime": 1784823634.3277278,
+    "ast_hash": "a96dc91fa7e2824ce98a9db145aa948e",
+    "semantic_hash": ""
+  },
+  ".specify/templates/checklist-template.md": {
+    "mtime": 1780670119.2149916,
+    "ast_hash": "8532a1ca482a9f356b9cedec08a01b3b",
+    "semantic_hash": ""
+  },
+  ".specify/templates/constitution-template.md": {
+    "mtime": 1780670119.2159896,
+    "ast_hash": "8667511ac346dad1c731438a3081aaa1",
+    "semantic_hash": ""
+  },
+  ".specify/templates/plan-template.md": {
+    "mtime": 1784823634.3304808,
+    "ast_hash": "ff84afeec9c4d03c24cc6d9ee65d1f26",
+    "semantic_hash": ""
+  },
+  ".specify/templates/spec-template.md": {
+    "mtime": 1780670119.2159896,
+    "ast_hash": "593b5f4630b0a5bf7714c04861b45d8f",
+    "semantic_hash": ""
+  },
+  ".specify/templates/tasks-template.md": {
+    "mtime": 1784823634.3315406,
+    "ast_hash": "cd3a3b55490465da6c4a4f0e7c73240d",
+    "semantic_hash": ""
+  },
+  ".specify/workflows/speckit/workflow.yml": {
+    "mtime": 1780670119.2171082,
+    "ast_hash": "b5eba131f0b187c5a948c3a946871a53",
+    "semantic_hash": ""
+  },
+  "CLAUDE.md": {
+    "mtime": 1785064466.9616365,
+    "ast_hash": "e39d58139eddcdfd4c816738998e5091",
+    "semantic_hash": ""
+  },
+  "CONSTITUTION.md": {
+    "mtime": 1784823634.3337398,
+    "ast_hash": "334e69f609eaf7f8e75fda5dd3f91987",
+    "semantic_hash": ""
+  },
+  "README.md": {
+    "mtime": 1784823634.3342712,
+    "ast_hash": "eba287fe239feb8453522d0fa72a1b98",
+    "semantic_hash": ""
+  },
+  "backend/GymMaster.API/README.md": {
+    "mtime": 1784196666.9032965,
+    "ast_hash": "9ab32200b631947442e99b02dc931340",
+    "semantic_hash": ""
+  },
+  "database/README.md": {
+    "mtime": 1784823634.3348055,
+    "ast_hash": "e4dc52fce7c5148466f232e8ee223d1b",
+    "semantic_hash": ""
+  },
+  "docs/01-SRS-Requirements/constraints/business.md": {
+    "mtime": 1784823634.3358536,
+    "ast_hash": "69f8bcf2af24711995e3a891a8f40479",
+    "semantic_hash": ""
+  },
+  "docs/01-SRS-Requirements/constraints/global.md": {
+    "mtime": 1784823634.3358536,
+    "ast_hash": "97842b64050803b655a3674b9ff57b35",
+    "semantic_hash": ""
+  },
+  "docs/01-SRS-Requirements/constraints/safety.md": {
+    "mtime": 1784823634.3364058,
+    "ast_hash": "606e0f6a9fdf67265bcc8669d3368c07",
+    "semantic_hash": ""
+  },
+  "docs/01-SRS-Requirements/context.md": {
+    "mtime": 1785064461.6322925,
+    "ast_hash": "d3a1177b4845224b11ebd39185a10a87",
+    "semantic_hash": ""
+  },
+  "docs/01-SRS-Requirements/product-scope.md": {
+    "mtime": 1784823634.3394907,
+    "ast_hash": "ecfa3a3811a1beee92e23943739d7a19",
+    "semantic_hash": ""
+  },
+  "docs/01-SRS-Requirements/requirements.md": {
+    "mtime": 1784823634.340028,
+    "ast_hash": "20ca418514da81b84b92f990e14a3c15",
+    "semantic_hash": ""
+  },
+  "docs/01-SRS-Requirements/roadmap-releases.md": {
+    "mtime": 1784823634.3416412,
+    "ast_hash": "9509ba50920c5d9d3e97d6476a6e4464",
+    "semantic_hash": ""
+  },
+  "docs/01-SRS-Requirements/use-cases/srs-use-cases.md": {
+    "mtime": 1785064591.537694,
+    "ast_hash": "4c5bc15ee1e65ca7e8ddfe86aaf9167b",
+    "semantic_hash": ""
+  },
+  "docs/02-SDD-Architecture/database-design/database-schema.md": {
+    "mtime": 1784823634.3443744,
+    "ast_hash": "87b68836db3f2e916b7c1564b182af9b",
+    "semantic_hash": ""
+  },
+  "docs/02-SDD-Architecture/database-design/database-spec.md": {
+    "mtime": 1784823634.3449163,
+    "ast_hash": "3bbfa490a17de8560669a95024325516",
+    "semantic_hash": ""
+  },
+  "docs/02-SDD-Architecture/feat_flow/README.md": {
+    "mtime": 1784823634.3483975,
+    "ast_hash": "a39301c5c4addd348d8101fce529c86d",
+    "semantic_hash": ""
+  },
+  "docs/02-SDD-Architecture/feat_flow/auth_feature_analysis.md": {
+    "mtime": 1784823634.3483975,
+    "ast_hash": "a70b5332626bd2402dca99060822279d",
+    "semantic_hash": ""
+  },
+  "docs/02-SDD-Architecture/feat_flow/member_360_feature_analysis.md": {
+    "mtime": 1784823634.3483975,
+    "ast_hash": "eae6a913281989e074fc722eae123dd4",
+    "semantic_hash": ""
+  },
+  "docs/02-SDD-Architecture/feat_flow/membership_billing_feature_analysis.md": {
+    "mtime": 1785064475.0901175,
+    "ast_hash": "288cfa24c1500c56f97a15259fe59ac4",
+    "semantic_hash": ""
+  },
+  "docs/02-SDD-Architecture/feat_flow/vnpay_payment_feature_analysis.md": {
+    "mtime": 1785066098.7888124,
+    "ast_hash": "67245260fd0df33e522510d6e8bb726d",
+    "semantic_hash": ""
+  },
+  "docs/02-SDD-Architecture/system-design/system-overview.md": {
+    "mtime": 1784823634.3498442,
+    "ast_hash": "6e1f97ef851515ac9857735db64ec4c6",
+    "semantic_hash": ""
+  },
+  "docs/03-Interface-Specs/feature-specs/001-auth-rbac/plan.md": {
+    "mtime": 1784907683.6720126,
+    "ast_hash": "4a520d2d6538f7bcc69a84d17102e98a",
+    "semantic_hash": ""
+  },
+  "docs/03-Interface-Specs/feature-specs/001-auth-rbac/spec.md": {
+    "mtime": 1784823634.3522518,
+    "ast_hash": "e4cbad316dab2eda7f501b1860751f58",
+    "semantic_hash": ""
+  },
+  "docs/03-Interface-Specs/feature-specs/001-auth-rbac/tasks.md": {
+    "mtime": 1784907683.6720126,
+    "ast_hash": "c7da4ecc96155b84867ea6ca5370b6ed",
+    "semantic_hash": ""
+  },
+  "docs/03-Interface-Specs/feature-specs/002-member-management/plan.md": {
+    "mtime": 1784907683.6759803,
+    "ast_hash": "d5e6ea33163905e116df358753610565",
+    "semantic_hash": ""
+  },
+  "docs/03-Interface-Specs/feature-specs/002-member-management/spec.md": {
+    "mtime": 1784907683.676994,
+    "ast_hash": "1bbcf46a5dabead6088ee99a2bb51074",
+    "semantic_hash": ""
+  },
+  "docs/03-Interface-Specs/feature-specs/002-member-management/tasks.md": {
+    "mtime": 1784907683.6780481,
+    "ast_hash": "af07514c0ab969b231eb85b89665aa08",
+    "semantic_hash": ""
+  },
+  "docs/03-Interface-Specs/feature-specs/003-membership-billing/plan.md": {
+    "mtime": 1785064399.7720885,
+    "ast_hash": "cb42600d9bb18c0e9c703849e20243c8",
+    "semantic_hash": ""
+  },
+  "docs/03-Interface-Specs/feature-specs/003-membership-billing/spec.md": {
+    "mtime": 1785064396.802691,
+    "ast_hash": "3a55879c214470b714dcea90f77d7629",
+    "semantic_hash": ""
+  },
+  "docs/03-Interface-Specs/feature-specs/003-membership-billing/tasks.md": {
+    "mtime": 1785064402.5082397,
+    "ast_hash": "06c9d88db6e5f954604facdc1881e89c",
+    "semantic_hash": ""
+  },
+  "docs/03-Interface-Specs/feature-specs/004-checkin/plan.md": {
+    "mtime": 1784907683.6830003,
+    "ast_hash": "2a8a7c1f95053d4e6fe194f21702d512",
+    "semantic_hash": ""
+  },
+  "docs/03-Interface-Specs/feature-specs/004-checkin/spec.md": {
+    "mtime": 1784823634.3557856,
+    "ast_hash": "43002bdcde3d5e3f006ead99e821a259",
+    "semantic_hash": ""
+  },
+  "docs/03-Interface-Specs/feature-specs/004-checkin/tasks.md": {
+    "mtime": 1784907683.6840856,
+    "ast_hash": "afab992b450471cfbadbf5c828773eb7",
+    "semantic_hash": ""
+  },
+  "docs/03-Interface-Specs/feature-specs/005-pt-training/plan.md": {
+    "mtime": 1784907683.6840856,
+    "ast_hash": "ca3a4f82200bb219d7d8c1c89adc1b33",
+    "semantic_hash": ""
+  },
+  "docs/03-Interface-Specs/feature-specs/005-pt-training/spec.md": {
+    "mtime": 1784823634.3572059,
+    "ast_hash": "510df8d036f8755065d9a6e161d7af5a",
+    "semantic_hash": ""
+  },
+  "docs/03-Interface-Specs/feature-specs/005-pt-training/tasks.md": {
+    "mtime": 1784907683.6840856,
+    "ast_hash": "74f00f28cba29cb76168961ef4d6094f",
+    "semantic_hash": ""
+  },
+  "docs/03-Interface-Specs/feature-specs/006-progress-tracking/plan.md": {
+    "mtime": 1784907683.6840856,
+    "ast_hash": "4c7472cf445e3e7aa3d764ae80d7c58d",
+    "semantic_hash": ""
+  },
+  "docs/03-Interface-Specs/feature-specs/006-progress-tracking/spec.md": {
+    "mtime": 1784823634.35961,
+    "ast_hash": "9170cf9f12a7ce9211f921fc306a0715",
+    "semantic_hash": ""
+  },
+  "docs/03-Interface-Specs/feature-specs/006-progress-tracking/tasks.md": {
+    "mtime": 1784907683.6840856,
+    "ast_hash": "1923fea29609239fb9dcbd7bcdfa9411",
+    "semantic_hash": ""
+  },
+  "docs/03-Interface-Specs/feature-specs/007-nutrition-calorie/plan.md": {
+    "mtime": 1784907683.6840856,
+    "ast_hash": "41c7557f0d43efd9ad57583ea00341da",
+    "semantic_hash": ""
+  },
+  "docs/03-Interface-Specs/feature-specs/007-nutrition-calorie/spec.md": {
+    "mtime": 1784823634.3616827,
+    "ast_hash": "5f92cfd82c311e90314fe804dabd5157",
+    "semantic_hash": ""
+  },
+  "docs/03-Interface-Specs/feature-specs/007-nutrition-calorie/tasks.md": {
+    "mtime": 1784907683.6901803,
+    "ast_hash": "a2d7a3486f7e444c68cf7b46f9448628",
+    "semantic_hash": ""
+  },
+  "docs/03-Interface-Specs/feature-specs/008-dashboard-audit/plan.md": {
+    "mtime": 1784907683.6901803,
+    "ast_hash": "02d211c274b8659b2fc1f86e01f785fb",
+    "semantic_hash": ""
+  },
+  "docs/03-Interface-Specs/feature-specs/008-dashboard-audit/spec.md": {
+    "mtime": 1784823634.3641224,
+    "ast_hash": "ed93afbf1058ed51de5c8e84f4e48fc3",
+    "semantic_hash": ""
+  },
+  "docs/03-Interface-Specs/feature-specs/008-dashboard-audit/tasks.md": {
+    "mtime": 1784907683.6901803,
+    "ast_hash": "a540d607ff1a3a2e821ba662d862f4a2",
+    "semantic_hash": ""
+  },
+  "docs/03-Interface-Specs/feature-specs/009-image-food-recognition/plan.md": {
+    "mtime": 1784907683.6901803,
+    "ast_hash": "61724729d48ca574a11c35c04c9193d9",
+    "semantic_hash": ""
+  },
+  "docs/03-Interface-Specs/feature-specs/009-image-food-recognition/spec.md": {
+    "mtime": 1784823634.3671095,
+    "ast_hash": "03b47d1d31e7100bb6999d08ee285d9b",
+    "semantic_hash": ""
+  },
+  "docs/03-Interface-Specs/feature-specs/009-image-food-recognition/tasks.md": {
+    "mtime": 1784907683.6901803,
+    "ast_hash": "b4ad0eb2219bf6f51c507dce8ec04662",
+    "semantic_hash": ""
+  },
+  "docs/03-Interface-Specs/feature-specs/010-online-payment-vnpay/plan.md": {
+    "mtime": 1785064408.0463536,
+    "ast_hash": "4174336bf146ee12b89823ae286b7634",
+    "semantic_hash": ""
+  },
+  "docs/03-Interface-Specs/feature-specs/010-online-payment-vnpay/spec.md": {
+    "mtime": 1785066096.3068335,
+    "ast_hash": "b3df60b39ad4e36120c131a8a1f0d811",
+    "semantic_hash": ""
+  },
+  "docs/03-Interface-Specs/feature-specs/010-online-payment-vnpay/tasks.md": {
+    "mtime": 1785064410.7278538,
+    "ast_hash": "c94febfd3706a9465c024e55a0a0634d",
+    "semantic_hash": ""
+  },
+  "docs/03-Interface-Specs/feature-specs/BACKLOG.md": {
+    "mtime": 1784907683.697522,
+    "ast_hash": "219eee1de958137ee40b51f648d05781",
+    "semantic_hash": ""
+  },
+  "docs/03-Interface-Specs/feature-specs/README.md": {
+    "mtime": 1784907683.697522,
+    "ast_hash": "0c9143d7625e868878cd64a2fc2da73e",
+    "semantic_hash": ""
+  },
+  "docs/03-Interface-Specs/feature-specs/SECONDARY_BACKLOG.md": {
+    "mtime": 1784823634.3722923,
+    "ast_hash": "be87e810e94d7cf211e37d9aa3a90e4d",
+    "semantic_hash": ""
+  },
+  "docs/04-Test-Specs/test-plan.md": {
+    "mtime": 1784823634.3722923,
+    "ast_hash": "556db06f6e67cf0fce098fb7ecfef8ae",
+    "semantic_hash": ""
+  },
+  "docs/04-Test-Specs/test-report-minh.md": {
+    "mtime": 1784823634.3747113,
+    "ast_hash": "3a0eef8e8679123347878dd0a414fa30",
+    "semantic_hash": ""
+  },
+  "docs/05-Deployment/README.md": {
+    "mtime": 1784823634.3747113,
+    "ast_hash": "701c3991538c86083e5dd6b1aa5195fe",
+    "semantic_hash": ""
+  },
+  "docs/05-Deployment/ci-cd.md": {
+    "mtime": 1784907683.698536,
+    "ast_hash": "c101c73dff733ffc612c056f15c4c989",
+    "semantic_hash": ""
+  },
+  "docs/05-Deployment/deploy-diagram.md": {
+    "mtime": 1784907683.6996033,
+    "ast_hash": "3340ffcbcf0683c51f14c94362de501d",
+    "semantic_hash": ""
+  },
+  "docs/05-Deployment/deploy-gcp.md": {
+    "mtime": 1784823634.37622,
+    "ast_hash": "86082e91b0926848899e19c513863866",
+    "semantic_hash": ""
+  },
+  "docs/05-Deployment/docker.md": {
+    "mtime": 1784907683.70034,
+    "ast_hash": "c88dae321a105e007e939244bef2e2c8",
+    "semantic_hash": ""
+  },
+  "docs/06-Management/agents.md": {
+    "mtime": 1784823634.3776438,
+    "ast_hash": "2db12093ce6d48a8d126f10b4b791969",
+    "semantic_hash": ""
+  },
+  "docs/06-Management/ai-workflow.md": {
+    "mtime": 1784823634.378873,
+    "ast_hash": "0659bb6ae2a1a90940b4792c28840fdb",
+    "semantic_hash": ""
+  },
+  "docs/06-Management/danh-sach-feature.md": {
+    "mtime": 1785064496.3880258,
+    "ast_hash": "3f8840494397f321fb3fb585ea0ed589",
+    "semantic_hash": ""
+  },
+  "docs/06-Management/decision-log.md": {
+    "mtime": 1785064480.4264534,
+    "ast_hash": "0c745cb0c2f3e7fc1f055f42831c4539",
+    "semantic_hash": ""
+  },
+  "docs/06-Management/phan-cong-sds.md": {
+    "mtime": 1784823634.382081,
+    "ast_hash": "5a058dab627c27346bae1810051210de",
+    "semantic_hash": ""
+  },
+  "docs/06-Management/phan-cong-ve-anh.md": {
+    "mtime": 1784823634.382081,
+    "ast_hash": "cb96e6f23dbfca2d9aeced4936e0f087",
+    "semantic_hash": ""
+  },
+  "docs/06-Management/phan-cong.md": {
+    "mtime": 1785064499.100536,
+    "ast_hash": "da90b67cb9707333af3ed6670ab95c84",
+    "semantic_hash": ""
+  },
+  "docs/06-Management/prompt-library.md": {
+    "mtime": 1784823634.3830898,
+    "ast_hash": "f6ae5f8006a099561cb099f875dd5ba5",
+    "semantic_hash": ""
+  },
+  "docs/06-Management/team-workflow.md": {
+    "mtime": 1784823634.3840907,
+    "ast_hash": "95fad5adcb792424a386f4c46f312654",
+    "semantic_hash": ""
+  },
+  "docs/07-Doc-Final/README.md": {
+    "mtime": 1784907683.9279113,
+    "ast_hash": "a7347c36d430994b4f1d5a3d85d3ba01",
+    "semantic_hash": ""
+  },
+  "docs/07-Doc-Final/SHA256SUMS.txt": {
+    "mtime": 1784907683.9279113,
+    "ast_hash": "dda4a53ca4f1dbcccfadbe96c4df5d49",
+    "semantic_hash": ""
+  },
+  "docs/README.md": {
+    "mtime": 1784907683.9297998,
+    "ast_hash": "39b88bfc36ead7a76265a96d732c3c6e",
+    "semantic_hash": ""
+  },
+  "docs/archive/06_FEATURE_SPECS.md": {
+    "mtime": 1784907683.9308102,
+    "ast_hash": "14da9e76a687af3c1380c55795394e44",
+    "semantic_hash": ""
+  },
+  "docs/archive/08_TASKS_BACKLOG.md": {
+    "mtime": 1784907683.9318094,
+    "ast_hash": "f8ccfee2f7d04e0c0d5b5259a55556e6",
+    "semantic_hash": ""
+  },
+  "docs/archive/CHANGELOG_vs_old_spec.md": {
+    "mtime": 1784823634.3850946,
+    "ast_hash": "d0dcb5ea16425e8372cb95fe86a6a04e",
+    "semantic_hash": ""
+  },
+  "docs/archive/DB_DIFF_FOR_DBTEAM.md": {
+    "mtime": 1784823634.386088,
+    "ast_hash": "63b51771760863f865b01b3617196136",
+    "semantic_hash": ""
+  },
+  "docs/archive/GymMaster_Full_Docs_Review_Pack.md": {
+    "mtime": 1784823634.3871968,
+    "ast_hash": "bddfd434e3abfab8a3cde56c52404b3a",
+    "semantic_hash": ""
+  },
+  "docs/archive/MANIFEST.md": {
+    "mtime": 1784823634.3884146,
+    "ast_hash": "757af6c8d3b64252b064a00129615cad",
+    "semantic_hash": ""
+  },
+  "tests/blackbox/README.md": {
+    "mtime": 1784754019.2077496,
+    "ast_hash": "0119de80a3913afc47e56c7e90700459",
+    "semantic_hash": ""
+  },
+  "tests/blackbox/TEST_MATRIX.md": {
+    "mtime": 1784754019.2087998,
+    "ast_hash": "acdaef5dfeea3c1a5464123c681bab8b",
+    "semantic_hash": ""
   }
 }

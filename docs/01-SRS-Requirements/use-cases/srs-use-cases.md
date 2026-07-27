@@ -31,8 +31,8 @@
 | UC-04 | Manage Member Profiles | Admin/Staff | High |
 | UC-05 | Manage PT Profiles | Admin | High |
 | UC-06 | Manage Membership Packages | Admin | High |
-| UC-07 | Sell Membership Package | Admin/Staff | High |
-| UC-08 | Renew Membership Package | Admin/Staff/Member | High |
+| UC-07 | Sell Membership Package | Staff | High |
+| UC-08 | Renew Membership Package | Staff/Member | High |
 | UC-09 | Check-in | Member/Admin/Staff | High |
 | UC-10 | Assign PT to Member | Admin | High |
 | UC-11 | View Assigned Members | PT | High |
@@ -50,7 +50,7 @@
 | UC-23 | View Audit Logs | Admin | Medium |
 | UC-25 | Basic In-app Reminder | System/Member | ~~Removed~~ (đã gỡ khỏi phạm vi) |
 | UC-26 | Image Food Recognition Assist (Gemini AI) | Member | Enhancement (đã làm) |
-| UC-27 | Online Payment via VNPay (sandbox, IPN auto-activate) | Member/Admin/Staff | High (đã làm — spec 010) |
+| UC-27 | Online Payment via VNPay (sandbox, IPN auto-activate) | Member/Staff | High (đã làm — spec 010) |
 | UC-28 | Cancel Membership (đơn Pending / gói Active) | Member/Admin/Staff | Medium (đã làm — spec 003) |
 | UC-29 | Self-service hồ sơ + avatar (Cloudinary) | All | Medium (đã làm — spec 002) |
 
@@ -169,25 +169,25 @@
 | Field | Content |
 |---|---|
 | Objective | Bán gói tập cho hội viên. |
-| Actors | Admin, Staff |
+| Actors | Staff |
 | Pre-condition | Hội viên & gói tồn tại. |
-| Post-condition | Membership + payment được tạo. |
+| Post-condition | Membership `PendingPayment` được tạo hoặc tái sử dụng. |
 
-**Main Flow:** tìm Member → chọn gói → hiển thị giá/thời hạn → xác nhận → tạo Payment → tạo Membership → ghi AuditLog.
+**Main Flow:** Staff tìm Member → chọn gói → hiển thị giá/thời hạn → xác nhận → tạo Membership `PendingPayment` → ghi AuditLog. Payment chỉ được ghi khi Staff xác nhận thu tiền hoặc khi VNPay khởi tạo/thành công.
 **Exception Flow:** Gói inactive → không bán; Member locked → không bán; chưa thanh toán → Membership `PendingPayment`.
-**Acceptance Criteria:** Bán gói tạo payment + membership; audit log ghi; dashboard lấy được dữ liệu.
+**Acceptance Criteria:** Staff bán gói tạo membership chờ thanh toán; Admin gọi API bán gói bị 403; audit log ghi; dashboard lấy được dữ liệu.
 
 ## UC-08 — Renew Membership Package
 | Field | Content |
 |---|---|
 | Objective | Gia hạn gói tập. |
-| Actors | Admin, Staff, Member (gửi yêu cầu) |
+| Actors | Staff, Member (gửi yêu cầu) |
 | Pre-condition | Member có tài khoản + lịch sử membership. |
 | Post-condition | Membership gia hạn hoặc tạo mới. |
 
-**Main Flow:** mở membership → hiển thị ngày hết hạn → chọn gói gia hạn → tính thời hạn mới (nối tiếp EndDate cũ) → xác nhận → tạo Renewal/Payment → cập nhật membership.
+**Main Flow:** Staff mở membership → hiển thị ngày hết hạn → chọn gói gia hạn → tính thời hạn mới (nối tiếp EndDate cũ) → xác nhận → ghi Payment → cập nhật membership. Member chỉ gửi yêu cầu gia hạn để tạo đơn `PendingPayment`, sau đó thanh toán qua VNPay hoặc được Staff xử lý tại quầy.
 **Exception Flow:** Payment chưa hoàn tất → không active; gói không tồn tại → lỗi; tài khoản khóa → không cho gia hạn.
-**Acceptance Criteria:** Gia hạn cập nhật ngày hết hạn; có payment/renewal record; có audit log nếu Admin/Staff thực hiện.
+**Acceptance Criteria:** Gia hạn cập nhật ngày hết hạn; có payment/renewal record; có audit log nếu Staff thực hiện; Admin gọi API gia hạn/xác nhận payment bị 403.
 
 ## UC-09 — Check-in
 | Field | Content |
@@ -410,7 +410,7 @@
 | Field | Content |
 |---|---|
 | Objective | Hội viên thanh toán gói tập trực tuyến qua VNPay (sandbox); hệ thống tự kích hoạt membership khi VNPay xác nhận. |
-| Actors | Member (thanh toán), Admin/Staff (theo dõi), VNPay (hệ thống ngoài) |
+| Actors | Member (thanh toán gói của mình), Staff (có thể khởi tạo thay), Admin (chỉ theo dõi), VNPay (hệ thống ngoài) |
 | Trigger | Hội viên chọn thanh toán online ở màn Mua/Gia hạn gói. |
 | Pre-condition | Đăng nhập; đã có membership ở trạng thái chờ thanh toán; VNPay đã được cấu hình (`TmnCode`, `HashSecret`, `ReturnUrl`). |
 | Post-condition | Thanh toán được ghi nhận và membership chuyển sang Active — **kể cả khi hội viên đóng trình duyệt giữa chừng**. |
